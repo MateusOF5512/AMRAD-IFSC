@@ -1,0 +1,88 @@
+/**
+ * Fetch wrapper para chamadas à API no browser e no servidor Next.js.
+ * Em desenvolvimento com HTTPS self-signed, usa agente Node apenas no servidor.
+ */
+
+interface FetchOptions extends RequestInit {
+  timeout?: number
+}
+
+function isDevHttps(url: string): boolean {
+  const base = process.env.NEXT_PUBLIC_API_URL || ''
+  return (
+    process.env.NODE_ENV === 'development' &&
+    url.startsWith('https://') &&
+    (base.startsWith('https://') ||
+      base.includes('localhost') ||
+      base.includes('127.0.0.1'))
+  )
+}
+
+/**
+ * Mensagem amigável para erros de rede comuns no wizard/formulários.
+ */
+export function formatFetchError(error: unknown, apiUrl?: string): string {
+  const base = apiUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+  if (error instanceof TypeError) {
+    const msg = error.message.toLowerCase()
+    if (msg.includes('failed to fetch') || msg.includes('network')) {
+      return (
+        `Não foi possível conectar ao servidor da API (${base}). ` +
+        'Confirme que o backend está rodando e que NEXT_PUBLIC_API_URL está correto no .env.local.'
+      )
+    }
+  }
+
+  if (error instanceof Error) return error.message
+  return 'Erro de comunicação com o servidor'
+}
+
+export async function fetchWithAgent(
+  url: string,
+  options: FetchOptions = {}
+): Promise<Response> {
+  try {
+    if (typeof window === 'undefined' && isDevHttps(url)) {
+      const https = await import('https')
+      const httpsAgent = new https.Agent({
+        rejectUnauthorized: false,
+        keepAlive: true,
+      })
+
+      return fetch(url, {
+        ...options,
+        // @ts-expect-error — agent suportado no fetch do Node 18+
+        agent: httpsAgent,
+      })
+    }
+
+    return fetch(url, options)
+  } catch (error) {
+    console.error('Fetch error:', error, 'URL:', url)
+    throw new Error(formatFetchError(error, url))
+  }
+}
+
+export function createApiHeaders(): HeadersInit {
+  return {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+}
+
+export async function apiCall<T>(url: string, options: FetchOptions = {}): Promise<T> {
+  const response = await fetchWithAgent(url, {
+    headers: createApiHeaders(),
+    ...options,
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }))
+    const errorMessage =
+      errorData?.detail || `HTTP ${response.status}: ${response.statusText}`
+    throw new Error(errorMessage)
+  }
+
+  return response.json() as Promise<T>
+}

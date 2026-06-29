@@ -1,0 +1,1608 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filters",
+    "apply": "Apply",
+    "clear": "Clear",
+    "view": "View",
+    "yes": "Yes",
+    "no": "No",
+    "na": "N/A",
+    "retry": "Try Again",
+    "saving": "Saving...",
+    "confirming": "Confirming...",
+    "processing": "Processing...",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "institution": "Institution",
+    "createdAt": "Created At",
+    "filters": "Filters",
+    "all": "All",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "status": {
+      "approved": "Approved",
+      "submitted": "Submitted",
+      "under_review": "Under Review",
+      "needs_adjustment": "Needs Adjustment",
+      "in_analysis": "In Analysis",
+      "unknown": "Unknown",
+      "complete": "Complete",
+      "regular": "Regular",
+      "irregular": "Irregular",
+      "disabled": "Disabled"
+    },
+    "roles": {
+      "admin": "Admin",
+      "researcher": "Researcher",
+      "administrator": "Administrator"
+    },
+    "boolean": {
+      "true": "Yes",
+      "false": "No"
+    }
+  },
+  "meta": {
+    "title": "ION3D Platform",
+    "description": "Scientific experiment management system for 3D printed materials"
+  },
+  "nav": {
+    "allExperiments": "All Experiments",
+    "myExperiments": "My Experiments",
+    "advancedSettings": "Advanced Settings",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register"
+  },
+  "footer": {
+    "about": {
+      "title": "About the Platform",
+      "description": "ION3D is a scientific platform dedicated to the management and analysis of experiments with 3D printed materials, providing advanced tools for research and documentation."
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "exploreExperiments": "Explore Experiments",
+      "myExperiments": "My Experiments",
+      "newExperiment": "New Experiment",
+      "settings": "Settings"
+    },
+    "whoWeAre": {
+      "title": "Who We Are",
+      "aboutProject": "About the Project",
+      "ourMission": "Our Mission",
+      "scientificResources": "Scientific Resources",
+      "blogAndArticles": "Blog and Articles"
+    },
+    "support": {
+      "title": "Support",
+      "email": "support@ion3d.com",
+      "location": "São Paulo, Brazil",
+      "helpCenter": "Help Center"
+    },
+    "rights": "© {{year}} ION3D Platform. All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms of Use",
+    "cookies": "Cookies"
+  },
+  "home": {
+    "hero": {
+      "description": "Collaborative platform to centralize, share and analyze experiments with 3D printed materials under ionizing radiation.",
+      "exploreButton": "Explore Experiments"
+    },
+    "stats": {
+      "registeredExperiments": "Registered Experiments",
+      "activeResearchers": "Active Researchers",
+      "participatingInstitutions": "Participating Institutions"
+    },
+    "features": {
+      "title": "How It Works",
+      "registerTitle": "Register Experiments",
+      "registerDesc": "Document all the details of your experiments, from materials to results",
+      "collaborateTitle": "Collaborate with Peers",
+      "collaborateDesc": "Share data and insights with other researchers in your community",
+      "trackTitle": "Track Progress",
+      "trackDesc": "View research statistics and trends in real time"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "ION3D Platform",
+      "subtitle": "Sign in to your account",
+      "emailOrInstagram": "Email or Instagram",
+      "password": "Password",
+      "loginButton": "Sign In",
+      "loggingIn": "Signing in...",
+      "noAccount": "Don't have an account? ",
+      "registerLink": "Register",
+      "errors": {
+        "emailRequired": "Email or Instagram is required",
+        "passwordRequired": "Password is required",
+        "invalidCredentials": "Invalid email/Instagram or password",
+        "invalidResponse": "Invalid server response: token not received",
+        "loginError": "Login error"
+      }
+    },
+    "register": {
+      "title": "ION3D Platform",
+      "subtitle": "Register as a researcher",
+      "fullName": "Full Name *",
+      "institution": "Institution *",
+      "email": "Email *",
+      "phone": "Phone (numbers only) *",
+      "instagram": "Instagram (optional)",
+      "country": "Country *",
+      "language": "Language *",
+      "password": "Password *",
+      "confirmPassword": "Confirm Password *",
+      "placeholders": {
+        "fullName": "Ex: John Smith",
+        "institution": "Ex: MIT, Stanford, Harvard",
+        "email": "your@email.com",
+        "phone": "11999999999",
+        "instagram": "your_username",
+        "selectCountry": "Select a country",
+        "selectLanguage": "Select a language",
+        "password": "Minimum 8 characters",
+        "confirmPassword": "Confirm your password"
+      },
+      "createButton": "Create Account",
+      "creating": "Creating account...",
+      "success": "Account created successfully! Redirecting to login...",
+      "errors": {
+        "nameRequired": "Full name is required",
+        "institutionRequired": "Institution is required",
+        "invalidEmail": "Invalid email",
+        "invalidPhone": "Invalid phone (minimum 8 digits)",
+        "phoneNumbersOnly": "Phone must contain only numbers",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordMismatch": "Passwords do not match",
+        "countryRequired": "Country is required",
+        "languageRequired": "Language is required",
+        "createError": "Error creating account",
+        "createErrorRetry": "Error creating account. Please try again."
+      },
+      "alreadyHaveAccount": "Already have an account? ",
+      "signIn": "Sign in"
+    },
+    "session": {
+      "expired": "Session Expired",
+      "expiredMessage": "Your session has expired. Please log in again to continue.",
+      "loginAgain": "Log In Again"
+    }
+  },
+  "countries": {
+    "brasil": "Brazil",
+    "portugal": "Portugal",
+    "angola": "Angola",
+    "mozambique": "Mozambique",
+    "capeVerde": "Cape Verde",
+    "timorLeste": "Timor-Leste",
+    "guineaBissau": "Guinea-Bissau",
+    "saoTomePrincipe": "São Tomé and Príncipe",
+    "unitedStates": "United States",
+    "canada": "Canada",
+    "unitedKingdom": "United Kingdom",
+    "ireland": "Ireland",
+    "germany": "Germany",
+    "france": "France",
+    "italy": "Italy",
+    "spain": "Spain",
+    "sweden": "Sweden",
+    "norway": "Norway",
+    "denmark": "Denmark",
+    "netherlands": "Netherlands",
+    "belgium": "Belgium",
+    "switzerland": "Switzerland",
+    "austria": "Austria",
+    "poland": "Poland",
+    "czechRepublic": "Czech Republic",
+    "hungary": "Hungary",
+    "romania": "Romania",
+    "greece": "Greece",
+    "turkey": "Turkey",
+    "russia": "Russia",
+    "ukraine": "Ukraine",
+    "japan": "Japan",
+    "china": "China",
+    "india": "India",
+    "singapore": "Singapore",
+    "australia": "Australia",
+    "newZealand": "New Zealand",
+    "mexico": "Mexico",
+    "argentina": "Argentina",
+    "chile": "Chile",
+    "colombia": "Colombia",
+    "peru": "Peru",
+    "vietnam": "Vietnam",
+    "thailand": "Thailand",
+    "malaysia": "Malaysia",
+    "indonesia": "Indonesia",
+    "philippines": "Philippines",
+    "other": "Other"
+  },
+  "languages": {
+    "portuguese": "Portuguese",
+    "english": "English"
+  },
+  "dashboard": {
+    "title": "My Experiments",
+    "subtitle": "Total of {{count}} experiment(s)",
+    "newExperiment": "New Experiment",
+    "loading": "Loading experiments...",
+    "loadError": "Error loading experiments: {{error}}",
+    "deleteConfirm": "Are you sure you want to delete this experiment?",
+    "empty": {
+      "title": "No experiments",
+      "description": "You haven't registered any experiments yet. Create a new one to get started."
+    },
+    "stats": {
+      "registered": "Registered Experiments",
+      "materials": "Different Materials",
+      "machines": "Different Machines"
+    },
+    "table": {
+      "title": "My Experiments",
+      "count": "{{count}} experiments",
+      "columns": {
+        "index": "Index",
+        "date": "Date",
+        "material": "Material",
+        "machine": "Machine",
+        "format": "Format",
+        "status": "Status",
+        "actions": "Actions"
+      }
+    }
+  },
+  "admin": {
+    "legacy": {
+      "title": "🛡️ Admin Panel",
+      "subtitle": "Manage users and permissions",
+      "stats": {
+        "totalUsers": "Total Users",
+        "administrators": "Administrators",
+        "researchers": "Researchers"
+      },
+      "roleForm": {
+        "title": "Change Access Level",
+        "userId": "User ID",
+        "newAccess": "New Access",
+        "userIdPlaceholder": "Paste the user UUID",
+        "researcher": "Researcher",
+        "administrator": "Administrator",
+        "updateButton": "Update Permissions"
+      },
+      "deleteForm": {
+        "title": "🗑️ Delete User",
+        "userId": "User ID for Deletion",
+        "warning": "⚠️ This action is irreversible. Use with caution.",
+        "deleteButton": "Delete User",
+        "confirm": "Are you sure you want to delete this user? This action is irreversible."
+      },
+      "userList": {
+        "title": "User List",
+        "searchPlaceholder": "Search by name, email or institution...",
+        "adminFilter": "🛡️ Admin",
+        "researcherFilter": "👨‍🔬 Researcher",
+        "columns": {
+          "name": "Name",
+          "email": "Email",
+          "institution": "Institution",
+          "type": "Type",
+          "phone": "Phone",
+          "id": "ID"
+        },
+        "empty": "No users found"
+      },
+      "help": {
+        "title": "💡 How to use"
+      },
+      "alerts": {
+        "userUpdated": "User updated to {{role}}",
+        "userDeleted": "User deleted successfully",
+        "updateError": "Error updating user",
+        "deleteError": "Error deleting user",
+        "loadError": "Error loading users: {{error}}"
+      }
+    },
+    "advanced": {
+      "title": "Advanced Settings",
+      "adminBadge": "Administrator Mode - {{email}}",
+      "subtitle": "Manage system settings, users and security. Access restricted to administrators.",
+      "restrictedWarning": {
+        "title": "⚠️ Restricted Access",
+        "message": "This page and all administration features are exclusive to administrator users. Any unauthorized access is logged and may result in legal action."
+      },
+      "errors": {
+        "sessionExpired": "Your session has expired. Please login again.",
+        "checkingSystemHealth": "Error checking system health",
+        "verifyConnection": "Check your connection to the server"
+      },
+      "tabs": {
+        "experiments": "Experiments",
+        "users": "Users",
+        "admins": "Administrators",
+        "database": "Database",
+        "system": "System"
+      },
+      "experimentsTab": {
+        "title": "Manage Experiments",
+        "description": "View, monitor and manage all experiments created in the system. Click any row to select an experiment and adjust its status. Track status, results and execution history.",
+        "statusCounters": {
+          "submitted": "Submitted",
+          "adjustment": "Adjustment",
+          "underReview": "Under Review",
+          "approved": "Approved"
+        },
+        "tables": {
+          "underAnalysis": "Experiments Under Analysis",
+          "approved": "Approved Experiments"
+        },
+        "empty": {
+          "underAnalysis": "No experiments under analysis",
+          "approved": "No approved experiments"
+        },
+        "columns": {
+          "index": "Index",
+          "status": "Status",
+          "date": "Date",
+          "researcher": "Researcher",
+          "material": "Material",
+          "machine": "Machine",
+          "sample": "Sample",
+          "infill": "Infill (HU)",
+          "data": "Data",
+          "details": "Details"
+        },
+        "viewDetail": "View",
+        "viewDetailTitle": "View full experiment details",
+        "history": {
+          "title": "Manage Experiment Status",
+          "description": "View the complete history of status changes for all experiments. Use the filters below to search for specific records.",
+          "filters": {
+            "title": "Filters",
+            "oldStatus": "Previous Status",
+            "newStatus": "New Status",
+            "changedByName": "Changed By (Name)",
+            "changedByRole": "Changed By (Role)",
+            "startDate": "Start Date",
+            "endDate": "End Date",
+            "enterName": "Type the name...",
+            "allRoles": "All Roles",
+            "initial": "Initial (None)"
+          },
+          "search": "Search",
+          "searching": "Searching...",
+          "clearFilters": "Clear Filters",
+          "columns": {
+            "index": "Index",
+            "oldStatus": "Previous Status",
+            "newStatus": "New Status",
+            "changedBy": "Changed By",
+            "role": "Role",
+            "comment": "Comment",
+            "dateTime": "Date/Time"
+          },
+          "noRecords": "No records found"
+        },
+        "detailsModal": {
+          "title": "📋 Complete Experiment Report",
+          "subtitle": "All information and collected data",
+          "loading": "Loading experiment details...",
+          "basicInfo": "📌 Basic Experiment Information",
+          "editStatus": "🎯 Edit Experiment Status:",
+          "commentLabel": "💬 Comment (Optional)",
+          "commentPlaceholder": "Add a comment about this status change (feedback, reason, instructions for researcher, etc.)",
+          "commentHint": "The comment will be recorded in the status change history",
+          "noTransitions": "ℹ️ No status transitions available for the current state."
+        }
+      },
+      "usersTab": {
+        "title": "Manage Users",
+        "description": "Analysis and status control of all platform users. You can manually change a user's status using the form below.",
+        "regularUsers": "Regular Users",
+        "irregularUsers": "Irregular Users",
+        "deactivatedUsers": "Deactivated Users",
+        "userSingular": "user",
+        "userPlural": "users",
+        "loading": "Loading users...",
+        "updateStatusTitle": "Update Status Manually",
+        "updateFormHint": "Use the form below to change a user's status. You can also click any user in the table above.",
+        "openForm": "Open Update Form",
+        "loadingError": "Error loading users",
+        "loadingAdminsError": "Error loading administrators",
+        "loadingExperimentsError": "Error loading experiments",
+        "userDetailsModal": {
+          "title": "Researcher Details",
+          "subtitle": "Complete registration information and activities",
+          "basicInfo": "Basic Information",
+          "institutionalInfo": "Institutional Information",
+          "activities": "Activities",
+          "experimentsCreated": "Experiments Created",
+          "memberSince": "Member Since"
+        },
+        "sections": {
+          "regular": "Regular Users",
+          "irregular": "Irregular Users",
+          "disabled": "Disabled Users"
+        }
+      },
+      "adminsTab": {
+        "title": "Manage Administrators",
+        "description": "Manage system administrators and change user permissions to administrator or researcher.",
+        "adminsCount": "Administrators ({{count}})",
+        "editPermissions": "Edit Permissions",
+        "promoteTitle": "Promote Researcher to Administrator",
+        "promoteHint": "Use the form below to promote a regular researcher to administrator.",
+        "openForm": "Open Update Form",
+        "loading": "Loading administrators...",
+        "noAdminsFound": "No administrators found",
+        "experiments": "Experiments"
+      },
+      "databaseTab": {
+        "title": "Manage Database",
+        "description": "Perform backups, check integrity and optimize the database. All operations must be performed carefully to avoid data loss.",
+        "integrity": {
+          "title": "Database Integrity",
+          "description": "Check and repair database integrity issues",
+          "button": "Check Integrity",
+          "checking": "Checking...",
+          "modalTitle": "Database Integrity",
+          "connectionStatus": "Connection Status",
+          "generalHealth": "General Health",
+          "tablesStatus": "Tables Status ({{count}})",
+          "verifiedAt": "Verified at: {{date}}",
+          "checkAgain": "Check Again",
+          "connected": "✅ Connected",
+          "disconnected": "❌ Disconnected",
+          "intact": "✅ Intact",
+          "withWarnings": "⚠️ With Warnings",
+          "withErrors": "❌ Error"
+        },
+        "backup": {
+          "title": "Data Backup",
+          "description": "Export all platform information for backup",
+          "button": "Export All Data",
+          "exporting": "Exporting..."
+        },
+        "dangerZone": {
+          "truncateCard": {
+            "title": "Delete Experimental Data",
+            "description": "Removes materials, experiments and measurements. User accounts are preserved. Requires password confirmation."
+          },
+          "seedCard": {
+            "title": "Populate Test Data",
+            "description": "Adds 5 complete experiments (infill, attenuation, beam qualities and mechanical properties). Can be run multiple times to aggregate more data."
+          },
+          "checkingStatus": "Checking database state...",
+          "recordCount": "{{count}} experiments in database (each click adds 5 more).",
+          "truncateButton": "Delete Database",
+          "seedButton": "Populate Database",
+          "truncating": "Deleting...",
+          "seeding": "Seeding...",
+          "truncateSuccess": "Experimental data deleted successfully.",
+          "seedSuccess": "5 complete experiments added successfully.",
+          "truncateError": "Failed to delete experimental data.",
+          "seedError": "Failed to populate database.",
+          "statusError": "Could not check database state.",
+          "truncateConfirmDescription": "This permanently removes all materials, experiments and measurements. Enter your password to confirm."
+        }
+      },
+      "systemTab": {
+        "title": "System Monitoring",
+        "description": "View system activity history, filter by category, severity and date for detailed analysis.",
+        "filters": {
+          "title": "🔍 Filters",
+          "entityPlaceholder": "Entity Name",
+          "entityName": "Entity Name",
+          "allCategories": "All Categories",
+          "create": "Create",
+          "update": "Update",
+          "delete": "Delete",
+          "statusChange": "Status Change",
+          "auth": "Authentication",
+          "error": "Error",
+          "allSeverities": "All Severities",
+          "info": "Information",
+          "warning": "Warning",
+          "critical": "Critical",
+          "apply": "Apply Filters",
+          "clear": "Clear Filters"
+        },
+        "table": {
+          "title": "System Logs",
+          "loading": "Loading logs...",
+          "noLogs": "No logs found with the applied filters.",
+          "error": "Error loading",
+          "columns": {
+            "dateTime": "Date/Time",
+            "category": "Category",
+            "severity": "Severity",
+            "actionType": "Action Type",
+            "description": "Description",
+            "user": "User"
+          }
+        },
+        "systemHealth": {
+          "title": "System Health",
+          "modalTitle": "System Health",
+          "description": "Overall system health status",
+          "healthy": "Healthy",
+          "warning": "Warning",
+          "critical": "Critical",
+          "uptime": "Uptime",
+          "diskUsage": "Disk Usage",
+          "memoryUsage": "Memory Usage",
+          "databaseSize": "Database Size",
+          "activeUsers": "Active Users",
+          "requestsPerSecond": "Requests/Second",
+          "averageResponseTime": "Average Response Time",
+          "errorRate": "Error Rate"
+        }
+      }
+    }
+  },
+  "settings": {
+    "title": "Account Settings",
+    "loading": "Loading...",
+    "loadError": "Error loading user data. Please try again.",
+    "sidebar": {
+      "title": "Settings",
+      "personalData": "Personal Data",
+      "system": "System"
+    },
+    "personalData": {
+      "title": "Personal Data",
+      "fields": {
+        "fullName": "Full Name",
+        "institution": "Institution",
+        "email": "Email",
+        "phone": "Phone",
+        "instagram": "Instagram",
+        "country": "Country *",
+        "language": "Language *",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm Password"
+      },
+      "emailNote": "Email cannot be changed",
+      "selectCountry": "Select a country",
+      "selectLanguage": "Select a language",
+      "changePassword": "Change Password",
+      "saveButton": "Save Changes",
+      "success": "Data updated successfully!",
+      "errors": {
+        "countryRequired": "Country is required",
+        "languageRequired": "Language is required",
+        "newPasswordRequired": "New password is required",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordMismatch": "Passwords do not match",
+        "processError": "Error processing data",
+        "updateError": "Error updating data"
+      }
+    },
+    "system": {
+      "title": "Notifications",
+      "emailNotifications": {
+        "label": "Email Notifications",
+        "description": "Receive updates about your experiments by email",
+        "active": "Active",
+        "inactive": "Inactive",
+        "enabledTitle": "Notifications enabled",
+        "enabledDescription": "Notifications about updates to your experiments will be sent by email to your registered address.",
+        "betaNote": "(Note: This is an interface concept. Backend functionality is under development.)"
+      }
+    },
+    "passwordConfirm": {
+      "title": "Confirm your password",
+      "description": "Enter your password to confirm profile changes",
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "cancelButton": "Cancel",
+      "confirmButton": "Confirm",
+      "confirming": "Confirming...",
+      "errors": {
+        "required": "Password is required",
+        "confirmError": "Error confirming password"
+      }
+    }
+  },
+  "experimentWizard": {
+    "checkingAuth": "Checking authentication...",
+    "sections": {
+      "guide": {
+        "name": "Start Guide",
+        "description": "Understand the experiment registration flow"
+      },
+      "materialMachine": {
+        "name": "Material & Machine",
+        "description": "Information about the material and machine used"
+      },
+      "sample": {
+        "name": "Sample",
+        "description": "Sample configuration and geometry"
+      },
+      "infill": {
+        "name": "Infill (Fill)",
+        "description": "Density and fill measurements"
+      },
+      "mechanical": {
+        "name": "Mechanical Properties",
+        "description": "Strength tests and other parameters"
+      },
+      "attenuation": {
+        "name": "Attenuation",
+        "description": "Linear attenuation measurements"
+      },
+      "beamQuality": {
+        "name": "Beam Quality",
+        "description": "Beam analysis according to IEC 61267"
+      },
+      "finalReview": {
+        "name": "Final Review",
+        "description": "Review all information before finalizing"
+      }
+    },
+    "materialMachine": {
+      "materialSection": "⚛️ Material Information",
+      "machineSection": "🔧 Machine Information",
+      "fields": {
+        "brand": "Brand",
+        "model": "Model",
+        "color": "Color",
+        "technology": "Technology"
+      },
+      "placeholders": {
+        "brand": "Ex: Ultimaker",
+        "model": "Ex: PLA 700",
+        "color": "Ex: White"
+      },
+      "loading": "Loading...",
+      "noSuggestions": "No suggestions - Type manually",
+      "isComposite": "Is a composite?",
+      "compositeLabel": "Composite Details",
+      "compositeHint": "Ex: carbon fibers 30%, epoxy resin...",
+      "compositePlaceholder": "Describe the composition (fibers, reinforcements, percentages, etc.)",
+      "technologies": {
+        "other": "Other"
+      },
+      "error": "Fill in all required fields"
+    },
+    "patterns": {
+      "label": "Fill Patterns",
+      "hint": "Select one or more patterns used in the sample",
+      "names": {
+        "rectilinear": "Rectilinear",
+        "grid": "Grid",
+        "line": "Line",
+        "cubic": "Cubic",
+        "triangles": "Triangles",
+        "gyroid": "Gyroid",
+        "honeycomb": "Honeycomb",
+        "cross": "Cross",
+        "3dHoneycomb": "3D Honeycomb",
+        "hilbertCurve": "Hilbert Curve",
+        "octagramSpiral": "Octagram Spiral",
+        "crosshatch": "CrossHatch",
+        "archimedeanChords": "Archimedean Chords"
+      },
+      "descriptions": {
+        "rectilinear": "Rectilinear pattern",
+        "grid": "Grid pattern",
+        "line": "Line pattern",
+        "cubic": "Cubic pattern",
+        "triangles": "Triangular pattern",
+        "gyroid": "Gyroid pattern",
+        "honeycomb": "Honeycomb pattern",
+        "cross": "Cross pattern",
+        "3dHoneycomb": "3D Honeycomb",
+        "hilbertCurve": "Hilbert Curve",
+        "octagramSpiral": "Octagram Spiral",
+        "crosshatch": "Crosshatch pattern",
+        "archimedeanChords": "Archimedean Chords"
+      },
+      "warning": "⚠️ Warning: Select at least one fill pattern.",
+      "infoNote": "ℹ️ Note: If the sample was produced with multiple patterns, select all of them. Each pattern will create a separate record linked to the same experiment.",
+      "autoNote": "The patterns you select here will be used to automatically generate infill forms (40%, 60%, 80% and 100% for each pattern). Fill in each infill data in the next section."
+    },
+    "sample": {
+      "shapeLabel": "Sample Shape *",
+      "shapes": {
+        "cube": "📦 Cube",
+        "cylinder": "🔴 Cylinder",
+        "other": "❓ Other"
+      },
+      "dimensionLabel": "Sample Dimension",
+      "edgeLabel": "Edge (mm)",
+      "radiusLabel": "Radius / Main dimension (mm)",
+      "roiLabel": "Circular ROI Area (mm²)",
+      "roiHint": "Circular region of interest area in mm²",
+      "placeholder": "0.00",
+      "errors": {
+        "noPattern": "Select at least one fill pattern",
+        "fillFields": "Fill in all required fields with valid values",
+        "materialMachineRequired": "Material and Machine are required",
+        "registrationError": "Error registering sample"
+      }
+    },
+    "infill": {
+      "standardTitle": "📊 Standard Infill",
+      "customTitle": "✨ Custom Infill",
+      "huMean": "HU Mean",
+      "customInfillPercent": "Infill (%)",
+      "customHuMean": "HU Mean",
+      "visualHomogeneity": "Visual Homogeneity",
+      "addCustom": "+ Add Custom",
+      "notes": "Notes",
+      "notesPlaceholder": "Add notes about infill measurements...",
+      "error": "Infill % and HU Mean are required"
+    },
+    "mechanical": {
+      "conditionLabel": "Experiment Condition *",
+      "conditions": {
+        "before": "Before Irradiation",
+        "after": "After Irradiation"
+      },
+      "sections": {
+        "traction": "Traction and Rupture",
+        "flexion": "Flexion and Hardness",
+        "impact": "Impact"
+      },
+      "fields": {
+        "tractionModule": "Traction Modulus (MPa)",
+        "tractionResistance": "Tensile Strength (MPa)",
+        "ruptureDeformation": "Rupture Deformation (%)",
+        "flexionModule": "Flexion Modulus (MPa)",
+        "flexionResistance": "Flexural Strength (MPa)",
+        "hardness": "Hardness (Shore A / Rockwell)",
+        "hardnessPlaceholder": "Ex: 75 Shore A",
+        "charpyImpact": "Charpy Impact (KJ/m²)",
+        "izodImpact": "Izod Impact"
+      },
+      "skip": "You will skip mechanical properties registration. You may continue.",
+      "error": "Error registering mechanical properties"
+    },
+    "attenuation": {
+      "title": "Linear Attenuation Measurements",
+      "subtitle": "Lambert-Beer Law",
+      "pqrHint": "Beam Quality / Attenuation (PQR)",
+      "rqrLabel": "Beam energy (RQR)",
+      "i0Label": "Initial value I₀ (no barrier)",
+      "measurementsTitle": "Thicknesses and transmissions",
+      "thicknessLabel": "Thickness (mm)",
+      "transmissionLabel": "Transmission",
+      "addThickness": "Add Thickness",
+      "addRqrTest": "Add test (another RQR energy)",
+      "testLabel": "Test {{index}}",
+      "validationMinPoints": "Each RQR test needs I₀ > 0 and at least 2 valid thickness/transmission pairs.",
+      "measurementLabel": "Measurement {{n}} - Thickness (mm)",
+      "lambertBeer": "Lambert-Beer Value",
+      "addButton": "Add Measurement",
+      "note": "The μ coefficient is computed on the server via ln(I/I₀) vs thickness regression (Beer-Lambert law).",
+      "skip": "You will skip linear attenuation registration. You may continue.",
+      "errors": {
+        "minMeasurement": "Add at least one measurement with thickness > 0",
+        "registrationError": "Error registering linear attenuation"
+      }
+    },
+    "beamQuality": {
+      "tabs": {
+        "rqr": "RQR Series",
+        "rqt": "RQT Series",
+        "rqrm": "RQR-M Series"
+      },
+      "subtitles": {
+        "rqr": "RQR 2 to 10 (IEC 61267 Standard)",
+        "rqt": "RQT 8 to 10 (IEC 61267 Standard)",
+        "rqrm": "RQR-M 1 to 4 (IEC 61267 Standard - Mammography)"
+      },
+      "note": "ℹ️ Note: Fill in only the qualities that were measured. Leave as 0 or blank for untested qualities.",
+      "skip": "You will skip beam quality registration. You may finalize.",
+      "error": "Error registering beam quality"
+    },
+    "finalReview": {
+      "title": "Final Review",
+      "description": "Verify all information before finalizing the experiment registration.",
+      "cards": {
+        "completedSections": "Completed Sections",
+        "filledFields": "Filled Fields",
+        "status": "Status",
+        "ready": "✓ Ready",
+        "incomplete": "⚠ Incomplete"
+      },
+      "incompleteSections": "Incomplete Sections",
+      "incompleteSectionsDesc": "The following sections are not 100% complete:",
+      "fullSummary": "Full Summary",
+      "info": {
+        "title": "ℹ️ Important:",
+        "required": "Required fields: Material, Machine, Sample and Infill",
+        "optional": "Additional technical data is completely optional",
+        "editable": "You can edit the experiment after finalizing",
+        "irreversible": "This action cannot be immediately undone"
+      },
+      "backButton": "← Back to Editing",
+      "finalizeButton": "✅ Finalize Experiment",
+      "finalizing": "Finalizing..."
+    },
+    "confirmation": {
+      "newTitle": "Finalize Registration",
+      "editTitle": "Finalize Editing",
+      "newSubtitle": "Data confirmation",
+      "editSubtitle": "Confirmation of changes",
+      "newInfo": [
+        "✓ Your data will be saved to the database",
+        "✓ The data will go through analysis and validation",
+        "✓ The experiment can be edited in 'My Experiments'",
+        "✓ You will receive notification about the analysis status"
+      ],
+      "editInfo": [
+        "✓ Your changes will be saved to the database",
+        "✓ The updated data will go through analysis and validation",
+        "✓ You will be redirected to 'My Experiments'",
+        "✓ You will receive notification about the analysis status"
+      ],
+      "continueEditing": "Continue Editing",
+      "finalizeNew": "✅ Finalize Registration",
+      "finalizeEdit": "✅ Save Changes",
+      "saving": "Saving...",
+      "finalizing": "Finalizing..."
+    }
+  },
+  "experimentReport": {
+    "viewTitle": "📋 Complete Experiment Report",
+    "viewSubtitle": "All collected information and data",
+    "editTitle": "✏️ Edit Experiment",
+    "editSubtitle": "Modify the data and save changes",
+    "loading": "Loading experiment details...",
+    "sections": {
+      "researcherInfo": "👤 Experiment and Researcher Information",
+      "materialMachine": "Material and Machine",
+      "material": "Material",
+      "machine": "Machine",
+      "sampleCharacteristics": "Sample Characteristics",
+      "fillMeasurements": "Fill Measurements",
+      "beamQualities": "Beam Qualities",
+      "linearAttenuation": "Linear Attenuation",
+      "mechanicalProperties": "Mechanical Properties"
+    },
+    "fields": {
+      "index": "INDEX",
+      "researcher": "RESEARCHER",
+      "institution": "INSTITUTION",
+      "creationDate": "CREATION DATE",
+      "status": "STATUS",
+      "brand": "BRAND",
+      "model": "MODEL",
+      "color": "COLOR",
+      "composite": "COMPOSITE",
+      "technology": "TECHNOLOGY",
+      "shapeType": "SHAPE TYPE",
+      "dimension": "DIMENSION (MM)",
+      "roiArea": "CIRCULAR ROI AREA (MM²)",
+      "fillPercentage": "FILL %",
+      "huMean": "HU MEAN",
+      "huMeasured": "HU MEASURED",
+      "notes": "NOTES",
+      "thickness": "THICKNESS (MM)",
+      "lambertBeer": "LAMBERT-BEER VALUE",
+      "testCondition": "TEST CONDITION",
+      "tractionModule": "TRACTION MODULUS",
+      "tractionResistance": "TENSILE STRENGTH",
+      "ruptureDeformation": "RUPTURE DEFORMATION",
+      "flexionModule": "FLEXION MODULUS",
+      "flexionResistance": "FLEXURAL STRENGTH",
+      "hardness": "ROCKWELL HARDNESS"
+    },
+    "statusLabels": {
+      "approved": "✅ Approved",
+      "submitted": "📤 Submitted",
+      "underReview": "🔍 Under Review",
+      "needsAdjustment": "⚠️ Needs Adjustment",
+      "unknown": "❓ Unknown"
+    },
+    "empty": {
+      "fillMeasurements": "No fill measurements recorded",
+      "beamQualities": "No beam qualities recorded",
+      "linearAttenuation": "No linear attenuation measurements recorded",
+      "mechanicalProperties": "No mechanical properties recorded"
+    }
+  },
+  "usersTable": {
+    "loading": "Loading users...",
+    "backendUnavailable": "The backend service may be unavailable. Please check that the server is running.",
+    "noUsersFound": "No users found with status \"{{status}}\"",
+    "columns": {
+      "status": "Status",
+      "name": "Name",
+      "email": "E-mail",
+      "role": "Role",
+      "institution": "Institution",
+      "country": "Country",
+      "createdAt": "Created at",
+      "experiments": "Experiments",
+      "details": "Details"
+    },
+    "viewButton": "View",
+    "viewTitle": "View details",
+    "rowTitle": "Click to change status"
+  },
+  "adminsTable": {
+    "loading": "Loading administrators...",
+    "noAdminsFound": "No administrators found",
+    "columns": {
+      "name": "Name",
+      "email": "E-mail",
+      "role": "Role",
+      "institution": "Institution",
+      "experiments": "Experiments",
+      "createdAt": "Created at"
+    }
+  },
+  "updateStatusForm": {
+    "info": "ℹ️ Manually change the status of any user. Status: Regular, Irregular or Disabled. The change takes effect immediately.",
+    "error": "Error",
+    "success": "Success",
+    "successMessage": "Status updated successfully to '{{newStatus}}' (was {{oldStatus}})",
+    "fields": {
+      "email": "User E-mail *",
+      "newStatus": "New Status *",
+      "emailPlaceholder": "example@institution.com"
+    },
+    "statusOptions": {
+      "regular": "Regular",
+      "irregular": "Irregular",
+      "disabled": "Disabled"
+    },
+    "updateButton": "Update Status",
+    "updating": "Updating...",
+    "securityDescription": "You are changing the status of {{email}} to {{status}}. This is a sensitive action that will be recorded in the system audit logs.",
+    "errors": {
+      "emailRequired": "E-mail is required",
+      "invalidEmail": "Invalid e-mail",
+      "validationError": "Error validating status change",
+      "updateError": "Error updating status"
+    }
+  },
+  "updateAdminRoleForm": {
+    "info": "ℹ️ Only regular accounts with validated email can be promoted to administrator. The change will take effect at the user's next login.",
+    "fields": {
+      "email": "E-mail *",
+      "emailHint": "Enter the email of the researcher you want to promote to administrator",
+      "emailPlaceholder": "user@domain.com",
+      "role": "New Role *"
+    },
+    "currentAdmin": "(Current: Admin)",
+    "currentResearcher": "(Current: Researcher)",
+    "roleOptions": {
+      "researcher": "🔎 Researcher",
+      "admin": "💼 Administrator"
+    },
+    "sameRoleWarning": "⚠️ The user already has this role",
+    "sameRoleError": "The user already has the role '{{role}}'. No change was necessary.",
+    "emailError": "Please enter an email",
+    "success": "Role updated successfully! The user will assume the new role on next login.",
+    "processing": "Processing...",
+    "confirmButton": "Confirm Change",
+    "addAsAdmin": "Add as Admin",
+    "securityDescription": "You are changing the permissions of {{email}} to {{role}}. This is a sensitive action that will be recorded in the audit logs."
+  },
+  "securityModal": {
+    "title": "Security Confirmation",
+    "subtitle": "Restricted area - authentication required",
+    "sensitiveAction": "Sensitive Action Detected",
+    "passwordLabel": "Enter your password to confirm",
+    "passwordPlaceholder": "Your administrator password",
+    "errorSection": "Error",
+    "confirmed": "✓ Confirmed successfully",
+    "tip": "💡 For your security, you must confirm with your own administrator password. This action will be recorded in the audit logs.",
+    "errors": {
+      "required": "Password is required",
+      "confirmError": "Error confirming password"
+    },
+    "cancelButton": "Cancel",
+    "confirmButton": "Confirm Action",
+    "confirming": "Confirming..."
+  },
+  "experiments": {
+    "allExperiments": "All Experiments",
+    "newExperiment": "New Experiment",
+    "available": "available",
+    "available_plural": "available",
+    "available_count": "{{count}} experiment{{count}} available{{count}}",
+    "availableCount_one": "1 experiment available",
+    "availableCount_other": "{{count}} experiments available",
+    "title": "All Experiments",
+    "subtitle": "{{count}} experiment(s) available in the system",
+    "loading": "Loading experiments...",
+    "loadError": "Error loading",
+    "networkError": "❌ Connection Error: Could not connect to the server.\n\nPossible causes:\n1. Backend is not running (http://localhost:8000)\n2. CORS blocked\n3. Network issue",
+    "empty": {
+      "title": "No experiments found in the system.",
+      "createFirst": "Create first experiment"
+    },
+    "filters": {
+      "toggle": "🔍 Filters",
+      "researcher": "Researcher",
+      "allInstitutions": "All Institutions",
+      "allMaterials": "All Materials",
+      "allMachines": "All Machines",
+      "allFormats": "All Formats",
+      "huMin": "HU Min",
+      "huMax": "HU Max",
+      "dataTitle": "Experiment Data:",
+      "mechanical": "⚙️ Mechanical Properties",
+      "attenuation": "📉 Linear Attenuation",
+      "beamQuality": "☢️ Beam Qualities",
+      "noData": "🚫 No Data",
+      "applyFilters": "Apply Filters",
+      "clearFilters": "Clear Filters",
+      "results": "{{count}} result{{count, plural, one {} other {s}}} found"
+    },
+    "table": {
+      "title": "All Experiments",
+      "count": "{{count}} experiment(s)",
+      "singularExperiment": "experiment",
+      "pluralExperiments": "experiments",
+      "columns": {
+        "index": "Index",
+        "date": "Date",
+        "researcher": "Researcher",
+        "material": "Material",
+        "machine": "Machine",
+        "sample": "Sample",
+        "infill": "Infill (HU)",
+        "data": "Data",
+        "details": "Details"
+      },
+      "viewButton": "View",
+      "selectAllTooltip": "Select/Deselect all on this page",
+      "selectForComparison": "Select for comparison",
+      "color": "Color:",
+      "measurements": "meas.",
+      "viewDetails": "View complete experiment details",
+      "tooltips": {
+        "mechanical": "Mechanical Properties",
+        "attenuation": "Linear Attenuation",
+        "beamQuality": "Beam Qualities"
+      }
+    },
+    "report": {
+      "title": "Complete Experiment Report",
+      "subtitle": "All information and collected data",
+      "loading": "Loading experiment details...",
+      "editButton": "✏️ Edit Experiment",
+      "editSubtitle": "Modify the data and save changes",
+      "sections": {
+        "info": "👤 Experiment & Researcher Information",
+        "materialMachine": "Material and Machine",
+        "sample": "Sample Characteristics",
+        "infill": "Infill Measurements",
+        "beamQuality": "Beam Qualities",
+        "linearAttenuation": "Linear Attenuation",
+        "mechanicalProperties": "Mechanical Properties"
+      },
+      "fields": {
+        "index": "Index",
+        "researcher": "Researcher",
+        "institution": "Institution",
+        "createdDate": "Creation Date",
+        "status": "Status",
+        "materialLabel": "Material",
+        "brand": "Brand",
+        "model": "Model",
+        "color": "Color",
+        "composite": "Composite",
+        "machineLabel": "Machine",
+        "technology": "Technology",
+        "shapeType": "Shape Type",
+        "dimension": "Dimension (mm)",
+        "roiArea": "ROI Circular Area (mm²)",
+        "infillPercentage": "% Infill",
+        "huMean": "HU Mean",
+        "huMeasured": "HU Measured",
+        "notes": "Notes",
+        "thickness": "Thickness (mm)",
+        "lambertBeer": "Lambert-Beer Value",
+        "testCondition": "Test Condition",
+        "tensileModulus": "Tensile Modulus",
+        "tensileStrength": "Tensile Strength",
+        "breakDeformation": "Break Deformation",
+        "flexuralModulus": "Flexural Modulus",
+        "flexuralStrength": "Flexural Strength",
+        "hardnessRockwell": "Rockwell Hardness"
+      },
+      "status": {
+        "approved": "Approved",
+        "submitted": "Submitted",
+        "review": "Under Review",
+        "revisions": "Revisions Required",
+        "unknown": "Unknown"
+      },
+      "shapes": {
+        "cylinder": "Cylinder",
+        "cube": "Cube",
+        "sphere": "Sphere",
+        "rectangular": "Rectangular"
+      },
+      "messages": {
+        "noInfillMeasurements": "No infill measurements recorded",
+        "noBeamQualities": "No beam qualities recorded",
+        "noLinearAttenuation": "No linear attenuation measurements recorded",
+        "noMechanicalProperties": "No mechanical properties recorded",
+        "incomplete": "Section incomplete",
+        "complete": "Section complete"
+      },
+      "buttonLabels": {
+        "edit": "✏️ Edit Experiment",
+        "close": "Close",
+        "backButton": "Back",
+        "yesButton": "Yes",
+        "noButton": "No"
+      },
+      "sectionTitles": {
+        "material": "Material",
+        "machine": "Machine"
+      },
+      "boolean": {
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "charts": {
+      "comparativeRoi": {
+        "title": "📍 Comparative - ROI (Region of Interest) by Infill",
+        "yAxisLabel": "ROI Area (mm²)",
+        "tooltipLabel": "Area (mm²)",
+        "noData": "No ROI data available for comparison",
+        "description": "* ROI (Region of Interest) is the area in mm² selected for analysis in computed tomography."
+      },
+      "comparativeHu": {
+        "title": "🔬 Comparative - Hounsfield Units (HU) by Infill",
+        "yAxisLabel": "HU (Hounsfield Units)",
+        "tooltipLabel": "HU",
+        "noData": "No HU data available for comparison",
+        "description": "* HU (Hounsfield Units) is a measure of density in computed tomography. Higher values indicate greater density."
+      },
+      "comparativeAttenuation": {
+        "title": "📉 Comparative - Linear Attenuation by Thickness",
+        "yAxisLabel": "Linear Attenuation",
+        "xAxisLabel": "Thickness (mm)",
+        "noData": "No attenuation data available for comparison",
+        "description": "* Linear Attenuation is the reduction in intensity of X-rays as they pass through the material."
+      },
+      "transmissionCurve": {
+        "title": "📉 Transmission Curve by Thickness",
+        "xAxis": "Thickness (mm)",
+        "yAxis": "Transmission",
+        "noData": "No transmission measurements to display",
+        "description": "Raw measured values at each thickness."
+      },
+      "neperianRegression": {
+        "title": "📐 Neperian Regression (Lambert validation)",
+        "xAxis": "Thickness (mm)",
+        "yAxis": "ln(I/I₀)",
+        "noData": "No linearized data for regression",
+        "description": "The fitted line slope equals −μ."
+      },
+      "attenuationVsEnergy": {
+        "title": "⚡ Attenuation vs Energy (RQR)",
+        "xAxis": "Beam quality (RQR)",
+        "yAxis": "Coefficient μ",
+        "empty": "Register μ for more than one RQR energy on the same material to show this chart.",
+        "description": "Comparison of linear attenuation coefficient across beam energies."
+      },
+      "comparativeMechanical": {
+        "title": "⚙️ Comparative - Mechanical Properties",
+        "noData": "No mechanical data available for comparison",
+        "properties": {
+          "tensileModulus": "Tensile Modulus",
+          "tensileStrength": "Tensile Strength",
+          "flexuralModulus": "Flexural Modulus",
+          "flexuralStrength": "Flexural Strength",
+          "breakDeformation": "Break Deformation"
+        },
+        "description": "* Mechanical properties are characteristics of materials under tensile and flexural tests."
+      },
+      "linearAttenuation": {
+        "title": "Linear Attenuation Chart",
+        "xAxisLabel": "Thickness (mm)",
+        "yAxisLabel": "Linear Attenuation",
+        "noData": "No attenuation data to display"
+      },
+      "mechanicalProperties": {
+        "title": "Mechanical Properties Chart",
+        "noData": "No mechanical data to display"
+      },
+      "legend": {
+        "experimentLabel": "Experiment #{{index}}",
+        "unknownMaterial": "Unknown material",
+        "experimentsInAnalysis": "Experiments in analysis"
+      },
+      "regression": {
+        "title": "📈 Linear Regression Analysis - Infill vs Hounsfield",
+        "description": "Correlation between infill percentage and Hounsfield units by pattern type",
+        "xAxisLabel": "Infill Percentage (%)",
+        "yAxisLabel": "Hounsfield Units (HU)",
+        "noData": "No regression data available",
+        "insufficientData": "Insufficient data (no valid infill/HU measurements in the selected experiments)",
+        "note": "Each series represents a specific material-pattern combination. Regression coefficients (A, B) are derived from database coefficients.",
+        "noteComputed": "The regression line is fitted by least squares from each experiment’s (infill %, mean HU) pairs per pattern.",
+        "tissueBands": {
+          "legendTitle": "Reference bands (HU)",
+          "corticalBone": "Cortical bone",
+          "trabecularBone": "Trabecular bone",
+          "water": "Water",
+          "fat": "Fat",
+          "lung": "Lung"
+        }
+      }
+    }
+  },
+  "myExperiments": {
+    "title": "My Experiments",
+    "subtitle_one": "1 experiment registered",
+    "subtitle_other": "{{count}} experiments registered",
+    "loading": "Loading your experiments...",
+    "noExperiments": "You do not have any experiments registered yet.",
+    "createFirstExperiment": "Create first experiment",
+    "status": {
+      "submitted": "Submitted",
+      "revisions": "Adjustments",
+      "review": "Under Review",
+      "approved": "Approved",
+      "inCuration": "In Analysis"
+    },
+    "sections": {
+      "inAnalysis": {
+        "title": "In Curation Analysis",
+        "subtitle": "Experiments awaiting review and approval",
+        "tableTitle": "Experiments in Analysis",
+        "empty": "No experiments in analysis",
+        "emptySubtitle": "All your experiments have been processed"
+      },
+      "approved": {
+        "title": "Approved by Curation",
+        "subtitle": "Validated experiments ready for use",
+        "tableTitle": "Approved Experiments",
+        "empty": "No approved experiments yet",
+        "emptySubtitle": "Your experiments will appear here after approval"
+      }
+    },
+    "table": {
+      "columns": {
+        "index": "Index",
+        "status": "Status",
+        "date": "Date",
+        "machine": "Machine",
+        "material": "Material",
+        "sample": "Sample (Shape)",
+        "infill": "Infill (HU)",
+        "data": "Data",
+        "details": "Details"
+      },
+      "pagination": {
+        "previous": "← Previous",
+        "next": "Next →"
+      },
+      "buttons": {
+        "view": "View"
+      },
+      "count_one": "1 experiment",
+      "count_other": "{{count}} experiments"
+    },
+    "help": {
+      "title": "How Does the Analysis System Work?",
+      "subtitle": "Understand the stages, criteria and curation period of experiments",
+      "analysisFlow": "Analysis Flow",
+      "step1": {
+        "title": "📤 Submitted",
+        "description": "Your experiment was received. Initial validation of data completeness."
+      },
+      "step2": {
+        "title": "🔍 Under Review",
+        "description": "Technical review by specialists. Quality and methodology analysis."
+      },
+      "step3": {
+        "title": "⚠️ Adjustments Needed",
+        "description": "If necessary, you will be notified with specific comments for improvements."
+      },
+      "step4": {
+        "title": "✅ Approved",
+        "description": "Experiment validated and included in the data repository."
+      },
+      "criteria": "Approval Criteria",
+      "criterion1": "Completeness: All fields filled correctly",
+      "criterion2": "Quality: Technical data validated and consistent",
+      "criterion3": "Methodology: Procedures follow established standards",
+      "criterion4": "Documentation: Complete files and references",
+      "timeframe": "Estimated Analysis Period",
+      "timeframe1": "Initial Validation",
+      "timeframe1Value": "1-2 days",
+      "timeframe2": "Technical Review",
+      "timeframe2Value": "3-7 days",
+      "timeframe3": "Adjustments (if needed)",
+      "timeframe3Value": "Variable",
+      "timeframe4": "Total Period",
+      "timeframe4Value": "1-4 weeks",
+      "tips": "Tips to Accelerate Approval",
+      "tip1": "Fill all fields with accurate and detailed data",
+      "tip2": "Check the quality of CT images and technical data before submitting",
+      "tip3": "Monitor the status regularly on this page",
+      "tip4": "If adjustments are requested, respond promptly to keep the process agile"
+    },
+    "statusHistory": {
+      "title": "Status History of My Experiments",
+      "subtitle": "Track all changes to your experiments status, including reviewer comments",
+      "refreshButton": "Refresh",
+      "refreshing": "Updating...",
+      "noHistory": "No status history recorded",
+      "columns": {
+        "index": "Index",
+        "previousStatus": "Previous Status",
+        "newStatus": "New Status",
+        "changedBy": "Changed By",
+        "comment": "Comment",
+        "date": "Date"
+      },
+      "roles": {
+        "admin": "🔐 Admin",
+        "researcher": "👤 Researcher"
+      },
+      "pagination": {
+        "previous": "← Previous",
+        "next": "Next →"
+      }
+    },
+    "errorMessages": {
+      "loadError": "Loading error",
+      "loadingFailed": "Failed to load your experiments",
+      "historyLoadFailed": "Failed to load history"
+    }
+  },
+  "experimentComparison": {
+    "title": "Performance Comparison",
+    "attenuationSectionTitle": "Attenuation (PQR / Beer-Lambert)",
+    "sampleComparison": {
+      "title": "🔬 Sample Comparison (HU and ROI)",
+      "clear": "Clear"
+    },
+    "selectMinimum": "Select at least 2 experiments in the table above to compare the data.",
+    "selectAdditional": "Select at least 1 additional experiment to generate the comparison.",
+    "selectedCount": "{{count}} experiments selected. Ready to generate the comparison!",
+    "generateGraph": "Generate Comparative Graph",
+    "generatingGraph": "Generating Graph...",
+    "reset": "Restart",
+    "errors": {
+      "noValidData": "No selected experiment has valid data for comparison.",
+      "noAttenuationData": "No experiment with attenuation data available",
+      "noMechanicalData": "No experiment with mechanical data available",
+      "noHUData": "No experiment with HU (Hounsfield Units) data available",
+      "noROIData": "No experiment with ROI (Region of Interest) data available",
+      "noRegressionData": "No experiment with regression data available",
+      "noDataForComparison": "Experiment #{{index}} does not have data for this comparison."
+    },
+    "labels": {
+      "selectMinimumHU": "Select at least 2 experiments in the table above to compare Hounsfield Units (HU) and ROI.",
+      "selectAdditional": "Select at least 1 additional experiment to generate the comparison.",
+      "selectedCount": "{{count}} experiments selected. Ready to generate the comparison!",
+      "noFillData": "No experiment selected has fill data for comparison.",
+      "fillExperimentError": "Experiment #{{index}} does not have fill data for this comparison."
+    }
+  },
+  "experimentWizardNew": {
+    "title": "New Experiment",
+    "subtitle": "Organized and intuitive registration. Fields with * are mandatory.",
+    "stages": {
+      "fabrication": "Fabrication",
+      "samples": "Samples",
+      "characteristics": "Characteristics"
+    },
+    "buttons": {
+      "restart": "Restart",
+      "saveData": "✅ Save",
+      "close": "✕ Close",
+      "finalize": "✅ Finalize New Experiment Registration"
+    },
+    "alerts": {
+      "error": "Error:",
+      "success": "Success! Data saved ✓"
+    },
+    "forms": {
+      "materialMachine": {
+        "materialSection": "Material Information",
+        "machineSection": "Machine Information",
+        "brand": "Brand",
+        "model": "Model",
+        "color": "Color",
+        "isComposite": "Is it a composite?",
+        "compositeDetails": "Composite Details",
+        "technology": "Printing Technology",
+        "otherSpecs": "Other Specifications",
+        "placeholders": {
+          "brand": "Ex: Ultimaker",
+          "model": "Ex: PLA 700",
+          "color": "Ex: White",
+          "machineModel": "Ex: S5",
+          "compositeDetails": "Describe the composition (fibers, reinforcements, percentages, etc.)",
+          "otherSpecs": "Extrusion temperature, printing speed, etc."
+        },
+        "hints": {
+          "compositeDetails": "Ex: carbon fibers 30%, epoxy resin...",
+          "otherSpecs": "Temperature, printing speed, etc.",
+          "loading": "Loading..."
+        },
+        "errors": {
+          "fillRequired": "Fill in all required fields",
+          "materialMachineRequired": "Material and Machine are required"
+        },
+        "noSuggestions": "No suggestions - Type manually"
+      },
+      "sample": {
+        "sectionTitle": "Sample Configuration",
+        "format": "Sample Format",
+        "dimension": "Sample Dimension",
+        "roiArea": "Circular ROI Area (mm²)",
+        "cube": "Cube",
+        "cylinder": "Cylinder",
+        "other": "Other",
+        "edge": "Edge (mm)",
+        "radius": "Radius / Main Dimension (mm)",
+        "height": "Height (mm)",
+        "placeholders": {
+          "dimension": "0.00",
+          "roiArea": "0.00"
+        },
+        "hints": {
+          "roiArea": "Area of the circular region of interest in mm²"
+        },
+        "errors": {
+          "selectPattern": "Select at least one infill pattern",
+          "fillAllFields": "Fill in all required fields with valid values"
+        }
+      },
+      "infill": {
+        "sectionTitle": "Infill Measurements",
+        "percentage": "Infill Percentage",
+        "huMean": "HU Mean",
+        "huSd": "HU SD (Standard Deviation)",
+        "addPercentage": "Add Custom Percentage",
+        "errors": {
+          "selectInfill": "Select at least one infill percentage",
+          "fillAllFields": "Fill in all fields with valid values"
+        }
+      },
+      "mechanical": {
+        "sectionTitle": "Mechanical Properties",
+        "tensileModulus": "Tensile Modulus (MPa)",
+        "tensileStrength": "Tensile Strength (MPa)",
+        "strainAtBreak": "Strain at Break (%)",
+        "flexuralModulus": "Flexural Modulus (MPa)",
+        "flexuralStrength": "Flexural Strength (MPa)",
+        "hardness": "Hardness",
+        "charpyImpact": "Charpy Impact (KJ/m²)",
+        "izodImpact": "Izod Impact",
+        "condition": "Condition",
+        "pre": "Pre Irradiation",
+        "post": "Post Irradiation"
+      },
+      "attenuation": {
+        "sectionTitle": "Linear Attenuation",
+        "thickness": "Thickness (mm)",
+        "lambertBeer": "Lambert-Beer Value",
+        "addMeasurement": "Add Measurement",
+        "hint": "Leave blank if you have no measurements for this step"
+      },
+      "beam": {
+        "sectionTitle": "Beam Quality (IEC 61267)",
+        "seriesRQR": "RQR Series",
+        "seriesRQT": "RQT Series",
+        "seriesRQRM": "RQR-M Series"
+      }
+    },
+    "importantInformation": {
+      "title": "ℹ️ Important Information",
+      "mandatory": "Mandatory sections: Material & Machine, Sample, and Infill",
+      "optional": "Optional sections can be skipped, but technical data enriches your experiment",
+      "editable": "Each section can be edited at any time before finalizing",
+      "review": "The final summary allows you to review all information before confirming",
+      "editLater": "After finalizing, you can edit the experiment in your history"
+    },
+    "sections": {
+      "guide": {
+        "title": "Getting Started Guide",
+        "description": "Understand the experiment registration workflow"
+      },
+      "materialMachine": {
+        "title": "Material & Machine",
+        "description": "Information about the material and machine used"
+      },
+      "sample": {
+        "title": "Sample",
+        "description": "Sample configuration and geometry"
+      },
+      "infill": {
+        "title": "Infill (Filling)",
+        "description": "Density and filling measurements"
+      },
+      "mechanical": {
+        "title": "Mechanical Properties",
+        "description": "Resistance tests and other parameters"
+      },
+      "attenuation": {
+        "title": "Attenuation",
+        "description": "Linear attenuation measurements"
+      },
+      "beam": {
+        "title": "Beam Quality",
+        "description": "Beam analysis according to IEC 61267"
+      },
+      "review": {
+        "title": "Final Review",
+        "description": "Review all information before finalizing"
+      }
+    },
+    "confirmations": {
+      "restart": "Are you sure you want to restart? All data will be lost."
+    }
+  },
+  "experimentGuide": {
+    "welcome": "Welcome to the experiment registration system! This guide explains each stage of the process.",
+    "sections": {
+      "flow": {
+        "title": "📊 How the Data Flow Works",
+        "content": "This system follows a sequential registration to ensure data integrity. You cannot skip steps because each new table depends on the ID generated in the previous step.\n\nThe dependency order is:\n1. Material + Machine ➔ Generate the base for the Sample\n2. Sample ➔ Generates the Unique ID that will link all tests\n3. Specific Tests (CT, Mechanical, Attenuation, Beams) ➔ Are attached to this ID"
+      },
+      "material": {
+        "title": "⚛️ Material & Machine",
+        "content": "Objective: Register base inputs\n\nMaterial:\n- Brand: Name of the material manufacturer\n- Model: Specific code or model\n- Color: Color of the material\n- Is Composite?: If yes, describe the composition (fibers, reinforcements, etc.)\n\nMachine:\n- Brand: 3D printer manufacturer\n- Model: Specific model\n- Technology: Type of printing (FFF, SLA, SLS, etc.)\n- Other Specifications: Other relevant details"
+      },
+      "sample": {
+        "title": "🧪 Sample (The Heart of the System)",
+        "content": "Attention: This is where the magic happens. The system takes the Material and Machine ID and creates a unique record.\n\nInputs:\n- Format: Cube, Cylinder or Other\n- Dimensions: Use mm (millimeters)\n  - Cube: edge only\n  - Cylinder/Other: radius (or dimension A) and height (or dimension B)\n- ROI: Region of Interest area in mm²"
+      },
+      "infill": {
+        "title": "📶 Infill Measurements",
+        "content": "Objective: Record HU (Hounsfield Units) measurements for different infill percentages\n\nEnter the HU Mean (average) and HU SD (standard deviation) values for each percentage.\n\nStandard percentages: 40%, 45%, 50%, 55%, 60%, 65%, 70%, 75%, 80%, 85%, 90%, 95%, 100%\n\nYou can also add custom percentages if needed."
+      },
+      "mechanical": {
+        "title": "⚙️ Mechanical Properties",
+        "content": "Critical Inputs:\n- Tensile Modulus (MPa): Stiffness in tension\n- Tensile Strength (MPa): Maximum force in tension\n- Strain at Break (%): Percentage of deformation until failure\n- Flexural Modulus (MPa): Stiffness in bending\n- Flexural Strength (MPa): Maximum force in bending\n- Hardness: Hardness measurement (Shore A, Rockwell, etc.)\n- Charpy Impact (KJ/m²): Impact resistance\n- Izod Impact: Another type of impact test\n- Condition: Pre or post irradiation"
+      },
+      "attenuation": {
+        "title": "📉 Linear Attenuation",
+        "content": "Lambert-Beer Law: Enter the thickness of the tested sample (mm) and the calculated coefficient.\n\n# You can add multiple measurements\n- Thickness (mm): Sample thickness\n- Lambert-Beer Value: Attenuation coefficient\n\nTip: Leave blank if you have no measurements for this step"
+      },
+      "beam": {
+        "title": "☢️ Beam Quality (IEC 61267 Standard)",
+        "content": "RQR, RQT, RQR-M Series: Fill in only the qualities that were measured.\n\nInput Tabs:\n- RQR Series: RQR 2 to 10 (9 values)\n- RQT Series: RQT 8 to 10 (3 values)\n- RQR-M Series: RQR-M 1 to 4 (4 values)\n\nNote: Fields left as 0 will indicate that that specific quality was not tested."
+      }
+    },
+    "buttons": {
+      "start": "Got it, Let's Start! →"
+    }
+  },
+  "progress": {
+    "label": "Overall Progress",
+    "stagesComplete": "{{count}} Stages Complete",
+    "summaryLabels": {
+      "tests": "Tests",
+      "measurements": "Measurements",
+      "analyses": "Analyses"
+    }
+  }
+}

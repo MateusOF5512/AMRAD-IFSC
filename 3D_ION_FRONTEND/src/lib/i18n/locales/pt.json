@@ -1,0 +1,1619 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Salvar",
+    "edit": "Editar",
+    "delete": "Deletar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtros",
+    "apply": "Aplicar",
+    "clear": "Limpar",
+    "view": "Ver",
+    "yes": "Sim",
+    "no": "Não",
+    "na": "N/A",
+    "retry": "Tentar Novamente",
+    "saving": "Salvando...",
+    "confirming": "Confirmando...",
+    "processing": "Processando...",
+    "name": "Nome",
+    "email": "E-mail",
+    "role": "Role",
+    "institution": "Instituição",
+    "createdAt": "Criado em",
+    "filters": "Filtros",
+    "all": "Todos",
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Próximo"
+    },
+    "status": {
+      "approved": "Aprovado",
+      "submitted": "Submetido",
+      "under_review": "Em Revisão",
+      "needs_adjustment": "Ajustes Necessários",
+      "in_analysis": "Em Análise",
+      "unknown": "Desconhecido",
+      "complete": "Completo",
+      "regular": "Regular",
+      "irregular": "Irregular",
+      "disabled": "Desativado"
+    },
+    "roles": {
+      "admin": "Admin",
+      "researcher": "Pesquisador",
+      "administrator": "Administrador"
+    },
+    "boolean": {
+      "true": "Sim",
+      "false": "Não"
+    }
+  },
+  "meta": {
+    "title": "ION3D Platform",
+    "description": "Sistema de gerenciamento de experimentos científicos para materiais impressos em 3D"
+  },
+  "nav": {
+    "allExperiments": "Todos os Experimentos",
+    "myExperiments": "Meus Experimentos",
+    "advancedSettings": "Configurações Avançadas",
+    "settings": "Configurações",
+    "logout": "Sair",
+    "login": "Entrar",
+    "register": "Registrar"
+  },
+  "footer": {
+    "about": {
+      "title": "Sobre a Plataforma",
+      "description": "ION3D é uma plataforma científica dedicada ao gerenciamento e análise de experimentos com materiais impressos em 3D, fornecendo ferramentas avançadas para pesquisa e documentação."
+    },
+    "quickLinks": {
+      "title": "Links Rápidos",
+      "exploreExperiments": "Explorar Experimentos",
+      "myExperiments": "Meus Experimentos",
+      "newExperiment": "Novo Experimento",
+      "settings": "Configurações"
+    },
+    "whoWeAre": {
+      "title": "Quem Somos",
+      "aboutProject": "Sobre o Projeto",
+      "ourMission": "Nossa Missão",
+      "scientificResources": "Recursos Científicos",
+      "blogAndArticles": "Blog e Artigos"
+    },
+    "support": {
+      "title": "Suporte",
+      "email": "suporte@ion3d.com",
+      "location": "São Paulo, Brasil",
+      "helpCenter": "Central de Ajuda"
+    },
+    "rights": "© {{year}} ION3D Platform. Todos os direitos reservados.",
+    "privacy": "Privacidade",
+    "terms": "Termos de Uso",
+    "cookies": "Cookies"
+  },
+  "home": {
+    "hero": {
+      "description": "Plataforma colaborativa para centralizar, compartilhar e analisar experimentos com materiais impressos em 3D sob radiação ionizante.",
+      "exploreButton": "Explorar Experimentos"
+    },
+    "stats": {
+      "registeredExperiments": "Experimentos Registrados",
+      "activeResearchers": "Pesquisadores Ativos",
+      "participatingInstitutions": "Instituições Participantes"
+    },
+    "features": {
+      "title": "Como Funciona",
+      "registerTitle": "Registre Experimentos",
+      "registerDesc": "Documente todos os detalhes dos seus experimentos, desde materiais até resultados",
+      "collaborateTitle": "Colabore com Pares",
+      "collaborateDesc": "Compartilhe dados e insights com outros pesquisadores da sua comunidade",
+      "trackTitle": "Acompanhe Progresso",
+      "trackDesc": "Visualize estatísticas e tendências de pesquisa em tempo real"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "ION3D Platform",
+      "subtitle": "Entre com sua conta",
+      "emailOrInstagram": "Email ou Instagram",
+      "password": "Senha",
+      "loginButton": "Entrar",
+      "loggingIn": "Entrando...",
+      "noAccount": "Não tem uma conta? ",
+      "registerLink": "Registre-se",
+      "errors": {
+        "emailRequired": "Email ou Instagram é obrigatório",
+        "passwordRequired": "Senha é obrigatória",
+        "invalidCredentials": "Email/Instagram ou senha inválidos",
+        "invalidResponse": "Resposta do servidor inválida: token não recebido",
+        "loginError": "Erro ao fazer login"
+      }
+    },
+    "register": {
+      "title": "ION3D Platform",
+      "subtitle": "Registre-se como pesquisador",
+      "fullName": "Nome Completo *",
+      "institution": "Instituição *",
+      "email": "Email *",
+      "phone": "Telefone (apenas números) *",
+      "instagram": "Instagram (opcional)",
+      "country": "País *",
+      "language": "Idioma *",
+      "password": "Senha *",
+      "confirmPassword": "Confirmar Senha *",
+      "placeholders": {
+        "fullName": "Ex: João Silva",
+        "institution": "Ex: IFSC, UFSC, USP",
+        "email": "seu@email.com",
+        "phone": "11999999999",
+        "instagram": "seu_usuario",
+        "selectCountry": "Selecione um país",
+        "selectLanguage": "Selecione um idioma",
+        "password": "Mínimo 8 caracteres",
+        "confirmPassword": "Confirme sua senha"
+      },
+      "createButton": "Criar Conta",
+      "creating": "Criando conta...",
+      "success": "Conta criada com sucesso! Redirecionando para login...",
+      "errors": {
+        "nameRequired": "Nome completo é obrigatório",
+        "institutionRequired": "Instituição é obrigatória",
+        "invalidEmail": "Email inválido",
+        "invalidPhone": "Telefone inválido (mínimo 8 dígitos)",
+        "phoneNumbersOnly": "Telefone deve conter apenas números",
+        "passwordMin": "Senha deve ter no mínimo 8 caracteres",
+        "passwordMismatch": "As senhas não coincidem",
+        "countryRequired": "País é obrigatório",
+        "languageRequired": "Idioma é obrigatório",
+        "createError": "Erro ao criar conta",
+        "createErrorRetry": "Erro ao criar conta. Tente novamente."
+      },
+      "alreadyHaveAccount": "Já tem uma conta? ",
+      "signIn": "Faça login"
+    },
+    "session": {
+      "expired": "Sessão Expirada",
+      "expiredMessage": "Sua sessão expirou. Por favor, faça login novamente para continuar.",
+      "loginAgain": "Fazer Login Novamente"
+    }
+  },
+  "countries": {
+    "brasil": "Brasil",
+    "portugal": "Portugal",
+    "angola": "Angola",
+    "mozambique": "Moçambique",
+    "capeVerde": "Cabo Verde",
+    "timorLeste": "Timor-Leste",
+    "guineaBissau": "Guiné-Bissau",
+    "saoTomePrincipe": "São Tomé e Príncipe",
+    "unitedStates": "Estados Unidos",
+    "canada": "Canada",
+    "unitedKingdom": "Reino Unido",
+    "ireland": "Irlanda",
+    "germany": "Alemanha",
+    "france": "França",
+    "italy": "Itália",
+    "spain": "Espanha",
+    "sweden": "Suécia",
+    "norway": "Noruega",
+    "denmark": "Dinamarca",
+    "netherlands": "Holanda",
+    "belgium": "Bélgica",
+    "switzerland": "Suíça",
+    "austria": "Áustria",
+    "poland": "Polônia",
+    "czechRepublic": "República Checa",
+    "hungary": "Hungria",
+    "romania": "Romênia",
+    "greece": "Grécia",
+    "turkey": "Turquia",
+    "russia": "Rússia",
+    "ukraine": "Ucrânia",
+    "japan": "Japão",
+    "china": "China",
+    "india": "Índia",
+    "singapore": "Cingapura",
+    "australia": "Austrália",
+    "newZealand": "Nova Zelândia",
+    "mexico": "México",
+    "argentina": "Argentina",
+    "chile": "Chile",
+    "colombia": "Colômbia",
+    "peru": "Peru",
+    "vietnam": "Vietnã",
+    "thailand": "Tailândia",
+    "malaysia": "Malásia",
+    "indonesia": "Indonésia",
+    "philippines": "Filipinas",
+    "other": "Outros"
+  },
+  "languages": {
+    "portuguese": "Português",
+    "english": "Inglês"
+  },
+  "dashboard": {
+    "title": "Meus Experimentos",
+    "subtitle": "Total de {{count}} experimento(s)",
+    "newExperiment": "Novo Experimento",
+    "loading": "Carregando experimentos...",
+    "loadError": "Erro ao carregar experimentos: {{error}}",
+    "deleteConfirm": "Tem certeza que deseja deletar este experimento?",
+    "empty": {
+      "title": "Nenhum experimento",
+      "description": "Você ainda não registrou nenhum experimento. Crie um novo para começar."
+    },
+    "stats": {
+      "registered": "Experimentos Registrados",
+      "materials": "Materiais Diferentes",
+      "machines": "Máquinas Diferentes"
+    },
+    "table": {
+      "title": "Meus Experimentos",
+      "count": "{{count}} experimentos",
+      "columns": {
+        "index": "Index",
+        "date": "Data",
+        "material": "Material",
+        "machine": "Máquina",
+        "format": "Formato",
+        "status": "Status",
+        "actions": "Ações"
+      }
+    }
+  },
+  "admin": {
+    "legacy": {
+      "title": "🛡️ Painel Administrativo",
+      "subtitle": "Gerenciar usuários e permissões",
+      "stats": {
+        "totalUsers": "Total de Usuários",
+        "administrators": "Administradores",
+        "researchers": "Pesquisadores"
+      },
+      "roleForm": {
+        "title": "Alterar Nível de Acesso",
+        "userId": "ID do Usuário",
+        "newAccess": "Novo Acesso",
+        "userIdPlaceholder": "Cole o UUID do usuário",
+        "researcher": "Pesquisador",
+        "administrator": "Administrador",
+        "updateButton": "Atualizar Permissões"
+      },
+      "deleteForm": {
+        "title": "🗑️ Deletar Usuário",
+        "userId": "ID do Usuário para Exclusão",
+        "warning": "⚠️ Esta ação é irreversível. Use com cuidado.",
+        "deleteButton": "Deletar Usuário",
+        "confirm": "Tem certeza que deseja deletar este usuário? Esta ação é irreversível."
+      },
+      "userList": {
+        "title": "Lista de Usuários",
+        "searchPlaceholder": "Buscar por nome, email ou instituição...",
+        "adminFilter": "🛡️ Admin",
+        "researcherFilter": "👨‍🔬 Pesquisador",
+        "columns": {
+          "name": "Nome",
+          "email": "Email",
+          "institution": "Instituição",
+          "type": "Tipo",
+          "phone": "Telefone",
+          "id": "ID"
+        },
+        "empty": "Nenhum usuário encontrado"
+      },
+      "help": {
+        "title": "💡 Como usar"
+      },
+      "alerts": {
+        "userUpdated": "Usuário atualizado para {{role}}",
+        "userDeleted": "Usuário deletado com sucesso",
+        "updateError": "Erro ao atualizar usuário",
+        "deleteError": "Erro ao deletar usuário",
+        "loadError": "Erro ao carregar usuários: {{error}}"
+      }
+    },
+    "advanced": {
+      "title": "Configurações Avançadas",
+      "adminBadge": "Modo Administrador - {{email}}",
+      "subtitle": "Gerenciar configurações do sistema, usuários e segurança. Acesso restrito a administradores.",
+      "restrictedWarning": {
+        "title": "⚠️ Acesso Restrito",
+        "message": "Esta página e todas as funcionalidades de administração são exclusivas para usuários administradores. Qualquer acesso não autorizado é registrado e pode resultar em ações juridicas."
+      },
+      "errors": {
+        "sessionExpired": "Sua sessão expirou. Por favor, faça login novamente.",
+        "checkingSystemHealth": "Erro ao verificar saúde do sistema",
+        "verifyConnection": "Verifique a conexão com o servidor"
+      },
+      "tabs": {
+        "experiments": "Experimentos",
+        "users": "Usuários",
+        "admins": "Administradores",
+        "database": "Banco de Dados",
+        "system": "Sistema"
+      },
+      "experimentsTab": {
+        "title": "Gerenciar Experimentos",
+        "description": "Visualize, monitore e gerencie todos os experimentos criados no sistema. Clique em qualquer linha para selecionar o experimento e ajustar seu status. Acompanhe o status, resultados e histórico de execução.",
+        "statusCounters": {
+          "submitted": "Submetido",
+          "adjustment": "Ajustes",
+          "underReview": "Em Revisão",
+          "approved": "Aprovado"
+        },
+        "tables": {
+          "underAnalysis": "Experimentos em Análise",
+          "approved": "Experimentos Aprovados"
+        },
+        "empty": {
+          "underAnalysis": "Nenhum experimento em análise",
+          "approved": "Nenhum experimento aprovado"
+        },
+        "columns": {
+          "index": "Index",
+          "status": "Status",
+          "date": "Data",
+          "researcher": "Pesquisador",
+          "material": "Material",
+          "machine": "Máquina",
+          "sample": "Amostra",
+          "infill": "Infill (HU)",
+          "data": "Dados",
+          "details": "Detalhes"
+        },
+        "viewDetail": "Ver",
+        "viewDetailTitle": "Ver detalhes completos do experimento",
+        "history": {
+          "title": "Gerenciar Status Experimentos",
+          "description": "Visualize o histórico completo de mudanças de status de todos os experimentos. Utilize os filtros abaixo para buscar registros específicos.",
+          "filters": {
+            "title": "Filtros",
+            "oldStatus": "Status Anterior",
+            "newStatus": "Status Novo",
+            "changedByName": "Alterado Por (Nome)",
+            "changedByRole": "Alterado Por (Papel)",
+            "startDate": "Data Início",
+            "endDate": "Data Fim",
+            "enterName": "Digite o nome...",
+            "allRoles": "Todos os Papéis",
+            "initial": "Inicial (Nenhum)"
+          },
+          "search": "Buscar",
+          "searching": "Buscando...",
+          "clearFilters": "Limpar Filtros",
+          "columns": {
+            "index": "Index",
+            "oldStatus": "Status Anterior",
+            "newStatus": "Novo Status",
+            "changedBy": "Alterado Por",
+            "role": "Papel",
+            "comment": "Comentário",
+            "dateTime": "Data/Hora"
+          },
+          "noRecords": "Nenhum registro encontrado"
+        },
+        "detailsModal": {
+          "title": "📋 Relatório Completo do Experimento",
+          "subtitle": "Todas as informações e dados coletados",
+          "loading": "Carregando detalhes do experimento...",
+          "basicInfo": "📌 Informações Básicas do Experimento",
+          "editStatus": "🎯 Editar Status do Experimento:",
+          "commentLabel": "💬 Comentário (Opcional)",
+          "commentPlaceholder": "Adicione um comentário sobre esta mudança de status (feedback, motivo, instruções para o pesquisador, etc.)",
+          "commentHint": "O comentário será registrado no histórico de mudanças de status",
+          "noTransitions": "ℹ️ Nenhuma transição de status disponível para o estado atual."
+        }
+      },
+      "usersTab": {
+        "title": "Gerenciar Usuários",
+        "description": "Análise e controle de status de todos os usuários da plataforma. Você pode alterar manualmente o status de um usuário usando o formulário abaixo.",
+        "regularUsers": "Usuários Regulares",
+        "irregularUsers": "Usuários Irregulares",
+        "deactivatedUsers": "Usuários Desativados",
+        "userSingular": "usuário",
+        "userPlural": "usuários",
+        "loading": "Carregando usuários...",
+        "updateStatusTitle": "Atualizar Status Manualmente",
+        "updateFormHint": "Use o formulário abaixo para alterar o status de um usuário. Você pode também clicar em qualquer usuário na tabela acima.",
+        "openForm": "Abrir Formulário de Atualização",
+        "loadingError": "Erro ao carregar usuários",
+        "loadingAdminsError": "Erro ao carregar administradores",
+        "loadingExperimentsError": "Erro ao carregar experimentos",
+        "userDetailsModal": {
+          "title": "Detalhes do Pesquisador",
+          "subtitle": "Informações completas de cadastro e atividades",
+          "basicInfo": "Informações Básicas",
+          "institutionalInfo": "Informações Institucionais",
+          "activities": "Atividades",
+          "experimentsCreated": "Experimentos Criados",
+          "memberSince": "Membro desde"
+        },
+        "sections": {
+          "regular": "Usuários Regulares",
+          "irregular": "Usuários Irregulares",
+          "disabled": "Usuários Desativados"
+        }
+      },
+      "adminsTab": {
+        "title": "Gerenciar Administradores",
+        "description": "Gerencie os administradores do sistema e altere permissões de usuários para administrador ou pesquisador.",
+        "adminsCount": "Administradores ({{count}})",
+        "editPermissions": "Editar Permissões",
+        "promoteTitle": "Promover Pesquisador a Administrador",
+        "promoteHint": "Use o formulário abaixo para promover um pesquisador regular a administrador.",
+        "openForm": "Abrir Formulário de Atualização",
+        "loading": "Carregando administradores...",
+        "noAdminsFound": "Nenhum administrador encontrado",
+        "experiments": "Experimentos"
+      },
+      "databaseTab": {
+        "title": "Gerenciar Banco de Dados",
+        "description": "Realize backups, verifique integridade e otimize o banco de dados. Todas as operações devem ser realizadas com cuidado para evitar perda de dados.",
+        "integrity": {
+          "title": "Integridade do Banco",
+          "description": "Verificar e reparar problemas de integridade do banco de dados",
+          "button": "Verificar Integridade",
+          "checking": "Verificando...",
+          "modalTitle": "Integridade do Banco de Dados",
+          "connectionStatus": "Status da Conexão",
+          "generalHealth": "Saúde Geral",
+          "tablesStatus": "Status das Tabelas ({{count}})",
+          "verifiedAt": "Verificado em: {{date}}",
+          "checkAgain": "Verificar Novamente",
+          "connected": "✅ Conectado",
+          "disconnected": "❌ Desconectado",
+          "intact": "✅ Íntegro",
+          "withWarnings": "⚠️ Com Avisos",
+          "withErrors": "❌ Erro"
+        },
+        "backup": {
+          "title": "Backup de Dados",
+          "description": "Exportar todas as informações da plataforma para backup",
+          "button": "Exportar Todos os Dados",
+          "exporting": "Exportando..."
+        },
+        "dangerZone": {
+          "truncateCard": {
+            "title": "Excluir Dados Experimentais",
+            "description": "Remove materiais, experimentos e medições. Contas de usuários são preservadas. Requer confirmação com senha."
+          },
+          "seedCard": {
+            "title": "Popular Dados de Teste",
+            "description": "Adiciona 5 experimentos completos (infill, atenuação, qualidades de feixe e propriedades mecânicas). Pode ser executado várias vezes para agregar mais dados."
+          },
+          "checkingStatus": "Verificando estado do banco...",
+          "recordCount": "{{count}} experimentos no banco (cada clique adiciona mais 5).",
+          "truncateButton": "Excluir Base de Dados",
+          "seedButton": "Popular Base de Dados",
+          "truncating": "Excluindo...",
+          "seeding": "Populando...",
+          "truncateSuccess": "Dados experimentais excluídos com sucesso.",
+          "seedSuccess": "5 experimentos completos adicionados com sucesso.",
+          "truncateError": "Erro ao excluir dados experimentais.",
+          "seedError": "Erro ao popular banco de dados.",
+          "statusError": "Não foi possível verificar o estado do banco.",
+          "truncateConfirmDescription": "Esta ação remove permanentemente todos os materiais, experimentos e medições. Digite sua senha para confirmar."
+        }
+      },
+      "systemTab": {
+        "title": "Monitoramento do Sistema",
+        "description": "Visualize histórico de atividades do sistema, filtre por categoria, severidade e data para análise detalhada.",
+        "filters": {
+          "title": "🔍 Filtros",
+          "entityPlaceholder": "Nome da Entidade",
+          "entityName": "Nome da Entidade",
+          "allCategories": "Todas as Categorias",
+          "create": "Criar",
+          "update": "Atualizar",
+          "delete": "Deletar",
+          "statusChange": "Mudança de Status",
+          "auth": "Autenticação",
+          "error": "Erro",
+          "allSeverities": "Todas as Severidades",
+          "info": "Informação",
+          "warning": "Aviso",
+          "critical": "Crítico",
+          "apply": "Aplicar Filtros",
+          "clear": "Limpar Filtros"
+        },
+        "table": {
+          "title": "Logs do Sistema",
+          "loading": "Carregando logs...",
+          "noLogs": "Nenhum log encontrado com os filtros aplicados.",
+          "error": "Erro ao carregar",
+          "columns": {
+            "dateTime": "Data/Hora",
+            "category": "Categoria",
+            "severity": "Severidade",
+            "actionType": "Tipo de Ação",
+            "description": "Descrição",
+            "user": "Usuário"
+          }
+        },
+        "systemHealth": {
+          "title": "Saúde do Sistema",
+          "modalTitle": "Saúde do Sistema",
+          "description": "Estado geral de saúde do sistema",
+          "healthy": "Saudável",
+          "warning": "Aviso",
+          "critical": "Crítico",
+          "uptime": "Tempo de Atividade",
+          "diskUsage": "Uso de Disco",
+          "memoryUsage": "Uso de Memória",
+          "databaseSize": "Tamanho do Banco de Dados",
+          "activeUsers": "Usuários Ativos",
+          "requestsPerSecond": "Requisições/Segundo",
+          "averageResponseTime": "Tempo de Resposta Médio",
+          "errorRate": "Taxa de Erro"
+        }
+      }
+    }
+  },
+  "settings": {
+    "title": "Configurações da Conta",
+    "loading": "Carregando...",
+    "loadError": "Erro ao carregar dados do usuário. Por favor, tente novamente.",
+    "sidebar": {
+      "title": "Configurações",
+      "personalData": "Dados Pessoais",
+      "system": "Sistema"
+    },
+    "personalData": {
+      "title": "Dados Pessoais",
+      "fields": {
+        "fullName": "Nome Completo",
+        "institution": "Instituição",
+        "email": "Email",
+        "phone": "Telefone",
+        "instagram": "Instagram",
+        "country": "País *",
+        "language": "Idioma *",
+        "newPassword": "Nova Senha",
+        "confirmPassword": "Confirmar Senha"
+      },
+      "emailNote": "Email não pode ser alterado",
+      "selectCountry": "Selecione um país",
+      "selectLanguage": "Selecione um idioma",
+      "changePassword": "Alterar Senha",
+      "saveButton": "Salvar Alterações",
+      "success": "Dados atualizados com sucesso!",
+      "errors": {
+        "countryRequired": "País é obrigatório",
+        "languageRequired": "Idioma é obrigatório",
+        "newPasswordRequired": "Nova senha é obrigatória",
+        "passwordMin": "Senha deve ter no mínimo 8 caracteres",
+        "passwordMismatch": "As senhas não correspondem",
+        "processError": "Erro ao processar dados",
+        "updateError": "Erro ao atualizar dados"
+      }
+    },
+    "system": {
+      "title": "Notificações",
+      "emailNotifications": {
+        "label": "Notificações por Email",
+        "description": "Receba atualizações sobre seus experimentos por email",
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "enabledTitle": "Notificações habilitadas",
+        "enabledDescription": "As notificações sobre atualizações de seus experimentos serão enviadas por email para seu endereço registrado.",
+        "betaNote": "(Nota: Este é um conceito de interface. A funcionalidade de backend está em desenvolvimento.)"
+      }
+    },
+    "passwordConfirm": {
+      "title": "Confirme sua senha",
+      "description": "Digite sua senha para confirmar as alterações no perfil",
+      "label": "Senha",
+      "placeholder": "Digite sua senha",
+      "cancelButton": "Cancelar",
+      "confirmButton": "Confirmar",
+      "confirming": "Confirmando...",
+      "errors": {
+        "required": "Senha é obrigatória",
+        "confirmError": "Erro ao confirmar senha"
+      }
+    }
+  },
+  "experimentWizard": {
+    "title": "Novo Experimento",
+    "subtitle": "Cadastro organizado e intuitivo. Campos com * são obrigatórios.",
+    "reset": "Recomeçar",
+    "loading": "Carregando...",
+    "selectExperiment": "Selecione um experimento",
+    "finalize": "Finalizar Cadastro de Novo Experimento",
+    "stages": {
+      "fabrication": "Fabricação",
+      "samples": "Amostras",
+      "characteristics": "Características"
+    },
+    "checkingAuth": "Verificando autenticação...",
+    "sections": {
+      "guide": {
+        "name": "Guia de Início",
+        "description": "Entenda o fluxo do cadastro de experimentos"
+      },
+      "materialMachine": {
+        "name": "Material & Máquina",
+        "description": "Informações sobre o material e a máquina utilizada"
+      },
+      "sample": {
+        "name": "Amostra",
+        "description": "Configuração e geometria da amostra"
+      },
+      "infill": {
+        "name": "Infill (Preenchimento)",
+        "description": "Medições de densidade e preenchimento"
+      },
+      "mechanical": {
+        "name": "Propriedades Mecânicas",
+        "description": "Testes de resistência e outros parâmetros"
+      },
+      "attenuation": {
+        "name": "Atenuação",
+        "description": "Medições de atenuação linear"
+      },
+      "beamQuality": {
+        "name": "Qualidade de Feixes",
+        "description": "Análise de feixes de acordo com IEC 61267"
+      },
+      "finalReview": {
+        "name": "Revisão Final",
+        "description": "Revise todas as informações antes de finalizar"
+      }
+    },
+    "materialMachine": {
+      "materialSection": "⚛️ Informações do Material",
+      "machineSection": "🔧 Informações da Máquina",
+      "fields": {
+        "brand": "Marca",
+        "model": "Modelo",
+        "color": "Cor",
+        "technology": "Tecnologia"
+      },
+      "placeholders": {
+        "brand": "Ex: Ultimaker",
+        "model": "Ex: PLA 700",
+        "color": "Ex: Branco"
+      },
+      "loading": "Carregando...",
+      "noSuggestions": "Sem sugestões - Digite manualmente",
+      "isComposite": "É um compósito?",
+      "compositeLabel": "Detalhes do Compósito",
+      "compositeHint": "Ex: fibras de carbono 30%, resina epóxi...",
+      "compositePlaceholder": "Descreva a composição (fibras, reforços, percentuais, etc.)",
+      "technologies": {
+        "other": "Other"
+      },
+      "error": "Preencha todos os campos obrigatórios"
+    },
+    "patterns": {
+      "label": "Padrões de Preenchimento",
+      "hint": "Selecione um ou mais padrões usados na amostra",
+      "names": {
+        "rectilinear": "Rectilinear",
+        "grid": "Grid",
+        "line": "Line",
+        "cubic": "Cubic",
+        "triangles": "Triangles",
+        "gyroid": "Gyroid",
+        "honeycomb": "Honeycomb",
+        "cross": "Cross",
+        "3dHoneycomb": "3D Honeycomb",
+        "hilbertCurve": "Hilbert Curve",
+        "octagramSpiral": "Octagram Spiral",
+        "crosshatch": "CrossHatch",
+        "archimedeanChords": "Archimedean Chords"
+      },
+      "descriptions": {
+        "rectilinear": "Padrão retilíneo",
+        "grid": "Padrão em grade",
+        "line": "Padrão em linhas",
+        "cubic": "Padrão cúbico",
+        "triangles": "Padrão triangular",
+        "gyroid": "Padrão Gyroid",
+        "honeycomb": "Padrão em favo de mel",
+        "cross": "Padrão em cruz",
+        "3dHoneycomb": "Favo de mel 3D",
+        "hilbertCurve": "Curva de Hilbert",
+        "octagramSpiral": "Espiral Octagram",
+        "crosshatch": "Padrão cruzado",
+        "archimedeanChords": "Cordas de Arquimedes"
+      },
+      "warning": "⚠️ Atenção: Selecione pelo menos um padrão de preenchimento.",
+      "infoNote": "ℹ️ Nota: Se a amostra foi produzida com múltiplos padrões, selecione todos eles. Cada padrão criará um registro separado vinculado ao mesmo experimento.",
+      "autoNote": "Os padrões que você selecionará aqui serão usados para gerar automaticamente os formulários de infill (40%, 60%, 80% e 100% para cada padrão). Preencha os dados de cada infill na próxima seção."
+    },
+    "sample": {
+      "shapeLabel": "Formato da Amostra *",
+      "shapes": {
+        "cube": "📦 Cube",
+        "cylinder": "🔴 Cylinder",
+        "other": "❓ Outro"
+      },
+      "dimensionLabel": "Dimensão da Amostra",
+      "edgeLabel": "Aresta (mm)",
+      "radiusLabel": "Raio / Dimensão principal (mm)",
+      "roiLabel": "Área ROI Circular (mm²)",
+      "roiHint": "Área da região de interesse circular em mm²",
+      "placeholder": "0.00",
+      "errors": {
+        "noPattern": "Selecione pelo menos um padrão de preenchimento",
+        "fillFields": "Preencha todos os campos obrigatórios com valores válidos",
+        "materialMachineRequired": "Material e Máquina são obrigatórios",
+        "registrationError": "Erro ao registrar amostra"
+      }
+    },
+    "infill": {
+      "standardTitle": "📊 Infill Padrão",
+      "customTitle": "✨ Infill Personalizado",
+      "huMean": "HU Mean",
+      "customInfillPercent": "Infill (%)",
+      "customHuMean": "HU Mean",
+      "visualHomogeneity": "Homogeneidade Visual",
+      "addCustom": "+ Adicionar Personalizado",
+      "notes": "Observações",
+      "notesPlaceholder": "Adicione observações sobre as medições de infill...",
+      "error": "Infill % e HU Mean são obrigatórios"
+    },
+    "mechanical": {
+      "conditionLabel": "Condição do Experimento *",
+      "conditions": {
+        "before": "Antes da Irradiação",
+        "after": "Depois da Irradiação"
+      },
+      "sections": {
+        "traction": "Tração e Ruptura",
+        "flexion": "Flexão e Dureza",
+        "impact": "Impacto"
+      },
+      "fields": {
+        "tractionModule": "Módulo Tração (MPa)",
+        "tractionResistance": "Resistência Tração (MPa)",
+        "ruptureDeformation": "Deformação Ruptura (%)",
+        "flexionModule": "Módulo Flexão (MPa)",
+        "flexionResistance": "Resistência Flexão (MPa)",
+        "hardness": "Dureza (Shore A / Rockwell)",
+        "hardnessPlaceholder": "Ex: 75 Shore A",
+        "charpyImpact": "Impacto Charpy (KJ/m²)",
+        "izodImpact": "Impacto Izod"
+      },
+      "skip": "Você pulará o registro de propriedades mecânicas. Pode continuar.",
+      "error": "Erro ao registrar propriedades mecânicas"
+    },
+    "attenuation": {
+      "title": "Medições de Atenuação Linear",
+      "subtitle": "Lei de Lambert-Beer",
+      "pqrHint": "Qualidade de Feixe / Atenuação (PQR)",
+      "rqrLabel": "Energia do feixe (RQR)",
+      "i0Label": "Valor inicial I₀ (sem barreira)",
+      "measurementsTitle": "Espessuras e transmissões",
+      "thicknessLabel": "Espessura (mm)",
+      "transmissionLabel": "Transmissão",
+      "addThickness": "Adicionar Espessura",
+      "addRqrTest": "Adicionar teste (outra energia RQR)",
+      "testLabel": "Teste {{index}}",
+      "validationMinPoints": "Cada teste RQR precisa de I₀ > 0 e ao menos 2 pares espessura/transmissão válidos.",
+      "measurementLabel": "Medição {{n}} - Espessura (mm)",
+      "lambertBeer": "Valor Lambert-Beer",
+      "addButton": "Adicionar Medição",
+      "note": "O coeficiente μ é calculado automaticamente no servidor por regressão ln(I/I₀) × espessura (Lei de Beer-Lambert).",
+      "skip": "Você pulará o registro de atenuação linear. Pode continuar.",
+      "errors": {
+        "minMeasurement": "Adicione pelo menos uma medição com espessura > 0",
+        "registrationError": "Erro ao registrar atenuação linear"
+      }
+    },
+    "beamQuality": {
+      "tabs": {
+        "rqr": "Série RQR",
+        "rqt": "Série RQT",
+        "rqrm": "Série RQR-M"
+      },
+      "subtitles": {
+        "rqr": "RQR 2 a 10 (Norma IEC 61267)",
+        "rqt": "RQT 8 a 10 (Norma IEC 61267)",
+        "rqrm": "RQR-M 1 a 4 (Norma IEC 61267 - Mamografia)"
+      },
+      "note": "ℹ️ Nota: Preencha apenas as qualidades que foram medidas. Deixe como 0 ou em branco as qualidades não testadas.",
+      "skip": "Você pulará o registro de qualidade de feixes. Pode finalizar.",
+      "error": "Erro ao registrar qualidade de feixes"
+    },
+    "finalReview": {
+      "title": "Revisão Final",
+      "description": "Verifique todas as informações antes de finalizar o cadastro do experimento.",
+      "cards": {
+        "completedSections": "Seções Completas",
+        "filledFields": "Campos Preenchidos",
+        "status": "Status",
+        "ready": "✓ Pronto",
+        "incomplete": "⚠ Incompleto"
+      },
+      "incompleteSections": "Seções Incompletas",
+      "incompleteSectionsDesc": "As seguintes seções não estão 100% completas:",
+      "fullSummary": "Resumo Completo",
+      "info": {
+        "title": "ℹ️ Importante:",
+        "required": "Campos obrigatórios: Material, Máquina, Amostra e Infill",
+        "optional": "Dados técnicos adicionais são completamente opcionais",
+        "editable": "Você poderá editar o experimento após finalizar",
+        "irreversible": "Esta ação não pode ser desfeita imediatamente"
+      },
+      "backButton": "← Voltar para Edição",
+      "finalizeButton": "✅ Finalizar Experimento",
+      "finalizing": "Finalizando..."
+    },
+    "confirmation": {
+      "newTitle": "Finalizar Cadastro",
+      "editTitle": "Finalizar Edição",
+      "newSubtitle": "Confirmação de dados",
+      "editSubtitle": "Confirmação de alterações",
+      "newInfo": [
+        "✓ Seus dados serão salvos na base de dados",
+        "✓ Os dados passarão por análise e validação",
+        "✓ O experimento poderá ser editado em 'Meus Experimentos'",
+        "✓ Você receberá notificação sobre o status de análise"
+      ],
+      "editInfo": [
+        "✓ Suas alterações serão salvas na base de dados",
+        "✓ Os dados atualizados passarão por análise e validação",
+        "✓ Você será redirecionado para 'Meus Experimentos'",
+        "✓ Receberá notificação sobre o status de análise"
+      ],
+      "continueEditing": "Continuar Editando",
+      "finalizeNew": "✅ Finalizar Cadastro",
+      "finalizeEdit": "✅ Salvar Alterações",
+      "saving": "Salvando...",
+      "finalizing": "Finalizando..."
+    }
+  },
+  "experimentReport": {
+    "viewTitle": "📋 Relatório Completo do Experimento",
+    "viewSubtitle": "Todas as informações e dados coletados",
+    "editTitle": "✏️ Editar Experimento",
+    "editSubtitle": "Modifique os dados e salve as alterações",
+    "loading": "Carregando detalhes do experimento...",
+    "sections": {
+      "researcherInfo": "👤 Informações do Experimento e Pesquisador",
+      "materialMachine": "Material e Máquina",
+      "material": "Material",
+      "machine": "Máquina",
+      "sampleCharacteristics": "Características da Amostra",
+      "fillMeasurements": "Medições de Preenchimento",
+      "beamQualities": "Qualidades de Feixe",
+      "linearAttenuation": "Atenuação Linear",
+      "mechanicalProperties": "Propriedades Mecânicas"
+    },
+    "fields": {
+      "index": "INDEX",
+      "researcher": "PESQUISADOR",
+      "institution": "INSTITUIÇÃO",
+      "creationDate": "DATA DE CRIAÇÃO",
+      "status": "STATUS",
+      "brand": "MARCA",
+      "model": "MODELO",
+      "color": "COR",
+      "composite": "COMPÓSITO",
+      "technology": "TECNOLOGIA",
+      "shapeType": "TIPO DE FORMA",
+      "dimension": "DIMENSÃO (MM)",
+      "roiArea": "ÁREA ROI CIRCULAR (MM²)",
+      "fillPercentage": "% PREENCHIMENTO",
+      "huMean": "HU MÉDIA",
+      "huMeasured": "HU MEDIDA",
+      "notes": "NOTAS",
+      "thickness": "ESPESSURA (MM)",
+      "lambertBeer": "VALOR LAMBERT-BEER",
+      "testCondition": "CONDIÇÃO DE TESTE",
+      "tractionModule": "MÓDULO DE TRAÇÃO",
+      "tractionResistance": "RESIST. À TRAÇÃO",
+      "ruptureDeformation": "DEFORM. RUPTURA",
+      "flexionModule": "MÓDULO FLEXÃO",
+      "flexionResistance": "RESIST. FLEXÃO",
+      "hardness": "DUREZA ROCKWELL"
+    },
+    "statusLabels": {
+      "approved": "✅ Aprovado",
+      "submitted": "📤 Submetido",
+      "underReview": "🔍 Em Revisão",
+      "needsAdjustment": "⚠️ Ajustes Necessários",
+      "unknown": "❓ Desconhecido"
+    },
+    "empty": {
+      "fillMeasurements": "Nenhuma medição de preenchimento registrada",
+      "beamQualities": "Nenhuma qualidade de feixe registrada",
+      "linearAttenuation": "Nenhuma medição de atenuação linear registrada",
+      "mechanicalProperties": "Nenhuma propriedade mecânica registrada"
+    }
+  },
+  "usersTable": {
+    "loading": "Carregando usuários...",
+    "backendUnavailable": "O serviço backend pode estar indisponível. Por favor, verifique se o servidor está em execução.",
+    "noUsersFound": "Nenhum usuário encontrado com status \"{{status}}\"",
+    "columns": {
+      "status": "Status",
+      "name": "Nome",
+      "email": "E-mail",
+      "role": "Role",
+      "institution": "Instituição",
+      "country": "País",
+      "createdAt": "Criado em",
+      "experiments": "Experimentos",
+      "details": "Detalhes"
+    },
+    "viewButton": "Ver",
+    "viewTitle": "Ver detalhes",
+    "rowTitle": "Clique para alterar status"
+  },
+  "adminsTable": {
+    "loading": "Carregando administradores...",
+    "noAdminsFound": "Nenhum administrador encontrado",
+    "columns": {
+      "name": "Nome",
+      "email": "E-mail",
+      "role": "Role",
+      "institution": "Instituição",
+      "experiments": "Experimentos",
+      "createdAt": "Criado em"
+    }
+  },
+  "updateStatusForm": {
+    "info": "ℹ️ Altere o status de qualquer usuário de forma manual. Status: Regular, Irregular ou Desativado. A mudança entra em vigor imediatamente.",
+    "error": "Erro",
+    "success": "Sucesso",
+    "successMessage": "Status atualizado com sucesso para '{{newStatus}}' (era {{oldStatus}})",
+    "fields": {
+      "email": "E-mail do Usuário *",
+      "newStatus": "Novo Status *",
+      "emailPlaceholder": "exemplo@instituicao.com"
+    },
+    "statusOptions": {
+      "regular": "Regular",
+      "irregular": "Irregular",
+      "disabled": "Desativado"
+    },
+    "updateButton": "Atualizar Status",
+    "updating": "Atualizando...",
+    "securityDescription": "Você está alterando o status de {{email}} para {{status}}. Esta é uma ação sensível que será registrada nos logs de auditoria do sistema.",
+    "errors": {
+      "emailRequired": "E-mail é obrigatório",
+      "invalidEmail": "E-mail inválido",
+      "validationError": "Erro ao validar mudança de status",
+      "updateError": "Erro ao atualizar status"
+    }
+  },
+  "updateAdminRoleForm": {
+    "info": "ℹ️ Apenas contas regulares com e-mail validado podem ser promovidas a administrador. A mudança entrará em vigor no próximo login do usuário.",
+    "fields": {
+      "email": "E-mail *",
+      "emailHint": "Digite o e-mail do pesquisador que deseja promover a administrador",
+      "emailPlaceholder": "usuario@dominio.com",
+      "role": "Novo Role *"
+    },
+    "currentAdmin": "(Atual: Admin)",
+    "currentResearcher": "(Atual: Pesquisador)",
+    "roleOptions": {
+      "researcher": "🔎 Pesquisador",
+      "admin": "💼 Administrador"
+    },
+    "sameRoleWarning": "⚠️ O usuário já possui este role",
+    "sameRoleError": "O usuário já possui o role '{{role}}'. Nenhuma mudança foi necessária.",
+    "emailError": "Por favor, insira um e-mail",
+    "success": "Role atualizado com sucesso! O usuário assumirá o novo papel ao fazer login novamente.",
+    "processing": "Processando...",
+    "confirmButton": "Confirmar Alteração",
+    "addAsAdmin": "Adicionar como Admin",
+    "securityDescription": "Você está alterando as permissões de {{email}} para {{role}}. Esta é uma ação sensível que será registrada nos logs de auditoria."
+  },
+  "securityModal": {
+    "title": "Confirmação de Segurança",
+    "subtitle": "Área restrita - autenticação obrigatória",
+    "sensitiveAction": "Ação Sensível Detectada",
+    "passwordLabel": "Digite sua senha para confirmar",
+    "passwordPlaceholder": "Sua senha de administrador",
+    "errorSection": "Erro",
+    "confirmed": "✓ Confirmado com sucesso",
+    "tip": "💡 Por sua segurança, você deve confirmar com sua própria senha de administrador. Esta ação será registrada nos logs de auditoria.",
+    "errors": {
+      "required": "Senha é obrigatória",
+      "confirmError": "Erro ao confirmar senha"
+    },
+    "cancelButton": "Cancelar",
+    "confirmButton": "Confirmar Ação",
+    "confirming": "Confirmando..."
+  },
+  "experiments": {
+    "allExperiments": "Todos os Experimentos",
+    "newExperiment": "Novo Experimento",
+    "available": "disponível",
+    "available_plural": "disponíveis",
+    "available_count": "{{count}} experimento{{count}} disponível{{count}}",
+    "availableCount_one": "1 experimento disponível",
+    "availableCount_other": "{{count}} experimentos disponíveis",
+    "title": "Todos os Experimentos",
+    "subtitle": "{{count}} experimento(s) disponível(is) no sistema",
+    "loading": "Carregando experimentos...",
+    "loadError": "Erro ao carregar",
+    "networkError": "❌ Erro de Conexão: Não conseguiu conectar ao servidor.\n\nPossíveis causas:\n1. Backend não está rodando (http://localhost:8000)\n2. CORS bloqueado\n3. Problema de rede",
+    "empty": {
+      "title": "Nenhum experimento encontrado no sistema.",
+      "createFirst": "Criar primeiro experimento"
+    },
+    "filters": {
+      "toggle": "🔍 Filtros",
+      "researcher": "Pesquisador",
+      "allInstitutions": "Todas as Instituições",
+      "allMaterials": "Todos os Materiais",
+      "allMachines": "Todas as Máquinas",
+      "allFormats": "Todos os Formatos",
+      "huMin": "HU Mín",
+      "huMax": "HU Máx",
+      "dataTitle": "Dados do Experimento:",
+      "mechanical": "⚙️ Propriedades Mecânicas",
+      "attenuation": "📉 Atenuação Linear",
+      "beamQuality": "☢️ Qualidades de Feixe",
+      "noData": "🚫 Sem Dados",
+      "applyFilters": "Aplicar Filtros",
+      "clearFilters": "Limpar Filtros",
+      "results": "{{count}} resultado{{count, plural, one {} other {s}}} encontrado{{count, plural, one {} other {s}}}"
+    },
+    "table": {
+      "title": "Todos os Experimentos",
+      "count": "{{count}} experimento(s)",
+      "singularExperiment": "experimento",
+      "pluralExperiments": "experimentos",
+      "columns": {
+        "index": "Index",
+        "date": "Data",
+        "researcher": "Pesquisador",
+        "material": "Material",
+        "machine": "Máquina",
+        "sample": "Amostra",
+        "infill": "Infill (HU)",
+        "data": "Dados",
+        "details": "Detalhes"
+      },
+      "viewButton": "Ver",
+      "selectAllTooltip": "Selecionar/Desselecionar todos nesta página",
+      "selectForComparison": "Selecionar para comparação",
+      "color": "Cor:",
+      "measurements": "med.",
+      "viewDetails": "Ver detalhes completos do experimento",
+      "tooltips": {
+        "mechanical": "Propriedades Mecânicas",
+        "attenuation": "Atenuação Linear",
+        "beamQuality": "Qualidades de Feixe"
+      }
+    },
+    "report": {
+      "title": "Relatório Completo do Experimento",
+      "subtitle": "Todas as informações e dados coletados",
+      "loading": "Carregando detalhes do experimento...",
+      "editButton": "✏️ Editar Experimento",
+      "editSubtitle": "Modifique os dados e salve as alterações",
+      "sections": {
+        "info": "👤 Informações do Experimento e Pesquisador",
+        "materialMachine": "Material e Máquina",
+        "sample": "Características da Amostra",
+        "infill": "Medições de Preenchimento",
+        "beamQuality": "Qualidades de Feixe",
+        "linearAttenuation": "Atenuação Linear",
+        "mechanicalProperties": "Propriedades Mecânicas"
+      },
+      "fields": {
+        "index": "Index",
+        "researcher": "Pesquisador",
+        "institution": "Instituição",
+        "createdDate": "Data de Criação",
+        "status": "Status",
+        "materialLabel": "Material",
+        "brand": "Marca",
+        "model": "Modelo",
+        "color": "Cor",
+        "composite": "Compósito",
+        "machineLabel": "Máquina",
+        "technology": "Tecnologia",
+        "shapeType": "Tipo de Forma",
+        "dimension": "Dimensão (mm)",
+        "roiArea": "Área ROI Circular (mm²)",
+        "infillPercentage": "% Preenchimento",
+        "huMean": "HU Média",
+        "huMeasured": "HU Medida",
+        "notes": "Notas",
+        "thickness": "Espessura (mm)",
+        "lambertBeer": "Valor Lambert-Beer",
+        "testCondition": "Condição de Teste",
+        "tensileModulus": "Módulo de Tração",
+        "tensileStrength": "Resist. à Tração",
+        "breakDeformation": "Deform. Ruptura",
+        "flexuralModulus": "Módulo Flexão",
+        "flexuralStrength": "Resist. Flexão",
+        "hardnessRockwell": "Dureza Rockwell"
+      },
+      "status": {
+        "approved": "Aprovado",
+        "submitted": "Submetido",
+        "review": "Em Revisão",
+        "revisions": "Ajustes Necessários",
+        "unknown": "Desconhecido"
+      },
+      "shapes": {
+        "cylinder": "Cilindro",
+        "cube": "Cubo",
+        "sphere": "Esfera",
+        "rectangular": "Retangular"
+      },
+      "messages": {
+        "noInfillMeasurements": "Nenhuma medição de preenchimento registrada",
+        "noBeamQualities": "Nenhuma qualidade de feixe registrada",
+        "noLinearAttenuation": "Nenhuma medição de atenuação linear registrada",
+        "noMechanicalProperties": "Nenhuma propriedade mecânica registrada",
+        "incomplete": "Seção incompleta",
+        "complete": "Seção completa"
+      },
+      "buttonLabels": {
+        "edit": "✏️ Editar Experimento",
+        "close": "Fechar",
+        "backButton": "Voltar",
+        "yesButton": "Sim",
+        "noButton": "Não"
+      },
+      "sectionTitles": {
+        "material": "Material",
+        "machine": "Máquina"
+      },
+      "boolean": {
+        "yes": "Sim",
+        "no": "Não"
+      }
+    },
+    "charts": {
+      "comparativeRoi": {
+        "title": "📍 Comparativo - ROI (Região de Interesse) por Preenchimento",
+        "yAxisLabel": "Área ROI (mm²)",
+        "tooltipLabel": "Área (mm²)",
+        "noData": "Nenhum dado de ROI disponível para comparação",
+        "description": "* ROI (Região de Interesse) é a área em mm² selecionada para análise na tomografia computadorizada."
+      },
+      "comparativeHu": {
+        "title": "🔬 Comparativo - Hounsfield Units (HU) por Preenchimento",
+        "yAxisLabel": "HU (Hounsfield Units)",
+        "tooltipLabel": "HU",
+        "noData": "Nenhum dado de HU disponível para comparação",
+        "description": "* HU (Hounsfield Units) é uma medida de densidade em tomografia computadorizada. Valores maiores indicam maior densidade."
+      },
+      "comparativeAttenuation": {
+        "title": "📉 Comparativo - Atenuação Linear por Espessura",
+        "yAxisLabel": "Atenuação Linear",
+        "xAxisLabel": "Espessura (mm)",
+        "noData": "Nenhum dado de atenuação disponível para comparação",
+        "description": "* Atenuação Linear é a redução da intensidade de raios X ao atravessar o material."
+      },
+      "transmissionCurve": {
+        "title": "📉 Curva de Transmissão por Espessura",
+        "xAxis": "Espessura (mm)",
+        "yAxis": "Transmissão",
+        "noData": "Sem medições de transmissão para exibir",
+        "description": "Valores brutos medidos em cada espessura."
+      },
+      "neperianRegression": {
+        "title": "📐 Regressão Neperiana (validação Lambert)",
+        "xAxis": "Espessura (mm)",
+        "yAxis": "ln(I/I₀)",
+        "noData": "Sem dados linearizados para regressão",
+        "description": "A inclinação da reta de ajuste corresponde a −μ."
+      },
+      "attenuationVsEnergy": {
+        "title": "⚡ Atenuação vs Energia (RQR)",
+        "xAxis": "Qualidade de feixe (RQR)",
+        "yAxis": "Coeficiente μ",
+        "empty": "Cadastre μ para mais de uma energia RQR no mesmo material para exibir este gráfico.",
+        "description": "Comparação do coeficiente de atenuação linear entre energias."
+      },
+      "comparativeMechanical": {
+        "title": "⚙️ Comparativo - Propriedades Mecânicas",
+        "noData": "Nenhum dado mecânico disponível para comparação",
+        "properties": {
+          "tensileModulus": "Módulo Tração",
+          "tensileStrength": "Resist. Tração",
+          "flexuralModulus": "Módulo Flexão",
+          "flexuralStrength": "Resist. Flexão",
+          "breakDeformation": "Deform. Ruptura"
+        },
+        "description": "* Propriedades mecânicas são características dos materiais sob testes de tensão e flexão."
+      },
+      "linearAttenuation": {
+        "title": "Gráfico de Atenuação Linear",
+        "xAxisLabel": "Espessura (mm)",
+        "yAxisLabel": "Atenuação Linear",
+        "noData": "Sem dados de atenuação para exibir"
+      },
+      "mechanicalProperties": {
+        "title": "Gráfico de Propriedades Mecânicas",
+        "noData": "Sem dados mecânicos para exibir"
+      },
+      "legend": {
+        "experimentLabel": "Experimento #{{index}}",
+        "unknownMaterial": "Material desconhecido",
+        "experimentsInAnalysis": "Experimentos em análise"
+      },
+      "regression": {
+        "title": "📈 Análise de Regressão Linear - Infill vs Hounsfield",
+        "description": "Correlação entre porcentagem de preenchimento e Unidades de Hounsfield por tipo de padrão",
+        "xAxisLabel": "Porcentagem de Preenchimento (%)",
+        "yAxisLabel": "Unidades de Hounsfield (HU)",
+        "noData": "Nenhum dado de regressão disponível",
+        "insufficientData": "Dados insuficientes para análise (nenhuma medição infill/HU válida nos experimentos selecionados)",
+        "note": "Cada série representa uma combinação específica de material-padrão. Os coeficientes de regressão (A, B) são derivados dos coeficientes do banco de dados.",
+        "noteComputed": "A reta de regressão é calculada por mínimos quadrados a partir dos pares (infill %, HU médio) de cada experimento e pattern.",
+        "tissueBands": {
+          "legendTitle": "Faixas de referência (HU)",
+          "corticalBone": "Osso cortical",
+          "trabecularBone": "Osso trabecular",
+          "water": "Água",
+          "fat": "Gordura",
+          "lung": "Pulmão"
+        }
+      }
+    }
+  },
+  "myExperiments": {
+    "title": "Meus Experimentos",
+    "subtitle_one": "1 experimento registrado",
+    "subtitle_other": "{{count}} experimentos registrados",
+    "loading": "Carregando seus experimentos...",
+    "noExperiments": "Você ainda não tem experimentos registrados.",
+    "createFirstExperiment": "Criar primeiro experimento",
+    "status": {
+      "submitted": "Submetido",
+      "revisions": "Ajustes",
+      "review": "Em Revisão",
+      "approved": "Aprovado",
+      "inCuration": "Em Análise"
+    },
+    "sections": {
+      "inAnalysis": {
+        "title": "Em Análise pela Curadoria",
+        "subtitle": "Experimentos aguardando revisão e aprovação",
+        "tableTitle": "Experimentos em Análise",
+        "empty": "Nenhum experimento em análise",
+        "emptySubtitle": "Todos os seus experimentos já foram processados"
+      },
+      "approved": {
+        "title": "Aprovados pela Curadoria",
+        "subtitle": "Experimentos validados e prontos para uso",
+        "tableTitle": "Experimentos Aprovados",
+        "empty": "Nenhum experimento aprovado ainda",
+        "emptySubtitle": "Seus experimentos aparecerão aqui após aprovação"
+      }
+    },
+    "table": {
+      "columns": {
+        "index": "Index",
+        "status": "Status",
+        "date": "Data",
+        "machine": "Máquina",
+        "material": "Material",
+        "sample": "Amostra (Forma)",
+        "infill": "Infill (HU)",
+        "data": "Dados",
+        "details": "Detalhes"
+      },
+      "pagination": {
+        "previous": "← Anterior",
+        "next": "Próximo →"
+      },
+      "buttons": {
+        "view": "Ver"
+      },
+      "count_one": "1 experimento",
+      "count_other": "{{count}} experimentos"
+    },
+    "help": {
+      "title": "Como funciona o Sistema de Análise?",
+      "subtitle": "Entenda as etapas, critérios e período de curadoria dos experimentos",
+      "analysisFlow": "Fluxo de Análise",
+      "step1": {
+        "title": "📤 Submetido",
+        "description": "Seu experimento foi recebido. Validação inicial de completude de dados."
+      },
+      "step2": {
+        "title": "🔍 Em Revisão",
+        "description": "Revisão técnica pelos especialistas. Análise de qualidade e metodologia."
+      },
+      "step3": {
+        "title": "⚠️ Ajustes Necessários",
+        "description": "Se necessário, você será notificado com comentários específicos para melhorias."
+      },
+      "step4": {
+        "title": "✅ Aprovado",
+        "description": "Experimento validado e incluído na base de dados do repositório."
+      },
+      "criteria": "Critérios de Aprovação",
+      "criterion1": "Completude: Todos os campos preenchidos corretamente",
+      "criterion2": "Qualidade: Dados técnicos validados e consistentes",
+      "criterion3": "Metodologia: Procedimentos seguem padrões estabelecidos",
+      "criterion4": "Documentação: Arquivos e referências completas",
+      "timeframe": "Período Estimado de Análise",
+      "timeframe1": "Validação Inicial",
+      "timeframe1Value": "1-2 dias",
+      "timeframe2": "Revisão Técnica",
+      "timeframe2Value": "3-7 dias",
+      "timeframe3": "Ajustes (se necessário)",
+      "timeframe3Value": "Variável",
+      "timeframe4": "Período Total",
+      "timeframe4Value": "1-4 semanas",
+      "tips": "Dicas para Acelerar a Aprovação",
+      "tip1": "Preencha todos os campos com dados precisos e detalhados",
+      "tip2": "Verifique a qualidade das imagens CT e dados técnicos antes de submeter",
+      "tip3": "Acompanhe o status regularmente nesta página",
+      "tip4": "Se solicitar ajustes, responda prontamente para manter o processo ágil"
+    },
+    "statusHistory": {
+      "title": "Histórico de Status dos Meus Experimentos",
+      "subtitle": "Acompanhe todas as mudanças de status dos seus experimentos, incluindo comentários dos revisores",
+      "refreshButton": "Atualizar",
+      "refreshing": "Atualizando...",
+      "noHistory": "Nenhum histórico de status registrado",
+      "columns": {
+        "index": "Index",
+        "previousStatus": "Status Anterior",
+        "newStatus": "Novo Status",
+        "changedBy": "Alterado Por",
+        "comment": "Comentário",
+        "date": "Data"
+      },
+      "roles": {
+        "admin": "🔐 Admin",
+        "researcher": "👤 Pesquisador"
+      },
+      "pagination": {
+        "previous": "← Anterior",
+        "next": "Próximo →"
+      }
+    },
+    "errorMessages": {
+      "loadError": "Erro ao carregar",
+      "loadingFailed": "Erro ao carregar seus experimentos",
+      "historyLoadFailed": "Erro ao carregar histórico"
+    }
+  },
+  "experimentComparison": {
+    "title": "Comparativo de Performance",
+    "attenuationSectionTitle": "Atenuação (PQR / Beer-Lambert)",
+    "sampleComparison": {
+      "title": "🔬 Comparação de Amostras (HU e ROI)",
+      "clear": "Limpar"
+    },
+    "selectMinimum": "Selecione ao menos 2 experimentos na tabela acima para comparar os dados.",
+    "selectAdditional": "Selecione ao menos 1 experimento adicional para gerar a comparação.",
+    "selectedCount": "{{count}} experimentos selecionados. Pronto para gerar a comparação!",
+    "generateGraph": "Gerar Gráfico Comparativo",
+    "generatingGraph": "Gerando Gráfico...",
+    "reset": "Reiniciar",
+    "errors": {
+      "noValidData": "Nenhum experimento selecionado possui dados válidos para comparação.",
+      "noAttenuationData": "Nenhum experimento com dados de atenuação disponível",
+      "noMechanicalData": "Nenhum experimento com dados mecânicos disponível",
+      "noHUData": "Nenhum experimento com dados de HU (Hounsfield Units) disponível",
+      "noROIData": "Nenhum experimento com dados de ROI (Região de Interesse) disponível",
+      "noRegressionData": "Nenhum experimento com dados de regressão disponível",
+      "noDataForComparison": "Experimento #{{index}} não possui dados para esta comparação."
+    },
+    "labels": {
+      "selectMinimumHU": "Selecione ao menos 2 experimentos na tabela acima para comparar Hounsfield Units (HU) e ROI.",
+      "selectAdditional": "Selecione ao menos 1 experimento adicional para gerar a comparação.",
+      "selectedCount": "{{count}} experimentos selecionados. Pronto para gerar a comparação!",
+      "noFillData": "Nenhum experimento selecionado possui dados de preenchimento para comparação.",
+      "fillExperimentError": "Experimento #{{index}} não possui dados de preenchimento para esta comparação."
+    }
+  },
+  "experimentWizardNew": {
+    "title": "Novo Experimento",
+    "subtitle": "Cadastro organizado e intuitivo. Campos com * são obrigatórios.",
+    "stages": {
+      "fabrication": "Fabricação",
+      "samples": "Amostras",
+      "characteristics": "Características"
+    },
+    "buttons": {
+      "restart": "Recomeçar",
+      "saveData": "✅ Salvar",
+      "close": "✕ Fechar",
+      "finalize": "✅ Finalizar Cadastro de Novo Experimento"
+    },
+    "alerts": {
+      "error": "Erro:",
+      "success": "Sucesso! Dados salvos ✓"
+    },
+    "forms": {
+      "materialMachine": {
+        "materialSection": "Informações do Material",
+        "machineSection": "Informações da Máquina",
+        "brand": "Marca",
+        "model": "Modelo",
+        "color": "Cor",
+        "isComposite": "É um compósito?",
+        "compositeDetails": "Detalhes do Compósito",
+        "technology": "Tecnologia de Impressão",
+        "otherSpecs": "Outras Especificações",
+        "placeholders": {
+          "brand": "Ex: Ultimaker",
+          "model": "Ex: PLA 700",
+          "color": "Ex: Branco",
+          "machineModel": "Ex: S5",
+          "compositeDetails": "Descreva a composição (fibras, reforços, percentuais, etc.)",
+          "otherSpecs": "Temperatura de extrusão, velocidade de impressão, etc."
+        },
+        "hints": {
+          "compositeDetails": "Ex: fibras de carbono 30%, resina epóxi...",
+          "otherSpecs": "Temperatura, velocidade de impressão, etc.",
+          "loading": "Carregando..."
+        },
+        "errors": {
+          "fillRequired": "Preencha todos os campos obrigatórios",
+          "materialMachineRequired": "Material e Máquina são obrigatórios"
+        },
+        "noSuggestions": "Sem sugestões - Digite manualmente"
+      },
+      "sample": {
+        "sectionTitle": "Configuração da Amostra",
+        "format": "Formato da Amostra",
+        "dimension": "Dimensão da Amostra",
+        "roiArea": "Área ROI Circular (mm²)",
+        "cube": "Cube",
+        "cylinder": "Cylinder",
+        "other": "Outro",
+        "edge": "Aresta (mm)",
+        "radius": "Raio / Dimensão principal (mm)",
+        "height": "Altura (mm)",
+        "placeholders": {
+          "dimension": "0.00",
+          "roiArea": "0.00"
+        },
+        "hints": {
+          "roiArea": "Área da região de interesse circular em mm²"
+        },
+        "errors": {
+          "selectPattern": "Selecione pelo menos um padrão de preenchimento",
+          "fillAllFields": "Preencha todos os campos obrigatórios com valores válidos"
+        }
+      },
+      "infill": {
+        "sectionTitle": "Medições de Infill",
+        "percentage": "Percentual de Infill",
+        "huMean": "HU Mean (Média)",
+        "huSd": "HU SD (Desvio Padrão)",
+        "addPercentage": "Adicionar Percentual Personalizado",
+        "errors": {
+          "selectInfill": "Selecione pelo menos um percentual de infill",
+          "fillAllFields": "Preencha todos os campos com valores válidos"
+        }
+      },
+      "mechanical": {
+        "sectionTitle": "Propriedades Mecânicas",
+        "tensileModulus": "Módulo de Tração (MPa)",
+        "tensileStrength": "Resistência à Tração (MPa)",
+        "strainAtBreak": "Deformação na Ruptura (%)",
+        "flexuralModulus": "Módulo de Flexão (MPa)",
+        "flexuralStrength": "Resistência à Flexão (MPa)",
+        "hardness": "Dureza",
+        "charpyImpact": "Impacto Charpy (KJ/m²)",
+        "izodImpact": "Impacto Izod",
+        "condition": "Condição",
+        "pre": "Pré Irradiação",
+        "post": "Pós Irradiação"
+      },
+      "attenuation": {
+        "sectionTitle": "Atenuação Linear",
+        "thickness": "Espessura (mm)",
+        "lambertBeer": "Valor Lambert-Beer",
+        "addMeasurement": "Adicionar Medição",
+        "hint": "Deixe em branco se não tiver medições para esta etapa"
+      },
+      "beam": {
+        "sectionTitle": "Qualidade de Feixes (IEC 61267)",
+        "seriesRQR": "Série RQR",
+        "seriesRQT": "Série RQT",
+        "seriesRQRM": "Série RQR-M"
+      }
+    },
+    "importantInformation": {
+      "title": "ℹ️ Informações Importantes",
+      "mandatory": "Seções obrigatórias: Material & Máquina, Amostra e Infill",
+      "optional": "Seções opcionais podem ser puladas, mas com dados técnicos você enriquece seu experimento",
+      "editable": "Cada seção pode ser editada a qualquer momento antes de finalizar",
+      "review": "O resumo final permite revisar todas as informações antes de confirmar",
+      "editLater": "Após finalizar, você poderá editar o experimento no histórico"
+    },
+    "sections": {
+      "guide": {
+        "title": "Guia de Início",
+        "description": "Entenda o fluxo do cadastro de experimentos"
+      },
+      "materialMachine": {
+        "title": "Material & Máquina",
+        "description": "Informações sobre o material e a máquina utilizada"
+      },
+      "sample": {
+        "title": "Amostra",
+        "description": "Configuração e geometria da amostra"
+      },
+      "infill": {
+        "title": "Infill (Preenchimento)",
+        "description": "Medições de densidade e preenchimento"
+      },
+      "mechanical": {
+        "title": "Propriedades Mecânicas",
+        "description": "Testes de resistência e outros parâmetros"
+      },
+      "attenuation": {
+        "title": "Atenuação",
+        "description": "Medições de atenuação linear"
+      },
+      "beam": {
+        "title": "Qualidade de Feixes",
+        "description": "Análise de feixes de acordo com IEC 61267"
+      },
+      "review": {
+        "title": "Revisão Final",
+        "description": "Revise todas as informações antes de finalizar"
+      }
+    },
+    "confirmations": {
+      "restart": "Tem certeza que deseja recomeçar? Todos os dados serão perdidos."
+    }
+  },
+  "experimentGuide": {
+    "welcome": "Bem-vindo ao sistema de registro de experimentos! Este guia explica cada etapa do processo.",
+    "sections": {
+      "flow": {
+        "title": "📊 Como funciona o Fluxo de Dados",
+        "content": "Este sistema segue um registro sequencial para garantir a integridade dos dados. Você não pode pular etapas porque cada nova tabela depende do ID gerado na etapa anterior.\n\nA ordem de dependência é:\n1. Material + Máquina ➔ Geram a base para a Amostra\n2. Amostra ➔ Gera o ID Único que vinculará todos os testes\n3. Testes Específicos (CT, Mecânica, Atenuação, Feixes) ➔ São anexados a este ID"
+      },
+      "material": {
+        "title": "⚛️ Material & Máquina",
+        "content": "Objetivo: Cadastrar os insumos base\n\nMaterial:\n- Marca: Nome do fabricante do material\n- Modelo: Código ou modelo específico\n- Cor: Cor do material\n- É Compósito?: Se sim, descreva a composição (fibras, reforços, etc.)\n\nMáquina:\n- Marca: Fabricante da impressora 3D\n- Modelo: Modelo específico\n- Tecnologia: Tipo de impressão (FFF, SLA, SLS, etc.)\n- Outras Especificações: Detalhes adicionais relevantes"
+      },
+      "sample": {
+        "title": "🧪 Amostra (O Coração do Sistema)",
+        "content": "Atenção: É aqui que a mágica acontece. O sistema pega o ID do Material e da Máquina e cria um registro único.\n\nInputs:\n- Formato: Cube, Cylinder ou Other\n- Dimensões: Use mm (milímetros)\n  - Cube: apenas aresta\n  - Cylinder/Other: raio (ou dimensão A) e altura (ou dimensão B)\n- ROI: Área da Região de Interesse em mm²"
+      },
+      "infill": {
+        "title": "📶 Medições de Infill",
+        "content": "Objetivo: Registrar as medições de HU (Unidades Hounsfield) para diferentes percentuais de infill\n\nDigite os valores de HU Mean (média) e HU SD (desvio padrão) para cada percentual.\n\nPercentuais padrão: 40%, 45%, 50%, 55%, 60%, 65%, 70%, 75%, 80%, 85%, 90%, 95%, 100%\n\nVocê também pode adicionar percentuais personalizados se necessário."
+      },
+      "mechanical": {
+        "title": "⚙️ Propriedades Mecânicas",
+        "content": "Inputs Críticos:\n- Módulo de Tração (MPa): Rigidez em tração\n- Resistência à Tração (MPa): Força máxima em tração\n- Deformação na Ruptura (%): Percentual de deformação até falha\n- Módulo de Flexão (MPa): Rigidez em flexão\n- Resistência à Flexão (MPa): Força máxima em flexão\n- Dureza: Medida de dureza (Shore A, Rockwell, etc.)\n- Impacto Charpy (KJ/m²): Resistência ao impacto\n- Impacto Izod: Outro tipo de teste de impacto\n- Condição: Pré ou pós irradiação"
+      },
+      "attenuation": {
+        "title": "📉 Atenuação Linear",
+        "content": "Lei de Lambert-Beer: Insira a espessura da amostra testada (mm) e o coeficiente calculado.\n\n# Você pode adicionar múltiplas medições\n- Espessura (mm): Espessura da amostra\n- Valor Lambert-Beer: Coeficiente de atenuação\n\nDica: Deixe em branco se não tiver medições para esta etapa"
+      },
+      "beam": {
+        "title": "☢️ Qualidade de Feixes (Norma IEC 61267)",
+        "content": "Séries RQR, RQT, RQR-M: Preencha apenas as qualidades que foram medidas.\n\nTabs de entrada:\n- Série RQR: RQR 2 a 10 (9 valores)\n- Série RQT: RQT 8 a 10 (3 valores)\n- Série RQR-M: RQR-M 1 a 4 (4 valores)\n\nNota: Campos deixados como 0 indicarão que aquela qualidade específica não foi testada."
+      }
+    },
+    "buttons": {
+      "start": "Entendi, Vamos Começar! →"
+    }
+  },
+  "progress": {
+    "label": "Progresso Geral",
+    "stagesComplete": "{{count}} Etapas Completas",
+    "summaryLabels": {
+      "tests": "Testes",
+      "measurements": "Medições",
+      "analyses": "Análises"
+    }
+  }
+}
