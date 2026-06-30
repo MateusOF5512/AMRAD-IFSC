@@ -9,9 +9,20 @@ from load_env import ENV_FILE, load_project_env
 load_project_env()
 
 
+RENDER_CORS_ORIGIN_REGEX = r"^https://[a-z0-9][a-z0-9-]*\.onrender\.com$"
+
+
+def _truthy_env(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).lower() in ("true", "1", "yes")
+
+
+def _normalize_origin(url: str) -> str:
+    return url.strip().rstrip("/")
+
+
 def get_cors_origins() -> list[str]:
     """Build CORS origins list from environment variables"""
-    debug = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+    debug = _truthy_env("DEBUG")
     origins: list[str] = []
 
     if debug:
@@ -27,35 +38,59 @@ def get_cors_origins() -> list[str]:
     
     # Add custom frontend URL from environment if provided
     frontend_url = os.getenv("FRONTEND_URL")
-    if frontend_url and frontend_url not in origins:
-        origins.append(frontend_url)
+    if frontend_url:
+        normalized = _normalize_origin(frontend_url)
+        if normalized and normalized not in origins:
+            origins.append(normalized)
     
     # Add any additional URLs from environment variable
     extra_origins = os.getenv("EXTRA_CORS_ORIGINS")
     if extra_origins:
         for origin in extra_origins.split(","):
-            origin = origin.strip()
-            if origin and origin not in origins:
-                origins.append(origin)
+            normalized = _normalize_origin(origin)
+            if normalized and normalized not in origins:
+                origins.append(normalized)
     
     return origins
 
 
+def _is_render_deployment() -> bool:
+    if _truthy_env("RENDER"):
+        return True
+    return bool(os.getenv("RENDER_EXTERNAL_URL", "").strip())
+
+
 def get_cors_origin_regex() -> str | None:
     """
-    In DEBUG, allow LAN origins (e.g. http://192.168.x.x:3000 from Next.js Network URL).
+    Optional regex for allowed browser origins.
+
+    - DEBUG: LAN + localhost (Next.js network URL).
+    - Render production: all *.onrender.com services (frontend + API on separate URLs).
+    - Override anytime with CORS_ORIGIN_REGEX.
     """
-    debug = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
-    if not debug:
-        return None
-    return (
-        r"^https?://"
-        r"(localhost|127\.0\.0\.1|"
-        r"192\.168\.\d{1,3}\.\d{1,3}|"
-        r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|"
-        r"172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})"
-        r"(:\d+)?$"
-    )
+    explicit = os.getenv("CORS_ORIGIN_REGEX", "").strip()
+    if explicit:
+        return explicit
+
+    debug = _truthy_env("DEBUG")
+    if debug:
+        return (
+            r"^https?://"
+            r"(localhost|127\.0\.0\.1|"
+            r"192\.168\.\d{1,3}\.\d{1,3}|"
+            r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|"
+            r"172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})"
+            r"(:\d+)?$"
+        )
+
+    allow_render_cors = _truthy_env("ALLOW_RENDER_CORS", "true")
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    if allow_render_cors and (
+        _is_render_deployment() or ".onrender.com" in frontend_url
+    ):
+        return RENDER_CORS_ORIGIN_REGEX
+
+    return None
 
 
 class Settings(BaseSettings):

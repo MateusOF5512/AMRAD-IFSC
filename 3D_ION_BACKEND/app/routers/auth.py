@@ -9,7 +9,12 @@ from typing import Optional
 from supabase import Client
 
 from app.database.supabase import get_supabase_client
-from app.core.security import create_access_token, get_current_user, security_scheme
+from app.core.security import (
+    create_access_token,
+    get_current_user,
+    security_scheme,
+    verify_supabase_token,
+)
 from app.core.user_status import REGULAR_STATUS, ensure_account_is_active, normalize_user_status
 from app.core.password import hash_password, verify_password
 from app.core.rate_limit import check_rate_limit
@@ -353,19 +358,22 @@ async def get_current_session(
 ):
     """Return the authenticated user profile with user_type and status from the database."""
     supabase = get_supabase_client()
-    auth_user = get_supabase_auth_user(credentials.credentials)
-    researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
+    user_context = verify_supabase_token(credentials.credentials)
+    user_id = user_context.get("user_id")
 
-    if not researcher:
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Não autenticado",
+        )
+
+    fresh_researcher = get_researcher_by_id(supabase, user_id)
+    if not fresh_researcher:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Researcher profile not found",
         )
 
-    if not researcher.get("auth_id"):
-        link_auth_id(supabase, researcher["id"], auth_user.id)
-
-    fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
     ensure_account_is_active(
         {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
     )
