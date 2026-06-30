@@ -109,6 +109,7 @@ def build_experiment_detail_response(
         researcher_id=sample.get("researcher_id"),
         material_id=sample.get("material_id") or "",
         machine_id=sample.get("machine_id") or "",
+        status=sample.get("status") or "Submitted",
         created_at=sample.get("created_at"),
         updated_at=sample.get("updated_at"),
         researcher_name=researcher.get("name"),

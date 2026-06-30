@@ -27,6 +27,7 @@ class CustomHTTPBearer(HTTPBearer):
 
 
 security_scheme = CustomHTTPBearer()
+optional_security_scheme = HTTPBearer(auto_error=False)
 
 
 def create_access_token(user_id: str, user_email: str, user_type: str = "pesquisador") -> str:
@@ -159,6 +160,18 @@ def verify_supabase_token(token: str) -> dict:
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+async def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(optional_security_scheme),
+) -> Optional[dict]:
+    """Return authenticated user when a valid Bearer token is present, else None."""
+    if not credentials:
+        return None
+    try:
+        return verify_supabase_token(credentials.credentials)
+    except HTTPException:
+        return None
 
 
 async def get_current_user(

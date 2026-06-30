@@ -46,3 +46,20 @@ export function isExperimentInAnalysis(status?: string): boolean {
 export function isExperimentApproved(status?: string): boolean {
   return normalizeExperimentStatus(status) === 'Approved'
 }
+
+/** Admin actions allowed from each experiment status (must match backend). */
+export function getAdminExperimentStatusTransitions(
+  currentStatus: string
+): ExperimentStatus[] {
+  const rules: Record<ExperimentStatus, ExperimentStatus[]> = {
+    Submitted: ['Approved', 'Revisions'],
+    Review: ['Approved', 'Revisions'],
+    Revisions: [],
+    Approved: ['Revisions'],
+  }
+  return rules[normalizeExperimentStatus(currentStatus)] ?? []
+}
+
+export function canResearcherEditExperiment(status?: string): boolean {
+  return normalizeExperimentStatus(status) === 'Revisions'
+}

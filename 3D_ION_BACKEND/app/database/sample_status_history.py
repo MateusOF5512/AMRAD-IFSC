@@ -297,27 +297,26 @@ class SampleStatusHistoryManager:
         new_status: str
     ) -> tuple[bool, Optional[str]]:
         """
-        Validate if a status transition is allowed
-        Implements the workflow rules:
-        - Submitted → Review OR Approved (direct approval)
-        - Review → Approved or Revisions
-        - Revisions → Review
-        - Approved → Revisions, Review, or Submitted (fully flexible)
-        
+        Validate if a status transition is allowed.
+
+        Workflow:
+        - Submitted → Approved | Revisions (admin triage)
+        - Review → Approved | Revisions (admin decision after researcher resubmits)
+        - Revisions → Review (researcher sends corrections for review)
+        - Approved → Revisions (admin requests new adjustments)
+
         Args:
             current_status: Current status of the sample
             new_status: Desired new status
-            
+
         Returns:
             Tuple of (is_valid, error_message)
         """
-        # Define allowed transitions
-        # UPDATED: Submitted can now go directly to Approved, and Approved is now flexible
         allowed_transitions = {
-            'Submitted': ['Review', 'Approved'],  # NEW: Direct approval without mandatory review
+            'Submitted': ['Approved', 'Revisions'],
             'Review': ['Approved', 'Revisions'],
-            'Revisions': ['Review', 'Approved'],  # NEW: Can approve after revisions without re-review
-            'Approved': ['Revisions', 'Review', 'Submitted']  # UPDATED: Approved is now flexible - can go to revisions, review, or back to submitted
+            'Revisions': ['Review'],
+            'Approved': ['Revisions'],
         }
         
         if current_status not in allowed_transitions:

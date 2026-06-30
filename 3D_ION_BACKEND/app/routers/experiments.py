@@ -3,7 +3,7 @@ from supabase import Client
 from typing import Optional
 import logging
 
-from app.core.security import get_current_user, require_write_access
+from app.core.security import get_current_user, get_optional_current_user, require_write_access
 from app.core.user_utils import get_user_full_name
 from app.database.supabase import get_supabase_client
 from app.database.sample_status_history import get_status_history_manager
@@ -522,20 +522,39 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
 
 
 @router.get("/{experiment_id}/detalhes", response_model=ExperimentDetailResponse)
-async def get_experiment_details(experiment_id: str):
+async def get_experiment_details(
+    experiment_id: str,
+    current_user: Optional[dict] = Depends(get_optional_current_user),
+):
     """
-    Get complete details of an approved experiment (public).
-    Contact information (email, phone, Instagram) is not exposed.
+    Get complete experiment details.
+
+    Public: approved experiments only (contact info hidden).
+    Authenticated owner or admin: any status (contact info included for owner/admin).
     """
     try:
         raw = fetch_experiment_raw(experiment_id)
-        sample_status = raw["sample"].get("status")
-        if sample_status != "Approved":
+        sample = raw["sample"]
+        sample_status = sample.get("status")
+        researcher_id = sample.get("researcher_id")
+        is_owner = (
+            current_user is not None
+            and current_user.get("user_id") == researcher_id
+        )
+        is_admin = (
+            current_user is not None
+            and current_user.get("user_type") == "admin"
+        )
+
+        if sample_status != "Approved" and not is_owner and not is_admin:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Experiment not found",
             )
-        return build_experiment_detail_response(raw, include_contact=False)
+        return build_experiment_detail_response(
+            raw,
+            include_contact=is_owner or is_admin,
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -1720,12 +1739,11 @@ async def resubmit_experiment(
     current_user: dict = Depends(require_write_access)
 ):
     """
-    Resubmit experiment after revisions
-    Allows researcher to resubmit an experiment from Revisions status back to Submitted
-    
-    - Records the status change in history: Revisions → Submitted
-    - Only researcher who owns the experiment can resubmit
-    - Validates that experiment is in Revisions status
+    Send experiment back to admin review after revisions.
+
+    - Records the status change in history: Revisions → Review
+    - Only the owning researcher can trigger this transition
+  - Validates that the experiment is in Revisions status
     """
     supabase: Client = get_supabase_client()
     history_manager = get_status_history_manager()
@@ -1747,16 +1765,16 @@ async def resubmit_experiment(
         
         sample = sample_response.data[0]
         old_status = sample.get("status")
-        new_status = "Submitted"
+        new_status = "Review"
         
         # Validate that experiment is in Revisions status
         if old_status != "Revisions":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Experiment can only be resubmitted from 'Revisions' status. Current status: {old_status}"
+                detail=f"Experiment can only be sent to review from 'Revisions' status. Current status: {old_status}"
             )
         
-        # Validate transition (Revisions → Submitted is always allowed)
+        # Validate transition (Revisions → Review)
         is_valid, error_message = history_manager.validate_status_transition(old_status, new_status)
         if not is_valid:
             raise HTTPException(
@@ -1789,7 +1807,7 @@ async def resubmit_experiment(
             changed_by_name=researcher_name,
             changed_by_email=researcher_email,
             changed_by_role="pesquisador",
-            comment="Resubmitted after revisions",
+            comment="Correções enviadas para revisão",
             is_system_action=False
         )
         
@@ -1797,7 +1815,7 @@ async def resubmit_experiment(
         
         return {
             "success": True,
-            "message": f"Experiment resubmitted successfully",
+            "message": "Experiment sent to review successfully",
             "experiment_id": experiment_id,
             "old_status": old_status,
             "new_status": new_status,
@@ -2140,7 +2158,6 @@ async def edit_experiment(
             )
         
         old_status = current_sample.data[0].get("status")
-        new_status = "Review"
         
         # Verify researcher owns this experiment
         if current_sample.data[0].get("researcher_id") != user_id:
@@ -2148,6 +2165,17 @@ async def edit_experiment(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to edit this experiment"
             )
+
+        if old_status != "Revisions":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Experiment can only be edited while in 'Revisions' status. "
+                    f"Current status: {old_status}"
+                ),
+            )
+
+        new_status = "Review"
         
         # 1. Update Sample (experiment) with basic info
         if "sample" in data:
@@ -2155,7 +2183,6 @@ async def edit_experiment(
                 "shape_type": data["sample"].get("shape_type"),
                 "shape_dimension": data["sample"].get("shape_dimension"),
                 "circle_roi_area": data["sample"].get("circle_roi_area"),
-                "status": new_status  # Update status to Review after edit
             }
             supabase.table("samples").update(sample_update).eq("id", experiment_id).execute()
         
@@ -2285,34 +2312,36 @@ async def edit_experiment(
                     "rqt_9": beam.get("rqt_9"),
                 }).execute()
         
-        # Record status change in history (Revisions → Review when researcher edits)
-        if old_status != new_status:
-            try:
-                logger.info(f"[EDIT] Recording status change for experiment {experiment_id}: {old_status} → {new_status}")
-                
-                # Validate transition
-                is_valid, error_message = history_manager.validate_status_transition(old_status, new_status)
-                if not is_valid:
-                    logger.warning(f"[EDIT] Invalid transition attempt: {old_status} → {new_status}: {error_message}")
-                else:
-                    researcher_name = await get_user_full_name(user_id)
-                    researcher_email = current_user.get("email", "unknown@example.com")
-                    
-                    history_record = history_manager.record_status_change(
-                        sample_id=experiment_id,
-                        old_status=old_status,
-                        new_status=new_status,
-                        changed_by_user_id=user_id,
-                        changed_by_name=researcher_name,
-                        changed_by_email=researcher_email,
-                        changed_by_role="pesquisador",
-                        comment="Updated experiment data",
-                        is_system_action=False
-                    )
-                    logger.info(f"[EDIT] ✓ Successfully recorded status history for {experiment_id}: {history_record}")
-            except Exception as e:
-                logger.error(f"[EDIT] Error recording history for {experiment_id}: {str(e)}")
-                # Don't raise - still return success as the update was already done
+        # Revisions → Review after researcher saves corrections
+        is_valid, error_message = history_manager.validate_status_transition(old_status, new_status)
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_message,
+            )
+
+        supabase.table("samples").update({"status": new_status}).eq("id", experiment_id).execute()
+
+        try:
+            logger.info(f"[EDIT] Recording status change for experiment {experiment_id}: {old_status} → {new_status}")
+
+            researcher_name = await get_user_full_name(user_id)
+            researcher_email = current_user.get("email", "unknown@example.com")
+
+            history_record = history_manager.record_status_change(
+                sample_id=experiment_id,
+                old_status=old_status,
+                new_status=new_status,
+                changed_by_user_id=user_id,
+                changed_by_name=researcher_name,
+                changed_by_email=researcher_email,
+                changed_by_role="pesquisador",
+                comment="Correções enviadas para revisão",
+                is_system_action=False,
+            )
+            logger.info(f"[EDIT] ✓ Successfully recorded status history for {experiment_id}: {history_record}")
+        except Exception as e:
+            logger.error(f"[EDIT] Error recording history for {experiment_id}: {str(e)}")
         
         return {
             "success": True,

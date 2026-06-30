@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { transformApiDataToEditFormat, EditExperimentData } from '@/lib/utils/transformExperimentData'
 import { logger } from '@/lib/logger'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { getStoredAccessToken } from '@/lib/auth-storage'
 
 // ⚡ PERFORMANCE: Lazy load heavy components
 const ExperimentEditWizard = dynamic(() => import('./ExperimentEditWizard'), { ssr: false })
@@ -46,10 +47,12 @@ export function ExperimentReportModal({
           apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
         }
 
+        const token = getStoredAccessToken()
         const response = await fetch(`${apiUrl}/experiments/${experimentId}/detalhes`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         })
 
@@ -183,10 +186,12 @@ export function ExperimentReportModal({
         apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
       }
 
+      const token = getStoredAccessToken()
       const response = await fetch(`${apiUrl}/experiments/${experimentId}/detalhes`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       })
 

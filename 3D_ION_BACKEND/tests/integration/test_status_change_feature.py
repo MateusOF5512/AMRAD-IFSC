@@ -108,7 +108,7 @@ def test_update_status(experiment_id: str, current_status: str) -> Dict[str, Any
         "Submitted": "Revisions",
         "Revisions": "Review",
         "Review": "Approved",
-        "Approved": "Revisions"  # Cycle back
+        "Approved": "Revisions",
     }
     
     new_status = status_map.get(current_status, "Revisions")

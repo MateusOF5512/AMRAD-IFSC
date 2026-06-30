@@ -15,6 +15,7 @@ import { AdminsTable } from '@/components/admin/AdminsTable'
 import { UpdateAdminRoleForm } from '@/components/admin/UpdateAdminRoleForm'
 import { DatabaseDangerZone } from '@/components/admin/DatabaseDangerZone'
 import { useTranslation } from 'react-i18next'
+import { getAdminExperimentStatusTransitions, type ExperimentStatus } from '@/lib/experiment-status'
 
 export default function ConfiguracaesAvancadasPage() {
   const user = useAdminProtection()
@@ -229,17 +230,10 @@ export default function ConfiguracaesAvancadasPage() {
   }
 
   // Define allowed transitions for each status (must match backend rules)
-  const getValidTransitions = (currentStatus: string): ('Revisions' | 'Review' | 'Approved')[] => {
-    const transitionRules: Record<string, ('Revisions' | 'Review' | 'Approved')[]> = {
-      'Submitted': ['Review', 'Approved'],
-      'Review': ['Approved', 'Revisions'],
-      'Revisions': ['Review', 'Approved'],
-      'Approved': ['Revisions', 'Review']
-    }
-    return transitionRules[currentStatus] || []
-  }
+  const getValidTransitions = (currentStatus: string): ExperimentStatus[] =>
+    getAdminExperimentStatusTransitions(currentStatus)
 
-  const getAvailableStatusActions = (currentStatus: string): ('Revisions' | 'Review' | 'Approved')[] =>
+  const getAvailableStatusActions = (currentStatus: string): ExperimentStatus[] =>
     getValidTransitions(currentStatus).filter((status) => status !== currentStatus)
 
   const applyLocalExperimentStatusUpdate = (experiment: { id: string; status?: string; [key: string]: unknown }, newStatus: string) => {

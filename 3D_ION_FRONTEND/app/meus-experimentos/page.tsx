@@ -16,6 +16,7 @@ import {
   countInAnalysis,
   EMPTY_STATUS_COUNTS,
   ExperimentStatusCounts,
+  canResearcherEditExperiment,
   isExperimentApproved,
   isExperimentInAnalysis,
 } from '@/lib/experiment-status'
@@ -1347,7 +1348,11 @@ export default function MeusExperimentosPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         showStatus={false}
-        showEditButton={selectedExperimentSection === 'analise' && canWriteResearchData(user)}
+        showEditButton={
+          selectedExperimentSection === 'analise'
+          && canWriteResearchData(user)
+          && canResearcherEditExperiment(selectedExperimentStatus ?? undefined)
+        }
       />
     </div>
   )

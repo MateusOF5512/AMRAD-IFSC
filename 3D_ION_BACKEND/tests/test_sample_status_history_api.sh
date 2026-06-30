@@ -213,13 +213,11 @@ curl -X GET "$BASE_URL/samples/$SAMPLE_ID/status-history" \
 # Expected Response Should Show Progression:
 # Initial Submission (old_status=null, new_status='Submitted')
 #   ↓
-# -> Review (old_status='Submitted', new_status='Review')
+# -> Revisions (old_status='Submitted', new_status='Revisions')  [admin]
 #   ↓
-# -> Revisions (old_status='Review', new_status='Revisions')
+# -> Review (old_status='Revisions', new_status='Review')  [researcher]
 #   ↓
-# -> Review (old_status='Revisions', new_status='Review')
-#   ↓
-# -> Approved (old_status='Review', new_status='Approved')
+# -> Approved (old_status='Review', new_status='Approved')  [admin]
 
 
 # =============================================================================
