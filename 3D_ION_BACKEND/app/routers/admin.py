@@ -19,7 +19,7 @@ from app.database.supabase import get_supabase_client
 from app.core.config import settings
 from app.core.security import CustomHTTPBearer, verify_supabase_token
 from app.core.user_roles import is_admin_role, researcher_role
-from app.core.password import verify_password
+from app.core.admin_security import verify_admin_action_password
 from app.core.user_utils import get_user_full_name
 from app.database.sample_status_history import get_status_history_manager
 from app.repositories.experiment_repository import fetch_admin_experiment_details
@@ -697,51 +697,11 @@ def verify_admin_password(
     current_admin: dict = Depends(get_current_admin)
 ):
     """
-    Verify admin password for sensitive operations
-    Only accessible by authenticated admins
+    Verify admin action password for sensitive operations.
+    Compares against PASSWORD_ADMIN from environment. Only accessible by authenticated admins.
     """
     try:
-        supabase = get_supabase_client()
-        admin_id = current_admin.get("id")
-        admin_email = current_admin.get("email")
-        
-        # Get admin from database
-        response = supabase.table("researchers").select("*").eq("id", admin_id).execute()
-        
-        if not response.data:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Usuário não encontrado"
-            )
-        
-        admin = response.data[0]
-        
-        # Verify password using JWT verification 
-        # The password is verified by checking if current user can authenticate with provided password
-        try:
-            stored_password_hash = admin.get("password_hash")
-            if not stored_password_hash:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Dados de autenticação inválidos"
-                )
-            
-            # Verify password hash
-            if not verify_password(request.password, stored_password_hash):
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Senha incorreta"
-                )
-        except HTTPException:
-            raise
-        except ImportError:
-            # If verify_password not available, use a simple approach
-            # In production,should have proper password verification
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Sistema de autenticação indisponível"
-            )
-        
+        verify_admin_action_password(request.password)
         return VerifyPasswordResponse(success=True)
         
     except HTTPException:
@@ -2020,17 +1980,8 @@ def truncate_database_experimental(
     Requires admin role and password confirmation. Preserves researchers.
     """
     try:
+        verify_admin_action_password(request.password)
         supabase = get_supabase_client()
-        admin_id = current_admin.get("id")
-
-        response = supabase.table("researchers").select("password_hash").eq("id", admin_id).execute()
-        if not response.data:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuário não encontrado")
-
-        stored_hash = response.data[0].get("password_hash")
-        if not stored_hash or not verify_password(request.password, stored_hash):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Senha incorreta")
-
         truncate_experimental_data(supabase)
         return DatabaseOperationResponse(
             success=True,

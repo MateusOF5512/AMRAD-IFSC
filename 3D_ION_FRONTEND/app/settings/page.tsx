@@ -176,9 +176,6 @@ export default function SettingsPage() {
           language: data.language || '',
           phone_number: data.phone_number || '',
           instagram: data.instagram || '',
-          oldPassword: data.oldPassword || undefined,
-          newPassword: data.newPassword || undefined,
-          confirmPassword: data.confirmPassword
         })
       })
 
@@ -244,7 +241,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <PageHeader title={t('settings.title')} />
 
         <Card className="flex flex-col md:flex-row overflow-hidden">
@@ -252,10 +249,10 @@ export default function SettingsPage() {
           <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
           {/* Content */}
-          <div className="flex-1 p-6 md:p-8">
+          <div className="flex-1 p-4 sm:p-6 md:p-8">
             {activeTab === 'personal' && userData && (
               <div>
-                <h2 className="text-2xl font-semibold text-foreground mb-6">{t('settings.personalData.title')}</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">{t('settings.personalData.title')}</h2>
                 <PersonalDataForm
                   initialData={{
                     name: userData?.name || '',
@@ -273,7 +270,7 @@ export default function SettingsPage() {
 
             {activeTab === 'system' && (
               <div>
-                <h2 className="text-2xl font-semibold text-foreground mb-6">{t('settings.sidebar.system')}</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4 sm:mb-6">{t('settings.sidebar.system')}</h2>
                 <SystemSettings
                   initialData={{
                     email_notifications: userData.email_notifications ?? true

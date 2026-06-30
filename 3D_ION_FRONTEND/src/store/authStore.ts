@@ -11,6 +11,7 @@ export interface User {
   country?: string
   language?: string
   user_type: string
+  status?: string
   needs_profile_completion?: boolean
   access_token?: string
 }

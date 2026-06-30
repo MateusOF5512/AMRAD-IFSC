@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
-import { PasswordConfirmModal } from './PasswordConfirmModal'
+import { AlertCircle, CheckCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 // Country options: value = stable backend key (Portuguese), key = i18n translation key
@@ -80,20 +79,9 @@ interface PersonalDataFormProps {
 export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: PersonalDataFormProps) {
   const { t } = useTranslation()
   const [formData, setFormData] = useState<any>(initialData)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [passwordData, setPasswordData] = useState({
-    newPassword: '',
-    confirmPassword: ''
-  })
-  const [changedPassword, setChangedPassword] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  const [confirmPasswordMessage, setConfirmPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [pendingData, setPendingData] = useState<any>(null)
   const [formLoading, setFormLoading] = useState(false)
 
-  // Sincronizar formData quando initialData mudar
   useEffect(() => {
     const newFormData = {
       name: initialData.name || '',
@@ -115,31 +103,6 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
     }))
   }
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setPasswordData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    setChangedPassword(true)
-  }
-
-  const validatePasswordChange = () => {
-    if (!passwordData.newPassword) {
-      setMessage({ type: 'error', text: t('settings.personalData.errors.newPasswordRequired') })
-      return false
-    }
-    if (passwordData.newPassword.length < 8) {
-      setMessage({ type: 'error', text: t('settings.personalData.errors.passwordMin') })
-      return false
-    }
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: t('settings.personalData.errors.passwordMismatch') })
-      return false
-    }
-    return true
-  }
-
   const validateFormData = () => {
     if (!formData.country) {
       setMessage({ type: 'error', text: t('settings.personalData.errors.countryRequired') })
@@ -155,50 +118,17 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setMessage(null)
-    setConfirmPasswordMessage(null)
 
-    try {
-      // Validate required fields
-      if (!validateFormData()) {
-        return
-      }
-
-      // If password is being changed, validate it
-      let dataToSubmit: any = { ...formData }
-      if (changedPassword) {
-        if (!validatePasswordChange()) {
-          return
-        }
-        dataToSubmit.newPassword = passwordData.newPassword
-      }
-
-      // Store pending data and open confirmation modal
-      setPendingData(dataToSubmit)
-      setShowConfirmModal(true)
-    } catch (error: any) {
-      setMessage({
-        type: 'error',
-        text: error.message || t('settings.personalData.errors.processError')
-      })
+    if (!validateFormData()) {
+      return
     }
-  }
 
-  const handlePasswordConfirm = async (confirmPassword: string) => {
+    setFormLoading(true)
     try {
-      setFormLoading(true)
-
-      await onSubmit({
-        ...pendingData,
-        confirmPassword
-      })
+      await onSubmit({ ...formData })
 
       setMessage({ type: 'success', text: t('settings.personalData.success') })
-      setPasswordData({ newPassword: '', confirmPassword: '' })
-      setChangedPassword(false)
-      setPendingData(null)
-      setShowConfirmModal(false)
 
-      // Atualizar localStorage com todos os dados do formulário
       const userData = localStorage.getItem('user')
       if (userData) {
         const user = JSON.parse(userData)
@@ -221,11 +151,6 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
     } finally {
       setFormLoading(false)
     }
-  }
-
-  const handleConfirmCancel = () => {
-    setShowConfirmModal(false)
-    setPendingData(null)
   }
 
   return (
@@ -308,7 +233,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
       </div>
 
       {/* País e Idioma - 2 colunas */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Country Field */}
         <div>
           <label htmlFor="country" className="block text-sm font-medium text-foreground mb-2">
@@ -354,67 +279,6 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
         </div>
       </div>
 
-      {/* Password Change Section */}
-      <div className="border-t border-border pt-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">{t('settings.personalData.changePassword')}</h3>
-        
-        {/* New Password */}
-        <div className="mb-4">
-          <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
-            {t('settings.personalData.fields.newPassword')}
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              id="newPassword"
-              name="newPassword"
-              value={passwordData.newPassword}
-              onChange={handlePasswordChange}
-              className="w-full px-4 py-2 pr-10 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground"
-            >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5" />
-              ) : (
-                <Eye className="h-5 w-5" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Confirm Password */}
-        <div className="mb-4">
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
-            {t('settings.personalData.fields.confirmPassword')}
-          </label>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? 'text' : 'password'}
-              id="confirmPassword"
-              name="confirmPassword"
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordChange}
-              className="w-full px-4 py-2 pr-10 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground"
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-5 w-5" />
-              ) : (
-                <Eye className="h-5 w-5" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Messages */}
       {message && (
         <div className={`flex items-center gap-2 p-4 rounded-lg ${
@@ -431,21 +295,6 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
         </div>
       )}
 
-      {confirmPasswordMessage && (
-        <div className={`flex items-center gap-2 p-4 rounded-lg ${
-          confirmPasswordMessage.type === 'success'
-            ? 'bg-primary-light text-primary'
-            : 'bg-red-50 text-red-700'
-        }`}>
-          {confirmPasswordMessage.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
-          ) : (
-            <AlertCircle className="h-5 w-5" />
-          )}
-          <span>{confirmPasswordMessage.text}</span>
-        </div>
-      )}
-
       {/* Submit Button */}
       <div className="flex gap-4">
         <button
@@ -456,14 +305,6 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
           {isLoading || formLoading ? t('common.saving') : t('settings.personalData.saveButton')}
         </button>
       </div>
-
-      {/* Password Confirmation Modal */}
-      <PasswordConfirmModal
-        isOpen={showConfirmModal}
-        onConfirm={handlePasswordConfirm}
-        onCancel={handleConfirmCancel}
-        isLoading={formLoading}
-      />
     </form>
   )
 }

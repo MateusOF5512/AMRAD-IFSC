@@ -102,11 +102,11 @@ export default function PatternSelect({ selectedPatterns, onChange, onError }: P
       )}
 
       {/* Grid de padrões - 5 colunas x 3 linhas */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
         {patterns.map((pattern) => (
           <label
             key={pattern.id}
-            className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+            className={`flex items-start gap-2 sm:gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all min-h-11 ${
               selectedPatterns.includes(pattern.id)
                 ? 'border-primary bg-primary-light'
                 : 'border-border hover:border-gray-400'

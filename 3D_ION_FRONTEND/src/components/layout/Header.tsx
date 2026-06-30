@@ -95,7 +95,7 @@ export function Header() {
 
   const mobileLinkClass = (href: string, admin = false) =>
     cn(
-      'block px-4 py-2 rounded-lg text-sm font-medium',
+      'block px-4 py-3 rounded-lg text-sm font-medium min-h-11',
       isActive(href)
         ? admin
           ? 'bg-admin-light text-admin'
@@ -105,7 +105,7 @@ export function Header() {
 
   return (
     <header className="bg-surface shadow-sm border-b border-border sticky top-0 z-50">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center justify-center hover:opacity-80 transition-opacity">
             <BrandLogo priority />
@@ -167,7 +167,7 @@ export function Header() {
           <button
             id="menu-button"
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-slate-100"
+            className="md:hidden p-2.5 rounded-lg hover:bg-slate-100 min-h-11 min-w-11 flex items-center justify-center"
           >
             {isOpen ? <X className="h-6 w-6 text-foreground" /> : <Menu className="h-6 w-6 text-foreground" />}
           </button>

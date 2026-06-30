@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from supabase import Client
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_write_access
 from app.database.supabase import get_supabase_client
 from app.schemas.material import MaterialCreate, MaterialUpdate, MaterialResponse
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/materials", tags=["Materials"])
 @router.post("/", response_model=MaterialResponse, status_code=status.HTTP_201_CREATED)
 async def create_material(
     material: MaterialCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Create a new material"""
     supabase: Client = get_supabase_client()
@@ -139,7 +139,7 @@ async def get_material(
 async def update_material(
     material_id: str,
     material: MaterialUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Update a material"""
     supabase: Client = get_supabase_client()
@@ -182,7 +182,7 @@ async def update_material(
 @router.delete("/{material_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_material(
     material_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Delete a material"""
     supabase: Client = get_supabase_client()

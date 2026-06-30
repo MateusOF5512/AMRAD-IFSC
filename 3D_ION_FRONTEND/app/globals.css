@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 :root {
+  --ion-page-x: 1rem;
+  --ion-page-y: 1.5rem;
+  --ion-section-gap: 1.5rem;
+  --ion-touch-min: 44px;
+
   --ion-primary: #16a34a;
   --ion-primary-hover: #15803d;
   --ion-primary-light: #f0fdf4;
@@ -19,6 +24,21 @@
 
   --background: var(--ion-background);
   --foreground: var(--ion-foreground);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --ion-page-x: 1.5rem;
+    --ion-page-y: 2rem;
+    --ion-section-gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --ion-page-x: 2rem;
+    --ion-section-gap: 2.5rem;
+  }
 }
 
 @theme inline {
@@ -41,12 +61,20 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
 body {
   background: var(--ion-background);
   color: var(--ion-foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -83,4 +111,31 @@ body {
   border: 1px solid var(--ion-border);
   border-radius: 0.75rem;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.ion-page {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: var(--ion-page-x);
+}
+
+.ion-page-y {
+  padding-block: var(--ion-page-y);
+}
+
+.ion-scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.ion-touch {
+  min-height: var(--ion-touch-min);
+}
+
+@media (max-width: 639px) {
+  .ion-hide-mobile {
+    display: none;
+  }
 }

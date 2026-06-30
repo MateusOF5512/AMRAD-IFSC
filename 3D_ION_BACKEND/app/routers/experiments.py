@@ -3,7 +3,7 @@ from supabase import Client
 from typing import Optional
 import logging
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_write_access
 from app.core.user_utils import get_user_full_name
 from app.database.supabase import get_supabase_client
 from app.database.sample_status_history import get_status_history_manager
@@ -506,7 +506,7 @@ async def get_experiment_details(experiment_id: str):
 
 @router.get("/meus", response_model=ExperimentsListResponse)
 async def get_my_experiments(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_write_access),
     skip: int = 0,
     limit: int = 100
 ):
@@ -560,7 +560,7 @@ async def get_my_experiments(
 @router.post("/create-material-machine", status_code=status.HTTP_201_CREATED)
 async def create_material_and_machine(
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Create material and machine in one step
@@ -633,7 +633,7 @@ async def create_material_and_machine(
 @router.put("/update-material-machine")
 async def update_material_and_machine(
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Update material and machine (for editing existing ones)
@@ -711,7 +711,7 @@ async def update_material_and_machine(
 @router.post("/create-sample", status_code=status.HTTP_201_CREATED)
 async def create_sample_partial(
     data: dict = Body(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Create sample with multiple patterns
@@ -814,7 +814,7 @@ async def create_sample_partial(
 async def update_sample(
     sample_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Update an existing sample (for editing)
@@ -870,7 +870,7 @@ async def update_sample(
 @router.post("/add-infill", status_code=status.HTTP_201_CREATED)
 async def add_infill_data(
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Add infill measurements for a sample (incremental, row-based)
@@ -952,7 +952,7 @@ async def add_infill_data(
 @router.post("/add-multiple-infills", status_code=status.HTTP_201_CREATED)
 async def add_multiple_infills(
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Add multiple infill measurements at once, each with associated pattern_type
@@ -1053,7 +1053,7 @@ async def add_multiple_infills(
 @router.post("/add-mechanical", status_code=status.HTTP_201_CREATED)
 async def add_mechanical_data(
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Add mechanical properties data for a sample"""
     supabase: Client = get_supabase_client()
@@ -1093,7 +1093,7 @@ async def add_mechanical_data(
 @router.post("/add-attenuation", status_code=status.HTTP_201_CREATED)
 async def add_attenuation_data(
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Add attenuation tests (RQR + I0 + thickness/transmission pairs).
@@ -1167,7 +1167,7 @@ async def add_attenuation_data(
 @router.post("/add-beam", status_code=status.HTTP_201_CREATED)
 async def add_beam_data(
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Add beam quality data for a sample"""
     supabase: Client = get_supabase_client()
@@ -1215,7 +1215,7 @@ async def add_beam_data(
 async def update_infill_data(
     infill_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Update a specific infill measurement.
@@ -1352,7 +1352,7 @@ async def update_infill_data(
 async def batch_update_infills(
     experiment_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Atualiza em lote as medições de infill de um experimento.
@@ -1554,7 +1554,7 @@ async def batch_update_infills(
 async def update_mechanical_data(
     sample_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Update mechanical properties for a sample"""
     supabase: Client = get_supabase_client()
@@ -1595,7 +1595,7 @@ async def update_mechanical_data(
 async def update_attenuation_data(
     attenuation_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Update a specific linear attenuation measurement"""
     supabase: Client = get_supabase_client()
@@ -1629,7 +1629,7 @@ async def update_attenuation_data(
 async def update_beam_data(
     sample_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Update beam quality data for a sample"""
     supabase: Client = get_supabase_client()
@@ -1676,7 +1676,7 @@ async def update_beam_data(
 @router.post("/{experiment_id}/resubmit", status_code=status.HTTP_200_OK)
 async def resubmit_experiment(
     experiment_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Resubmit experiment after revisions
@@ -1776,7 +1776,7 @@ async def resubmit_experiment(
 @router.post("/{experiment_id}/finalize", status_code=status.HTTP_200_OK)
 async def finalize_experiment(
     experiment_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Finalize experiment with validation and status update
@@ -1885,7 +1885,7 @@ async def finalize_experiment(
 @router.post("/complete", response_model=ExperimentWizardResponse, status_code=status.HTTP_201_CREATED)
 async def create_complete_experiment(
     experiment: ExperimentWizardRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Create a complete experiment with all data in one request
@@ -2023,7 +2023,7 @@ async def create_complete_experiment(
 # Legacy endpoint - kept for backward compatibility
 @router.get("/my-experiments")
 async def get_my_experiments_legacy(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_write_access),
     skip: int = 0,
     limit: int = 100
 ):
@@ -2067,7 +2067,7 @@ async def get_my_experiments_legacy(
 async def edit_experiment(
     experiment_id: str,
     request: Request,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Edit a complete experiment (sample + all related data)

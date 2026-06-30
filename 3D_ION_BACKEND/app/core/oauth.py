@@ -4,13 +4,12 @@ from fastapi import HTTPException, status
 from supabase import Client
 
 from app.core.user_roles import (
-    ADMIN_ROLE,
     RESEARCHER_ROLE,
     is_admin_role,
     normalize_email,
-    normalize_user_type,
     researcher_role,
 )
+from app.core.user_status import REGULAR_STATUS, normalize_user_status
 from app.database.supabase import get_supabase_client
 
 
@@ -160,7 +159,7 @@ def create_oauth_researcher(supabase: Client, auth_user) -> dict:
         "email": email,
         "auth_id": auth_user.id,
         "user_type": RESEARCHER_ROLE,
-        "status": "regular",
+        "status": REGULAR_STATUS,
         "profile_onboarding_completed": False,
     }
 
@@ -182,6 +181,7 @@ def researcher_to_login_payload(
 ) -> dict:
     """Build the login response payload from a researcher record."""
     user_type = researcher_role(researcher)
+    account_status = normalize_user_status(researcher.get("status"))
     return {
         "user_id": researcher["id"],
         "id": researcher["id"],
@@ -193,6 +193,7 @@ def researcher_to_login_payload(
         "country": researcher.get("country"),
         "language": researcher.get("language"),
         "user_type": user_type,
+        "status": account_status,
         "needs_profile_completion": (
             profile_completion_pending
             if profile_completion_pending is not None

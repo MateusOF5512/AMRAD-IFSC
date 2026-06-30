@@ -9,6 +9,7 @@ import { ExperimentReportModal } from '@/components/experiments/ExperimentReport
 import { SimplifiedExperimentComparison } from '@/components/experiments/comparison/SimplifiedExperimentComparison'
 import { logger } from '@/lib/logger'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { canWriteResearchData, isIrregularUser } from '@/lib/auth-roles'
 
 interface ExperimentSummary {
   experiment_id: string
@@ -44,7 +45,7 @@ interface ExperimentsResponse {
 export default function MeusExperimentosPage() {
   const router = useRouter()
   const { t, i18n } = useTranslation()
-  const [user, setUser] = useState<{ user_id: string; name: string; email: string } | null>(null)
+  const [user, setUser] = useState<{ user_id: string; name: string; email: string; user_type?: string; status?: string } | null>(null)
   const [experiments, setExperiments] = useState<ExperimentSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -472,29 +473,36 @@ export default function MeusExperimentosPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-surface shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 {t('myExperiments.title')}
               </h1>
-              <p className="mt-2 text-muted">
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted">
                 {t('myExperiments.subtitle', { count: experiments.length })}
               </p>
             </div>
+            {user && canWriteResearchData(user) && (
             <Link
               href="/novo-experimento"
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-11 w-full sm:w-auto bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium shrink-0"
             >
               <Plus className="h-5 w-5" />
               {t('experiments.newExperiment')}
             </Link>
+            )}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {user && isIrregularUser(user) && (
+          <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900">
+            Sua conta está com status <strong>irregular</strong>. Você pode visualizar experimentos, mas não criar ou editar dados.
+          </div>
+        )}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -508,6 +516,7 @@ export default function MeusExperimentosPage() {
         {experiments.length === 0 ? (
           <div className="bg-surface rounded-lg shadow p-12 text-center">
             <p className="text-muted mb-4">{t('myExperiments.noExperiments')}</p>
+            {user && canWriteResearchData(user) && (
             <Link
               href="/novo-experimento"
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -515,11 +524,12 @@ export default function MeusExperimentosPage() {
               <Plus className="h-5 w-5" />
               {t('myExperiments.createFirstExperiment')}
             </Link>
+            )}
           </div>
         ) : (
           <div className="space-y-8">
             {/* Status Indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {/* Submetido */}
               <div className="bg-surface rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
@@ -598,7 +608,7 @@ export default function MeusExperimentosPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
+                  <div className="ion-scroll-x">
                     <table className="w-full">
                       <thead className="bg-slate-100 border-b border-border">
                         <tr>
@@ -835,7 +845,7 @@ export default function MeusExperimentosPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
+                  <div className="ion-scroll-x">
                     <table className="w-full">
                       <thead className="bg-slate-100 border-b border-border">
                         <tr>
@@ -1042,7 +1052,7 @@ export default function MeusExperimentosPage() {
       </div>
 
       {/* Help Section - Sistema de Análise */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
           <button
             onClick={() => setIsHelpExpanded(!isHelpExpanded)}
@@ -1194,7 +1204,7 @@ export default function MeusExperimentosPage() {
       </div>
 
       {/* Status History Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden">
           <div className="px-6 py-4 border-b border-border bg-background flex items-center justify-between">
             <div>
@@ -1237,7 +1247,7 @@ export default function MeusExperimentosPage() {
             ) : (
               <>
                 {/* History Table */}
-                <div className="overflow-x-auto">
+                <div className="ion-scroll-x">
                   <table className="w-full text-xs sm:text-sm">
                     <thead>
                       <tr className="border-b border-border bg-background">
@@ -1387,7 +1397,7 @@ export default function MeusExperimentosPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         showStatus={false}
-        showEditButton={selectedExperimentSection === 'analise'}
+        showEditButton={selectedExperimentSection === 'analise' && canWriteResearchData(user)}
       />
     </div>
   )

@@ -949,16 +949,16 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
-      <div className="mx-auto max-w-6xl px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 sm:py-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
                 📝 {t('experimentWizardNew.title')}
               </h1>
-              <p className="mt-2 text-muted">
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted">
                 {t('experimentWizardNew.subtitle')}
               </p>
             </div>
@@ -966,7 +966,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
               <button
                 onClick={handleReset}
                 disabled={isLoading}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-surface border border-border rounded-lg hover:bg-background transition-colors disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-11 text-sm font-medium text-foreground bg-surface border border-border rounded-lg hover:bg-background transition-colors disabled:opacity-50 w-full sm:w-auto shrink-0"
               >
                 <Trash2 className="w-4 h-4" />
                 {t('experimentWizardNew.buttons.restart')}

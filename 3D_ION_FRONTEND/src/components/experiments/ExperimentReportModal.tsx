@@ -213,27 +213,27 @@ export function ExperimentReportModal({
   // Handle edit mode - show wizard instead of report
   if (isEditing && editData) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-surface rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+        <div className="bg-surface rounded-t-2xl sm:rounded-lg shadow-xl w-full max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto">
           {/* Wizard in Edit Mode */}
-          <div className="px-6 py-4 border-b bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 border-primary/30 sticky top-0 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-primary">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 border-primary/30 sticky top-0 flex items-start sm:items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-2xl font-bold text-primary">
                 {t('experiments.report.editButton')}
               </h2>
-              <p className="text-sm text-primary mt-1">
+              <p className="text-xs sm:text-sm text-primary mt-1">
                 {t('experiments.report.editSubtitle')}
               </p>
             </div>
             <button
               onClick={() => setIsEditing(false)}
-              className="text-muted hover:text-foreground text-2xl leading-none"
+              className="text-muted hover:text-foreground text-2xl leading-none min-h-11 min-w-11 flex items-center justify-center shrink-0"
             >
               ✕
             </button>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <ExperimentEditWizard 
               initialData={editData} 
               experimentId={experimentId}
@@ -247,22 +247,22 @@ export function ExperimentReportModal({
 
   // Regular report view (approved experiments section)
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-surface rounded-t-2xl sm:rounded-lg shadow-xl max-w-4xl w-full max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 border-blue-200 sticky top-0">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-blue-900">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 border-blue-200 sticky top-0 z-10">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-2xl font-bold text-blue-900">
                 📋 {t('experiments.report.title')}
               </h2>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-xs sm:text-sm text-blue-700 mt-1">
                 {t('experiments.report.subtitle')}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-muted hover:text-foreground text-2xl leading-none"
+              className="text-muted hover:text-foreground text-2xl leading-none min-h-11 min-w-11 flex items-center justify-center shrink-0"
             >
               ✕
             </button>
@@ -271,7 +271,7 @@ export function ExperimentReportModal({
 
         {/* Loading State */}
         {loading && (
-          <div className="px-6 py-12 flex justify-center items-center">
+          <div className="px-4 sm:px-6 py-8 sm:py-12 flex justify-center items-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             <span className="ml-3 text-blue-600 font-medium">{t('experiments.report.loading')}</span>
           </div>
@@ -279,14 +279,14 @@ export function ExperimentReportModal({
 
         {/* Error State */}
         {error && (
-          <div className="px-6 py-4 bg-red-50 border border-red-200 text-red-700">
+          <div className="px-4 sm:px-6 py-4 bg-red-50 border border-red-200 text-red-700">
             {error}
           </div>
         )}
 
         {/* Content */}
         {!loading && experimentData && (
-          <div className="px-6 py-6 space-y-6 pb-8">
+          <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-6 sm:pb-8">
             
             {/* Informações Básicas e Pesquisador */}
             <div className="border rounded-lg p-4 bg-emerald-50 border-emerald-300">
@@ -645,7 +645,7 @@ export function ExperimentReportModal({
         )}
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t bg-background flex justify-end gap-3 sticky bottom-0">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t bg-background flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 sticky bottom-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {showEditButton && (
             <button
               onClick={handleEditExperiment}

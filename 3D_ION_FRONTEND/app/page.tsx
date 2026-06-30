@@ -65,20 +65,18 @@ export default function Home() {
     <div className="min-h-screen bg-surface">
       {/* Hero Section with Background Image */}
       <section 
-        className="relative overflow-hidden px-4 sm:px-6 lg:px-8 py-32 sm:py-48 bg-cover"
+        className="relative overflow-hidden px-4 sm:px-6 lg:px-8 py-20 sm:py-32 lg:py-48 bg-cover bg-top sm:bg-fixed"
         style={{
           backgroundImage: 'url(/bg_home.png)',
           backgroundSize: 'cover',
-          backgroundPosition: 'top center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          minHeight: '600px'
+          minHeight: 'min(100dvh, 520px)',
         }}
       >
-        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center min-h-96">
+        <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center min-h-[280px] sm:min-h-96">
           {/* Description with Frosted Glass Background */}
-          <div className="border-2 border-white/40 bg-surface/10 backdrop-blur-sm rounded-xl px-8 sm:px-12 py-8 sm:py-10 mb-12 max-w-3xl">
-            <p className="text-center text-xl sm:text-2xl text-foreground font-bold drop-shadow-lg leading-relaxed">
+          <div className="border-2 border-white/40 bg-surface/10 backdrop-blur-sm rounded-xl px-5 sm:px-12 py-6 sm:py-10 mb-8 sm:mb-12 max-w-3xl w-full">
+            <p className="text-center text-lg sm:text-2xl text-foreground font-bold drop-shadow-lg leading-relaxed">
               {t('home.hero.description')}
             </p>
           </div>
@@ -87,7 +85,7 @@ export default function Home() {
           <div className="flex justify-center">
             <Link
               href="/experimentos"
-              className="group inline-flex items-center gap-3 px-8 sm:px-10 py-4 bg-surface text-primary font-semibold rounded-lg hover:shadow-lg transition-all duration-150"
+              className="group inline-flex items-center justify-center gap-3 px-6 sm:px-10 py-3.5 sm:py-4 min-h-12 bg-surface text-primary font-semibold rounded-lg hover:shadow-lg transition-all duration-150 w-full sm:w-auto"
             >
               <span>{t('home.hero.exploreButton')}</span>
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -145,7 +143,7 @@ export default function Home() {
       {/* Features Section */}
       <section className="bg-slate-50 px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground text-center mb-8 sm:mb-12">
             {t('home.features.title')}
           </h2>
 

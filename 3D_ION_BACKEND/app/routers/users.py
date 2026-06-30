@@ -11,7 +11,6 @@ from typing import Optional
 from app.database.supabase import get_supabase_client
 from app.core.security import CustomHTTPBearer, verify_supabase_token
 from app.core.user_roles import researcher_role
-from app.core.password import hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -42,15 +41,11 @@ class UserUpdateRequest(BaseModel):
     instagram: Optional[str] = Field(None, max_length=50)
     country: Optional[str] = Field(None, max_length=100)
     language: Optional[str] = Field(None, max_length=50)
-    oldPassword: Optional[str] = Field(None)
-    newPassword: Optional[str] = Field(None, min_length=8, max_length=100)
-    confirmPassword: str = Field(..., description="Current password for confirmation")
 
 
 class UserSettingsUpdate(BaseModel):
     """Schema for user settings update"""
     email_notifications: Optional[bool] = None
-    confirmPassword: str = Field(..., description="Current password for confirmation")
 
 
 class UpdateResponse(BaseModel):
@@ -133,32 +128,18 @@ async def update_user_profile(
     user_id: str = Depends(get_current_user_id)
 ):
     """
-    Update user profile information
-    
-    - Validates confirmation password
-    - Optionally updates password if oldPassword and newPassword provided
-    - Cannot update email (email is immutable)
-    - Returns updated user data
+    Update user profile information.
+
+    Requires valid JWT (Google OAuth). Cannot update email.
     """
     supabase = get_supabase_client()
     
     try:
-        # Get current user
-        response = supabase.table("researchers").select("password_hash").eq("id", user_id).execute()
-        
-        if not response.data:
+        existing = supabase.table("researchers").select("id").eq("id", user_id).execute()
+        if not existing.data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
-            )
-        
-        current_user = response.data[0]
-        
-        # Verify confirmation password
-        if not verify_password(request.confirmPassword, current_user.get("password_hash", "")):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid confirmation password"
             )
         
         # Prepare update data
@@ -181,13 +162,6 @@ async def update_user_profile(
             update_data["language"] = request.language.strip() if request.language else None
         if request.instagram is not None:
             update_data["instagram"] = request.instagram.strip().lower() if request.instagram else None
-        
-        # Handle password change (only if newPassword is provided)
-        # The confirmPassword has already been verified above
-        if request.newPassword:
-            # Hash new password
-            new_hash = hash_password(request.newPassword)
-            update_data["password_hash"] = new_hash
         
         # Update user in database
         update_response = supabase.table("researchers").update(update_data).eq("id", user_id).execute()
@@ -234,30 +208,17 @@ async def update_user_settings(
     user_id: str = Depends(get_current_user_id)
 ):
     """
-    Update user system settings
-    
-    - Updates email notification preferences
-    - Requires password confirmation
+    Update user system settings (email notification preferences).
+    Requires valid JWT (Google OAuth).
     """
     supabase = get_supabase_client()
     
     try:
-        # Get current user
-        response = supabase.table("researchers").select("password_hash").eq("id", user_id).execute()
-        
-        if not response.data:
+        existing = supabase.table("researchers").select("id").eq("id", user_id).execute()
+        if not existing.data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
-            )
-        
-        current_user = response.data[0]
-        
-        # Verify confirmation password
-        if not verify_password(request.confirmPassword, current_user.get("password_hash", "")):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid confirmation password"
             )
         
         # Prepare update data

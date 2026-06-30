@@ -3,7 +3,7 @@ from typing import List
 from supabase import Client
 import logging
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_write_access
 from app.core.user_utils import get_user_full_name
 from app.database.supabase import get_supabase_client
 from app.schemas.sample import SampleCreate, SampleResponse
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @router.post("/", response_model=SampleResponse, status_code=status.HTTP_201_CREATED)
 async def create_sample(
     sample: SampleCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Create a new sample and record initial submission in status history"""
     supabase: Client = get_supabase_client()
@@ -239,7 +239,7 @@ async def get_sample(
 @router.delete("/{sample_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_sample(
     sample_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Delete a sample and all related measurements"""
     supabase: Client = get_supabase_client()
@@ -320,7 +320,7 @@ async def get_sample_status_history(
 async def update_sample_status(
     sample_id: str,
     status_update: UpdateSampleStatusRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """
     Update sample status (Admin only)

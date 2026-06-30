@@ -5,11 +5,17 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
 import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend } from '@/lib/supabase-auth'
-import { isAdminUser } from '@/lib/auth-roles'
+import { isAdminUser, canWriteResearchData } from '@/lib/auth-roles'
 import { CompleteProfileModal } from '@/components/auth/CompleteProfileModal'
 
 const PUBLIC_ROUTES = ['/login', '/register', '/experimentos', '/']
 const AUTH_FLOW_ROUTES = ['/auth/callback', '/auth/callback/complete']
+const WRITE_PROTECTED_PREFIXES = [
+  '/novo-experimento',
+  '/experiments/new',
+  '/experiments/edit',
+]
+
 const PROTECTED_PREFIXES = [
   '/settings',
   '/meus-experimentos',
@@ -19,6 +25,12 @@ const PROTECTED_PREFIXES = [
 ]
 
 const ADMIN_PREFIXES = ['/admin']
+
+function isWriteProtectedRoute(pathname: string): boolean {
+  return WRITE_PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix)
+  )
+}
 
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -164,6 +176,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       !isAdminUser(user)
     ) {
       router.push('/experimentos')
+    } else if (isAuthenticated && isWriteProtectedRoute(pathname) && !canWriteResearchData(user)) {
+      router.push('/meus-experimentos')
     }
   }, [user, pathname, router, isAuthenticating, signOut])
 

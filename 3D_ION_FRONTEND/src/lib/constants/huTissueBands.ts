@@ -22,6 +22,16 @@ export interface HuTissueBand {
   showLabel: boolean
 }
 
+/** Clinical Hounsfield scale labels — always English (not localized). */
+export const HU_TISSUE_BAND_LABELS: Record<HuTissueBandId, string> = {
+  corticalBone: 'Cortical bone',
+  trabecularBone: 'Trabecular bone',
+  water: 'Water',
+  fat: 'Fat',
+  unlabeled: '',
+  lung: 'Lung',
+}
+
 /** Bands ordered back-to-front (first = drawn behind). */
 export const HU_TISSUE_BANDS: HuTissueBand[] = [
   { id: 'lung', yMin: -900, yMax: -500, fill: '#b8c9d9', fillOpacity: 0.55, showLabel: true },

@@ -10,6 +10,7 @@ from supabase import Client
 
 from app.database.supabase import get_supabase_client
 from app.core.security import create_access_token, get_current_user, security_scheme
+from app.core.user_status import REGULAR_STATUS, ensure_account_is_active, normalize_user_status
 from app.core.password import hash_password, verify_password
 from app.core.rate_limit import check_rate_limit
 from app.core.oauth import (
@@ -66,6 +67,7 @@ class LoginResponse(BaseModel):
     country: Optional[str] = None
     language: Optional[str] = None
     user_type: str
+    status: str = REGULAR_STATUS
     needs_profile_completion: bool = False
     message: str
     access_token: str
@@ -163,7 +165,8 @@ async def register(request: RegisterRequest, http_request: Request):
             "country": request.country,
             "language": request.language,
             "password_hash": password_hash,
-            "user_type": "pesquisador"
+            "user_type": "pesquisador",
+            "status": REGULAR_STATUS,
         }
         
         # Insert into researchers table
@@ -251,6 +254,13 @@ async def login(request: LoginRequest, http_request: Request):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email/Instagram or password"
             )
+
+        account_status = normalize_user_status(user_data.get("status"))
+        if account_status == "desativado":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Conta desativada. Entre em contato com o administrador.",
+            )
         
         # Generate JWT token
         access_token = create_access_token(
@@ -270,6 +280,7 @@ async def login(request: LoginRequest, http_request: Request):
             country=user_data.get("country"),
             language=user_data.get("language"),
             user_type=user_data.get("user_type", "pesquisador"),
+            status=account_status,
             message=f"Welcome, {user_data['name']}!",
             access_token=access_token
         )
@@ -329,6 +340,9 @@ async def oauth_session(
         researcher["name"] = google_name
 
     fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
+    ensure_account_is_active(
+        {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
+    )
     payload = researcher_to_login_payload(fresh_researcher, credentials.credentials)
     return LoginResponse(**payload)
 
@@ -337,7 +351,7 @@ async def oauth_session(
 async def get_current_session(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
 ):
-    """Return the authenticated user profile with user_type from the database."""
+    """Return the authenticated user profile with user_type and status from the database."""
     supabase = get_supabase_client()
     auth_user = get_supabase_auth_user(credentials.credentials)
     researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
@@ -352,6 +366,9 @@ async def get_current_session(
         link_auth_id(supabase, researcher["id"], auth_user.id)
 
     fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
+    ensure_account_is_active(
+        {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
+    )
     payload = researcher_to_login_payload(fresh_researcher, credentials.credentials)
     return LoginResponse(**payload)
 

@@ -4,8 +4,8 @@ import { ReferenceArea } from 'recharts'
 import { useTranslation } from 'react-i18next'
 import {
   HU_REGRESSION_X_DOMAIN,
+  HU_TISSUE_BAND_LABELS,
   HU_TISSUE_BANDS,
-  type HuTissueBandId,
 } from '@/lib/constants/huTissueBands'
 
 interface HuTissueReferenceAreasProps {
@@ -29,7 +29,7 @@ export function HuTissueBandsLegend() {
             className="inline-block h-3 w-5 rounded-sm border border-border"
             style={{ backgroundColor: band.fill, opacity: Math.min(1, band.fillOpacity + 0.25) }}
           />
-          {t(`experiments.charts.regression.tissueBands.${band.id}`)}
+          {HU_TISSUE_BAND_LABELS[band.id]}
           <span className="text-slate-400">
             ({band.yMin}–{band.yMax} HU)
           </span>
@@ -43,11 +43,6 @@ export function HuTissueReferenceAreas({
   xMin = HU_REGRESSION_X_DOMAIN[0],
   xMax = HU_REGRESSION_X_DOMAIN[1],
 }: HuTissueReferenceAreasProps) {
-  const { t } = useTranslation()
-
-  const label = (id: HuTissueBandId) =>
-    t(`experiments.charts.regression.tissueBands.${id}`, { defaultValue: id })
-
   return (
     <>
       {HU_TISSUE_BANDS.map((band) => (
@@ -65,7 +60,7 @@ export function HuTissueReferenceAreas({
           label={
             band.showLabel
               ? {
-                  value: label(band.id),
+                  value: HU_TISSUE_BAND_LABELS[band.id],
                   position: 'insideRight',
                   fill: '#374151',
                   fontSize: 10,

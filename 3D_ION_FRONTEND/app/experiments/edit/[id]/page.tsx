@@ -7,6 +7,7 @@ import ExperimentEditWizard from '@/components/experiments/ExperimentEditWizard'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { transformApiDataToEditFormat, EditExperimentData } from '@/lib/utils/transformExperimentData'
 import { logger } from '@/lib/logger'
+import { useResearcherWriteProtection } from '@/lib/hooks/useResearcherWriteProtection'
 
 const API_BASE_URL = getNormalizedApiUrl()
 
@@ -14,35 +15,24 @@ export default function EditExperimentPage() {
   const router = useRouter()
   const params = useParams()
   const experimentId = params.id as string
+  const user = useResearcherWriteProtection()
 
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [isLoadingExperiment, setIsLoadingExperiment] = useState(false)
   const [editData, setEditData] = useState<EditExperimentData | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Verificar se está autenticado
-    const userData = localStorage.getItem('user')
-    
-    if (!userData) {
-      router.push('/login')
-      return
-    }
+    if (!user || !experimentId) return
+    loadExperimentData(experimentId, user.access_token || '')
+  }, [experimentId, user])
 
-    // Carregar dados do experimento
-    if (experimentId) {
-      loadExperimentData(experimentId, userData)
-    }
-  }, [experimentId, router])
+  const loadExperimentData = async (id: string, token: string) => {
+    if (!token) return
 
-  const loadExperimentData = async (id: string, userDataString: string) => {
     setIsLoadingExperiment(true)
     setLoadError(null)
     
     try {
-      const userData = JSON.parse(userDataString)
-      const token = userData.access_token
-
       const response = await fetch(
         `${API_BASE_URL}/experiments/${id}/detalhes`,
         {
@@ -58,12 +48,8 @@ export default function EditExperimentPage() {
       }
 
       const data = await response.json()
-
-      // Transform backend response using shared utility
       const editData = transformApiDataToEditFormat(data)
-      
       setEditData(editData)
-
     } catch (error) {
       logger.error('edit-experiment', error instanceof Error ? error.message : 'Unknown error')
       setLoadError(
@@ -73,11 +59,10 @@ export default function EditExperimentPage() {
       )
     } finally {
       setIsLoadingExperiment(false)
-      setIsCheckingAuth(false)
     }
   }
 
-  if (isCheckingAuth || isLoadingExperiment) {
+  if (!user || isLoadingExperiment) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

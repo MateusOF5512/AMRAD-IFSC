@@ -32,13 +32,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex min-h-screen min-h-dvh items-center justify-center bg-background px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8">
         <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <BrandLogo className="h-14" priority />
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <BrandLogo className="h-12 sm:h-14" priority />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             {t('auth.login.title')}
           </h1>
           <p className="mt-2 text-sm text-muted">

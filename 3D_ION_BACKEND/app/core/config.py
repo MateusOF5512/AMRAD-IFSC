@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str
     SUPABASE_ANON_KEY: str
     
+    # Senha para confirmação de ações sensíveis no painel admin
+    PASSWORD_ADMIN: str = Field(..., min_length=1)
+
     # JWT — obrigatório via .env (sem default fraco em produção)
     JWT_SECRET: str = Field(..., min_length=16)
     JWT_ALGORITHM: str = "HS256"

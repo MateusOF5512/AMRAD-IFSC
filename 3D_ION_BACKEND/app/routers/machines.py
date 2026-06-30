@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 from supabase import Client
 
-from app.core.security import get_current_user
+from app.core.security import get_current_user, require_write_access
 from app.database.supabase import get_supabase_client
 from app.schemas.machine import MachineCreate, MachineResponse
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/machines", tags=["Machines"])
 @router.post("/", response_model=MachineResponse, status_code=status.HTTP_201_CREATED)
 async def create_machine(
     machine: MachineCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Create a new machine"""
     supabase: Client = get_supabase_client()
@@ -137,7 +137,7 @@ async def get_machine(
 @router.delete("/{machine_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_machine(
     machine_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_write_access)
 ):
     """Delete a machine"""
     supabase: Client = get_supabase_client()

@@ -99,7 +99,7 @@ export function AdminSecurityConfirmModal({
           {/* Password Input */}
           <div>
             <label htmlFor="admin-password" className="block text-sm font-semibold text-foreground mb-2">
-              Digite sua senha para confirmar
+              Digite a senha de administração para confirmar
             </label>
             <div className="relative">
               <input
@@ -109,7 +109,7 @@ export function AdminSecurityConfirmModal({
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isLoading || loading}
-                placeholder="Sua senha de administrador"
+                placeholder="Senha de administração"
                 className="w-full px-4 py-2 pr-10 border-2 border-border rounded-lg focus:ring-orange-500 focus:border-orange-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed transition-colors"
                 autoFocus
               />
@@ -146,7 +146,7 @@ export function AdminSecurityConfirmModal({
           {/* Info Tip */}
           <div className="bg-background border border-border rounded p-3">
             <p className="text-xs text-muted">
-              💡 Por sua segurança, você deve confirmar com sua própria senha de administrador. Esta ação será registrada nos logs de auditoria.
+              Por segurança, ações sensíveis exigem a senha de administração configurada no sistema.
             </p>
           </div>
         </div>

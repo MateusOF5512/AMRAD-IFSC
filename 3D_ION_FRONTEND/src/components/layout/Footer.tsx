@@ -3,16 +3,19 @@
 import Link from 'next/link'
 import { Mail, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/store/authStore'
+import { canWriteResearchData } from '@/lib/auth-roles'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
   const { t } = useTranslation()
+  const user = useAuthStore((state) => state.user)
 
   return (
-    <footer className="bg-primary text-white mt-16">
+    <footer className="bg-primary text-white mt-10 sm:mt-16 pb-[env(safe-area-inset-bottom)]">
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* About Section */}
           <div>
             <h3 className="text-lg font-semibold mb-4">{t('footer.about.title')}</h3>
@@ -35,11 +38,13 @@ export function Footer() {
                   {t('footer.quickLinks.myExperiments')}
                 </Link>
               </li>
+              {canWriteResearchData(user) && (
               <li>
                 <Link href="/novo-experimento" className="text-primary-light hover:text-white transition-colors">
                   {t('footer.quickLinks.newExperiment')}
                 </Link>
               </li>
+              )}
               <li>
                 <Link href="/settings" className="text-primary-light hover:text-white transition-colors">
                   {t('footer.quickLinks.settings')}
@@ -102,10 +107,10 @@ export function Footer() {
         <div className="border-t border-primary-hover my-8" />
 
         {/* Bottom Footer */}
-        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-primary-light">
-          <p>{t('footer.rights', { year: currentYear })}</p>
+        <div className="flex flex-col md:flex-row justify-between items-center text-sm text-primary-light gap-4">
+          <p className="text-center md:text-left">{t('footer.rights', { year: currentYear })}</p>
           
-          <div className="flex gap-6 mt-4 md:mt-0">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:mt-0">
             <a href="#" className="hover:text-white transition-colors">
               {t('footer.privacy')}
             </a>

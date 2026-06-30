@@ -22,7 +22,7 @@ export function Card({ className, elevated, children, ...props }: CardProps) {
 
 export function CardHeader({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('px-6 py-4 border-b border-border', className)} {...props}>
+    <div className={cn('px-4 py-3 sm:px-6 sm:py-4 border-b border-border', className)} {...props}>
       {children}
     </div>
   )
@@ -30,7 +30,7 @@ export function CardHeader({ className, children, ...props }: HTMLAttributes<HTM
 
 export function CardContent({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('px-6 py-6', className)} {...props}>
+    <div className={cn('px-4 py-4 sm:px-6 sm:py-6', className)} {...props}>
       {children}
     </div>
   )

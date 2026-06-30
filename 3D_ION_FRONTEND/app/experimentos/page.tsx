@@ -10,6 +10,7 @@ import { ExperimentComparison } from '@/components/experiments/comparison/Experi
 import { fetchWithAgent } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { canWriteResearchData } from '@/lib/auth-roles'
 import { getPublicEnv } from '@/lib/public-env'
 
 interface ExperimentSummary {
@@ -46,7 +47,7 @@ interface ExperimentsResponse {
 export default function ExperimentsPage() {
   const router = useRouter()
   const { t, ready, i18n } = useTranslation()
-  const [user, setUser] = useState<{ user_id: string; name: string; email: string } | null>(null)
+  const [user, setUser] = useState<{ user_id: string; name: string; email: string; user_type?: string; status?: string } | null>(null)
   const [experiments, setExperiments] = useState<ExperimentSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -417,21 +418,21 @@ export default function ExperimentsPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-surface shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 {t('experiments.allExperiments')}
               </h1>
-              <p className="mt-2 text-muted">
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted">
                 {t('experiments.availableCount', { count: experiments.length })}
               </p>
             </div>
-            <div className="flex gap-2">
-              {user && (
+            <div className="flex gap-2 shrink-0">
+              {user && canWriteResearchData(user) && (
                 <Link
                   href="/novo-experimento"
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-11 w-full sm:w-auto bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium"
                 >
                   <Plus className="h-5 w-5" />
                   {t('experiments.newExperiment')}
@@ -443,13 +444,13 @@ export default function ExperimentsPage() {
       </div>
 
       {/* Filters Section */}
-      <div className="py-6">
+      <div className="py-4 sm:py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-slate-100 rounded-lg border border-border">
             {/* Filter Header / Toggle */}
             <button
               onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-              className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-100 transition-colors"
+              className="w-full flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 min-h-11 hover:bg-slate-100 transition-colors"
             >
               <h3 className="text-sm font-semibold text-foreground">{t('experiments.filters.toggle')}</h3>
               <ChevronDown
@@ -460,7 +461,7 @@ export default function ExperimentsPage() {
 
             {/* Filter Content - Expandable */}
             {isFiltersExpanded && (
-              <div className="border-t border-border px-6 pb-6 pt-6 space-y-4">
+              <div className="border-t border-border px-4 sm:px-6 pb-4 sm:pb-6 pt-4 sm:pt-6 space-y-4">
                 {/* Row 1: Text Input - Pesquisador */}
                 <div className="grid grid-cols-1 gap-3">
                   <input
@@ -641,7 +642,7 @@ export default function ExperimentsPage() {
         </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 shrink-0" />
@@ -655,7 +656,7 @@ export default function ExperimentsPage() {
         {experiments.length === 0 ? (
           <div className="bg-surface rounded-lg shadow p-12 text-center">
             <p className="text-muted mb-4">{t('experiments.empty.title')}</p>
-            {user && (
+            {user && canWriteResearchData(user) && (
               <Link
                 href="/novo-experimento"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
@@ -669,10 +670,10 @@ export default function ExperimentsPage() {
           <>
             {/* Table Header with Modern Design */}
             <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-linear-to-r from-green-50 via-green-50 to-emerald-50 px-6 py-4 border-b-2 border-primary/30">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-primary">{t('experiments.allExperiments')}</h3>
-                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-muted text-primary font-semibold text-sm">
+              <div className="bg-linear-to-r from-green-50 via-green-50 to-emerald-50 px-4 sm:px-6 py-3 sm:py-4 border-b-2 border-primary/30">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="text-base sm:text-lg font-semibold text-primary">{t('experiments.allExperiments')}</h3>
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-muted text-primary font-semibold text-xs sm:text-sm w-fit">
                     <span className="w-2 h-2 rounded-full bg-primary-light0"></span>
                     {displayedExperiments.length} {displayedExperiments.length === 1 ? t('experiments.table.singularExperiment') : t('experiments.table.pluralExperiments')}
                   </span>
@@ -680,7 +681,7 @@ export default function ExperimentsPage() {
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto">
+              <div className="ion-scroll-x">
                 <table className="w-full">
                   <thead className="bg-slate-100 border-b border-border">
                     <tr>
@@ -872,7 +873,7 @@ export default function ExperimentsPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-6 flex justify-center items-center gap-2">
+              <div className="mt-6 flex flex-wrap justify-center items-center gap-1.5 sm:gap-2 px-1">
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}

@@ -243,12 +243,12 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
-      <div className="mx-auto max-w-5xl px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 sm:py-12">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground">📝 Editar Experimento</h1>
-          <p className="text-lg text-muted mt-2">Atualize os dados do seu experimento</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">📝 Editar Experimento</h1>
+          <p className="text-base sm:text-lg text-muted mt-1 sm:mt-2">Atualize os dados do seu experimento</p>
         </div>
 
         {/* Success/Error Messages */}

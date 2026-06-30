@@ -139,8 +139,8 @@ export function CompleteProfileModal({ isOpen, onComplete }: CompleteProfileModa
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-surface p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
+      <div className="max-h-[92dvh] sm:max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl sm:rounded-lg bg-surface p-4 sm:p-6 shadow-xl pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="mb-4 flex items-center gap-3">
           <div className="rounded-full bg-primary-muted p-2">
             <UserCircle className="h-5 w-5 text-primary" />
@@ -210,7 +210,7 @@ export function CompleteProfileModal({ isOpen, onComplete }: CompleteProfileModa
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="modal-country" className="block text-sm font-medium text-foreground">
                 {t('auth.register.country')} {t('auth.google.optional')}

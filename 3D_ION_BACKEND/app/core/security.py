@@ -9,6 +9,7 @@ import jwt
 from app.database.supabase import get_supabase_client
 from app.core.config import settings
 from app.core.user_roles import normalize_user_type, researcher_role
+from app.core.user_status import normalize_user_status, ensure_account_is_active, ensure_write_access
 
 
 class CustomHTTPBearer(HTTPBearer):
@@ -69,27 +70,34 @@ def verify_jwt_token(token: str) -> dict:
         )
 
 
+def _refresh_user_from_db(user_id: str) -> dict:
+    supabase = get_supabase_client()
+    response = (
+        supabase.table("researchers")
+        .select("user_type, status")
+        .eq("id", user_id)
+        .execute()
+    )
+    if not response.data:
+        return {"user_type": "pesquisador", "status": "regular"}
+    row = response.data[0]
+    return {
+        "user_type": researcher_role(row),
+        "status": normalize_user_status(row.get("status")),
+    }
+
+
 def _user_context_from_researcher(researcher: dict, email: str | None = None) -> dict:
     user_type = researcher_role(researcher)
+    account_status = normalize_user_status(researcher.get("status"))
     return {
         "user_id": researcher["id"],
         "email": researcher.get("email") or email,
         "user_type": user_type,
         "role": user_type,
+        "status": account_status,
     }
 
-
-def _refresh_user_type_from_db(user_id: str) -> str:
-    supabase = get_supabase_client()
-    response = (
-        supabase.table("researchers")
-        .select("user_type")
-        .eq("id", user_id)
-        .execute()
-    )
-    if not response.data:
-        return "pesquisador"
-    return researcher_role(response.data[0])
 
 
 def verify_supabase_token(token: str) -> dict:
@@ -110,12 +118,15 @@ def verify_supabase_token(token: str) -> dict:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        user_type = _refresh_user_type_from_db(user_id)
+        db_user = _refresh_user_from_db(user_id)
+        user_type = db_user["user_type"]
+        account_status = db_user["status"]
         return {
             "user_id": user_id,
             "email": payload.get("email"),
             "user_type": user_type,
             "role": user_type,
+            "status": account_status,
         }
     except HTTPException:
         pass
@@ -167,6 +178,15 @@ async def get_current_user(
         )
     
     return verify_supabase_token(credentials.credentials)
+
+
+async def require_write_access(
+    credentials: HTTPAuthorizationCredentials = Security(security_scheme),
+) -> dict:
+    """Authenticated user allowed to create or modify research data."""
+    current_user = await get_current_user(credentials)
+    ensure_write_access(current_user)
+    return current_user
 
 
 def verify_sample_access(sample_id: UUID | str, current_user: dict) -> None:

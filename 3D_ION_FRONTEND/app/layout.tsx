@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-background text-foreground`}>
+      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen min-h-dvh bg-background text-foreground overflow-x-clip`}>
         <AuthProvider>
           <LanguageProvider>
             <Header />
