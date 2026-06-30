@@ -120,3 +120,78 @@ export function persistUserSession(user: User & { access_token: string }) {
   localStorage.setItem('user', JSON.stringify(user))
   window.dispatchEvent(new Event('userLoggedIn'))
 }
+
+export function updateStoredAccessToken(accessToken: string) {
+  if (typeof window === 'undefined') return
+  const raw = localStorage.getItem('user')
+  if (!raw) return
+  try {
+    const user = JSON.parse(raw)
+    user.access_token = accessToken
+    localStorage.setItem('user', JSON.stringify(user))
+  } catch {
+    // ignore invalid stored session
+  }
+}
+
+/** Returns true when a 401 means the session is gone (not a wrong admin password, etc.). */
+export function isSessionExpiredAuthError(detail: string | undefined): boolean {
+  if (!detail) return true
+  const normalized = detail.toLowerCase()
+  const nonSessionErrors = [
+    'senha incorreta',
+    'incorrect password',
+    'invalid email',
+    'invalid password',
+  ]
+  return !nonSessionErrors.some((msg) => normalized.includes(msg))
+}
+
+/**
+ * Refresh the Supabase OAuth session when the access token is close to expiry.
+ * Returns the best available access token for API calls.
+ */
+export async function refreshAccessTokenIfNeeded(force = false): Promise<string | null> {
+  if (typeof window === 'undefined') return null
+
+  const raw = localStorage.getItem('user')
+  let storedToken: string | null = null
+  if (raw) {
+    try {
+      storedToken = JSON.parse(raw).access_token || null
+    } catch {
+      storedToken = null
+    }
+  }
+
+  try {
+    const supabase = createClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session?.access_token) {
+      return storedToken
+    }
+
+    const expiresAt = session.expires_at ?? 0
+    const now = Math.floor(Date.now() / 1000)
+    const shouldRefresh = force || (expiresAt > 0 && expiresAt - now < 120)
+
+    if (shouldRefresh) {
+      const { data: refreshed, error } = await supabase.auth.refreshSession()
+      const token = refreshed.session?.access_token
+      if (!error && token) {
+        updateStoredAccessToken(token)
+        return token
+      }
+    }
+
+    if (session.access_token !== storedToken) {
+      updateStoredAccessToken(session.access_token)
+    }
+    return session.access_token
+  } catch {
+    return storedToken
+  }
+}

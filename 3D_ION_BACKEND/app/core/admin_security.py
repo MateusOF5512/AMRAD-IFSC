@@ -12,6 +12,6 @@ def verify_admin_action_password(password: str) -> None:
     expected = settings.PASSWORD_ADMIN
     if not expected or not secrets.compare_digest(password, expected):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             detail="Senha incorreta",
         )

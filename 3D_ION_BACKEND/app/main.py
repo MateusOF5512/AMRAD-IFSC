@@ -20,13 +20,16 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Accept"],
-)
+_cors_kwargs: dict = {
+    "allow_origins": settings.BACKEND_CORS_ORIGINS,
+    "allow_credentials": True,
+    "allow_methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    "allow_headers": ["Authorization", "Content-Type", "Accept"],
+}
+if settings.BACKEND_CORS_ORIGIN_REGEX:
+    _cors_kwargs["allow_origin_regex"] = settings.BACKEND_CORS_ORIGIN_REGEX
+
+app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(APMMiddleware)

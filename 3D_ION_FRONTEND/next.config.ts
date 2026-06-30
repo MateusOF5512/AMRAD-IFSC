@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const frontendRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -8,6 +12,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Monorepo: Turbopack otherwise resolves from git root (3D_ION) and misses frontend/node_modules.
+  turbopack: {
+    root: frontendRoot,
+  },
+  allowedDevOrigins: ["127.0.0.1", "192.168.56.1"],
   productionBrowserSourceMaps: false,
   compress: true,
 

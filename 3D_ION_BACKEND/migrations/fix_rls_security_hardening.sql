@@ -182,7 +182,9 @@ BEGIN
   END IF;
 
   -- Backend service_role / direct DB connections
-  IF auth.jwt() IS NULL THEN
+  IF auth.jwt() IS NULL
+     OR COALESCE(auth.jwt()->>'role', '') = 'service_role'
+     OR COALESCE(auth.role(), '') = 'service_role' THEN
     RETURN NEW;
   END IF;
 

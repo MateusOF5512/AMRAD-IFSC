@@ -41,6 +41,23 @@ def get_cors_origins() -> list[str]:
     return origins
 
 
+def get_cors_origin_regex() -> str | None:
+    """
+    In DEBUG, allow LAN origins (e.g. http://192.168.x.x:3000 from Next.js Network URL).
+    """
+    debug = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+    if not debug:
+        return None
+    return (
+        r"^https?://"
+        r"(localhost|127\.0\.0\.1|"
+        r"192\.168\.\d{1,3}\.\d{1,3}|"
+        r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|"
+        r"172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})"
+        r"(:\d+)?$"
+    )
+
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
@@ -66,6 +83,7 @@ class Settings(BaseSettings):
     # CORS - Allow multiple origins for development and production
     # Using Field(default_factory=...) to ensure function is called on each instance creation
     BACKEND_CORS_ORIGINS: list[str] = Field(default_factory=get_cors_origins)
+    BACKEND_CORS_ORIGIN_REGEX: str | None = Field(default_factory=get_cors_origin_regex)
     
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE),

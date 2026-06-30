@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
 import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend } from '@/lib/supabase-auth'
+import { getStoredAccessToken } from '@/lib/auth-storage'
 import { isAdminUser, canWriteResearchData } from '@/lib/auth-roles'
 import { CompleteProfileModal } from '@/components/auth/CompleteProfileModal'
 
@@ -175,7 +176,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
       !isAdminUser(user)
     ) {
-      router.push('/experimentos')
+      const revalidateAdminAccess = async () => {
+        const token = user?.access_token || getStoredAccessToken()
+        if (!token) {
+          router.push('/experimentos')
+          return
+        }
+
+        try {
+          const freshUser = await refreshUserFromBackend(token)
+          if (isAdminUser(freshUser)) {
+            applySession(freshUser)
+            return
+          }
+        } catch {
+          // Session invalid or backend unavailable.
+        }
+
+        router.push('/experimentos')
+      }
+
+      void revalidateAdminAccess()
     } else if (isAuthenticated && isWriteProtectedRoute(pathname) && !canWriteResearchData(user)) {
       router.push('/meus-experimentos')
     }

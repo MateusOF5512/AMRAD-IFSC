@@ -58,6 +58,12 @@ export default function ConfiguracaesAvancadasPage() {
   // Experiments management state
   const [approvedExperiments, setApprovedExperiments] = useState<any[]>([])
   const [inAnalysisExperiments, setInAnalysisExperiments] = useState<any[]>([])
+  const [experimentStatusCounts, setExperimentStatusCounts] = useState({
+    submitted: 0,
+    revisions: 0,
+    review: 0,
+    approved: 0,
+  })
   const [experimentsLoading, setExperimentsLoading] = useState(false)
   const [experimentsError, setExperimentsError] = useState<string | null>(null)
   const [selectedExperiment, setSelectedExperiment] = useState<any | null>(null)
@@ -175,6 +181,9 @@ export default function ConfiguracaesAvancadasPage() {
       const response = await adminApi.getExperimentsByStatus()
       setApprovedExperiments(response.approved)
       setInAnalysisExperiments(response.in_analysis)
+      if (response.status_counts) {
+        setExperimentStatusCounts(response.status_counts)
+      }
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao carregar experimentos'
       logger.error('admin', errorMessage)
@@ -234,8 +243,30 @@ export default function ConfiguracaesAvancadasPage() {
 
   const applyLocalExperimentStatusUpdate = (experiment: { id: string; status?: string; [key: string]: unknown }, newStatus: string) => {
     const experimentId = experiment.id
+    const oldStatus = experiment.status || 'Submitted'
     const updatedExperiment = { ...experiment, status: newStatus }
     const inAnalysisStatuses = ['Submitted', 'Revisions', 'Review']
+
+    const statusCountKey = (status: string): keyof typeof experimentStatusCounts | null => {
+      const map: Record<string, keyof typeof experimentStatusCounts> = {
+        Submitted: 'submitted',
+        Revisions: 'revisions',
+        Review: 'review',
+        Approved: 'approved',
+      }
+      return map[status] ?? null
+    }
+
+    if (oldStatus !== newStatus) {
+      setExperimentStatusCounts((prev) => {
+        const next = { ...prev }
+        const oldKey = statusCountKey(oldStatus)
+        const newKey = statusCountKey(newStatus)
+        if (oldKey) next[oldKey] = Math.max(0, next[oldKey] - 1)
+        if (newKey) next[newKey] += 1
+        return next
+      })
+    }
 
     setSelectedExperiment(updatedExperiment)
 
@@ -419,9 +450,9 @@ export default function ConfiguracaesAvancadasPage() {
     setShowUpdateForm(false)
   }
 
-  const handleAdminRoleUpdate = async (email: string, newRole: UserRole) => {
+  const handleAdminRoleUpdate = async (email: string, newRole: UserRole, password: string) => {
     try {
-      await adminApi.updateAdministratorRole(email, newRole)
+      await adminApi.updateAdministratorRole(email, newRole, password)
       await fetchAdministrators()
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
@@ -434,7 +465,8 @@ export default function ConfiguracaesAvancadasPage() {
           !errorMessage.includes('não existe') &&
           !errorMessage.includes('não cadastrado') &&
           !errorMessage.includes('rebaixar') &&
-          !errorMessage.includes('próprias permissões')) {
+          !errorMessage.includes('próprias permissões') &&
+          !errorMessage.includes('promover a si mesmo')) {
         logger.error('admin', errorMessage)
       }
       throw error
@@ -780,7 +812,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">📤</div>
                           <div className="text-2xl font-bold text-blue-600">
-                            {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Submitted').length}
+                            {experimentStatusCounts.submitted}
                           </div>
                           <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.submitted')}</div>
                         </div>
@@ -791,7 +823,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">⚠️</div>
                           <div className="text-2xl font-bold text-orange-600">
-                            {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Revisions').length}
+                            {experimentStatusCounts.revisions}
                           </div>
                           <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.adjustment')}</div>
                         </div>
@@ -802,7 +834,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">🔍</div>
                           <div className="text-2xl font-bold text-yellow-600">
-                            {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Review').length}
+                            {experimentStatusCounts.review}
                           </div>
                           <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.underReview')}</div>
                         </div>
@@ -813,7 +845,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">✅</div>
                           <div className="text-2xl font-bold text-primary">
-                            {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Approved').length}
+                            {experimentStatusCounts.approved}
                           </div>
                           <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.approved')}</div>
                         </div>
@@ -841,7 +873,7 @@ export default function ConfiguracaesAvancadasPage() {
                             <h3 className="text-lg font-semibold text-amber-900">{t('admin.advanced.experimentsTab.tables.underAnalysis')}</h3>
                             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold text-sm">
                               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                              {inAnalysisExperiments.length} experimentos
+                              {experimentStatusCounts.submitted + experimentStatusCounts.revisions + experimentStatusCounts.review} experimentos
                             </span>
                           </div>
                         </div>
@@ -986,7 +1018,7 @@ export default function ConfiguracaesAvancadasPage() {
                             <h3 className="text-lg font-semibold text-primary">{t('admin.advanced.experimentsTab.tables.approved')}</h3>
                             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-muted text-primary font-semibold text-sm">
                               <span className="w-2 h-2 rounded-full bg-primary-light0 animate-pulse"></span>
-                              {approvedExperiments.length} experimentos
+                              {experimentStatusCounts.approved} experimentos
                             </span>
                           </div>
                         </div>

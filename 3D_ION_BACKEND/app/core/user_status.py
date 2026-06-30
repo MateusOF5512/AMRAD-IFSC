@@ -35,6 +35,9 @@ def can_write_research_data(current_user: dict) -> bool:
 
 
 def ensure_account_is_active(current_user: dict) -> None:
+    if is_admin_role(current_user.get("user_type")):
+        return
+
     if is_deactivated_status(current_user.get("status")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

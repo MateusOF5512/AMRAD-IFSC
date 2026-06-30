@@ -2,11 +2,27 @@
 Diagnostics endpoints — available only in DEBUG mode.
 """
 
+import re
+
 from fastapi import APIRouter, HTTPException, Request, status
 
 from app.core.config import settings
 
 router = APIRouter(prefix="/diagnostics", tags=["Diagnostics"])
+
+_CORS_REGEX = (
+    re.compile(settings.BACKEND_CORS_ORIGIN_REGEX)
+    if settings.BACKEND_CORS_ORIGIN_REGEX
+    else None
+)
+
+
+def _is_origin_allowed(origin: str) -> bool:
+    if origin in settings.BACKEND_CORS_ORIGINS:
+        return True
+    if _CORS_REGEX and _CORS_REGEX.match(origin):
+        return True
+    return False
 
 
 def _require_debug() -> None:
@@ -24,12 +40,13 @@ async def check_cors(request: Request):
         "status": "ok",
         "cors_configuration": {
             "allowed_origins": settings.BACKEND_CORS_ORIGINS,
+            "allowed_origin_regex": settings.BACKEND_CORS_ORIGIN_REGEX,
             "allow_credentials": True,
         },
         "request_details": {
             "origin": origin,
             "referer": referer,
-            "is_origin_allowed": origin in settings.BACKEND_CORS_ORIGINS
+            "is_origin_allowed": _is_origin_allowed(origin)
             if origin != "Not provided"
             else "Unknown",
         },

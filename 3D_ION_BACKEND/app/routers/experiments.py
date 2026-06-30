@@ -314,7 +314,8 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
     Parameters:
     - skip: Number of records to skip (default: 0)
     - limit: Number of records to return (default: 100)
-    - researcher_id: Optional filter by researcher ID to show only that researcher's experiments
+    - researcher_id: Optional filter by researcher ID. When set, returns all statuses
+      for that researcher's experiments. Without it, only Approved experiments are returned (public view).
     """
     supabase: Client = get_supabase_client()
     
@@ -322,12 +323,13 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
         # Get samples with related data through separate queries
         # First, fetch samples with basic info
         query = supabase.table("samples") \
-            .select("id, researcher_id, material_id, machine_id, shape_type, pattern_type, created_at, status, index_visual") \
-            .eq("status", "Approved")
+            .select("id, researcher_id, material_id, machine_id, shape_type, pattern_type, created_at, status, index_visual")
         
-        # Filter by researcher_id if provided
+        # Public listing shows only approved experiments; researcher view shows all statuses
         if researcher_id:
             query = query.eq("researcher_id", researcher_id)
+        else:
+            query = query.eq("status", "Approved")
         
         samples_response = query \
             .order("created_at", desc=True) \

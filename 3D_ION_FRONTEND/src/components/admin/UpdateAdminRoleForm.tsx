@@ -7,7 +7,7 @@ import { adminApi } from '@/lib/api'
 
 interface UpdateAdminRoleFormProps {
   admin?: AdminInfo | null
-  onSubmit: (email: string, newRole: UserRole) => Promise<void>
+  onSubmit: (email: string, newRole: UserRole, password: string) => Promise<void>
   isLoading?: boolean
   onSuccess?: () => void
 }
@@ -92,7 +92,8 @@ export function UpdateAdminRoleForm({
           errorMessage.includes('não existe') ||
           errorMessage.includes('não cadastrado') ||
           errorMessage.includes('rebaixar') ||
-          errorMessage.includes('próprias permissões')) {
+          errorMessage.includes('próprias permissões') ||
+          errorMessage.includes('promover a si mesmo')) {
         setMessage({
           type: 'warning',
           text: errorMessage
@@ -113,11 +114,7 @@ export function UpdateAdminRoleForm({
     setMessage(null)
 
     try {
-      // Confirmar a senha com a API
-      await adminApi.verifyAdminPassword(password)
-      
-      // Senha confirmada - agora fazer o submit real
-      await onSubmit(pendingEmail, pendingRole)
+      await onSubmit(pendingEmail, pendingRole, password)
       
       setMessage({ type: 'success', text: 'Role atualizado com sucesso! O usuário assumirá o novo papel ao fazer login novamente.' })
       
@@ -146,7 +143,8 @@ export function UpdateAdminRoleForm({
           errorMessage.includes('não existe') ||
           errorMessage.includes('não cadastrado') ||
           errorMessage.includes('rebaixar') ||
-          errorMessage.includes('próprias permissões')) {
+          errorMessage.includes('próprias permissões') ||
+          errorMessage.includes('promover a si mesmo')) {
         setMessage({
           type: 'warning',
           text: errorMessage
@@ -173,7 +171,7 @@ export function UpdateAdminRoleForm({
         {/* Info Box - Requisitos */}
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-orange-800">
-            ℹ️ <strong>Apenas contas regulares com e-mail validado</strong> podem ser promovidas a administrador. A mudança entrará em vigor no próximo login do usuário.
+            ℹ️ <strong>Todo usuário é pesquisador por padrão.</strong> Apenas um administrador autenticado, com senha de confirmação, pode promover outro usuário regular a administrador. Ninguém pode se promover sozinho.
           </p>
         </div>
 

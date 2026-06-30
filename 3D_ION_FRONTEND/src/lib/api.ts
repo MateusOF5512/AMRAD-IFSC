@@ -3,9 +3,11 @@
  * Garante que sempre tenha /api/v1 no final
  */
 
-import { fetchWithAgent } from './api-client'
+import { fetchWithAgent, formatFetchError } from './api-client'
 import { logger } from './logger'
 import { getPublicEnv } from './public-env'
+import { getStoredAccessToken } from './auth-storage'
+import { isSessionExpiredAuthError, refreshAccessTokenIfNeeded } from './supabase-auth'
 
 export function getNormalizedApiUrl(): string {
   let apiUrl = getPublicEnv().apiUrl
@@ -25,25 +27,39 @@ export const API_BASE_URL = getNormalizedApiUrl()
  * Token é salvo em localStorage pelo login do FastAPI
  * Returns empty headers if no token (allows backend to return 401)
  */
-function getAuthHeader(): HeadersInit {
+function getAuthHeader(accessToken?: string | null): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   }
 
-  try {
-    const userData = localStorage.getItem('user')
-    if (!userData) return headers
-
-    const user = JSON.parse(userData)
-    const token = user.access_token || user.token
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-  } catch {
-    // localStorage unavailable (SSR) or invalid JSON
+  const token = accessToken ?? getStoredAccessToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
   }
 
   return headers
+}
+
+async function parseErrorResponse(response: Response): Promise<{ detail?: string; message?: string }> {
+  try {
+    const text = await response.text()
+    return text ? JSON.parse(text) : {}
+  } catch {
+    return { detail: 'Unknown error' }
+  }
+}
+
+function forceLoginRedirect() {
+  try {
+    localStorage.removeItem('user')
+    localStorage.removeItem('auth_token')
+  } catch {
+    // ignore
+  }
+
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login'
+  }
 }
 
 /**
@@ -57,7 +73,8 @@ async function apiRequest<T>(
   const maxRetries = 2
   
   try {
-    const headers = getAuthHeader()
+    const accessToken = await refreshAccessTokenIfNeeded()
+    const headers = getAuthHeader(accessToken)
     const fullUrl = `${API_BASE_URL}${endpoint}`
 
     const requestInit: RequestInit = {
@@ -71,30 +88,28 @@ async function apiRequest<T>(
     const response = await fetchWithAgent(fullUrl, requestInit)
 
     if (!response.ok) {
+      const errorData = await parseErrorResponse(response)
+      const errorDetail = String(errorData.detail || errorData.message || '')
+
       if (response.status === 401) {
-        try {
-          localStorage.removeItem('user')
-          localStorage.removeItem('auth_token')
-        } catch {
-          // ignore
+        const canRetryAuth = retryCount === 0 && isSessionExpiredAuthError(errorDetail)
+
+        if (canRetryAuth) {
+          const refreshedToken = await refreshAccessTokenIfNeeded(true)
+          if (refreshedToken) {
+            return apiRequest<T>(endpoint, options, retryCount + 1)
+          }
         }
 
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login'
+        if (isSessionExpiredAuthError(errorDetail)) {
+          forceLoginRedirect()
+          throw new Error('Sessão expirada. Faça login novamente.')
         }
 
-        throw new Error('Sessão expirada. Faça login novamente.')
+        throw new Error(errorDetail || 'Não autorizado')
       }
 
       const isExpectedStatus = response.status === 409 || response.status === 400 || response.status === 403 || response.status === 404
-
-      let errorData: any
-      try {
-        const text = await response.text()
-        errorData = text ? JSON.parse(text) : {}
-      } catch {
-        errorData = { detail: 'Unknown error' }
-      }
 
       if (isExpectedStatus) {
         logger.warn('api', `HTTP ${response.status}`)
@@ -131,11 +146,10 @@ async function apiRequest<T>(
                           error?.message?.includes('fetch')
     
     if (isNetworkError) {
-      logger.error('api', 'Network error — backend unreachable')
+      const detailedMessage = formatFetchError(error, API_BASE_URL)
+      logger.error('api', detailedMessage)
 
-      const detailedError = new Error(
-        'Falha na conexão com o servidor. Verifique se o backend está rodando e acessível.'
-      )
+      const detailedError = new Error(detailedMessage)
 
       if (retryCount < maxRetries) {
         logger.debug('api', `Retry ${retryCount + 1}/${maxRetries}`)
@@ -578,12 +592,13 @@ export const adminApi = {
     }),
 
   // Update administrator role
-  updateAdministratorRole: (email: string, newRole: 'admin' | 'pesquisador'): Promise<UpdateAdminRoleResponse> =>
+  updateAdministratorRole: (email: string, newRole: 'admin' | 'pesquisador', password: string): Promise<UpdateAdminRoleResponse> =>
     apiRequest<UpdateAdminRoleResponse>('/admin/administrators/role', {
       method: 'PATCH',
       body: JSON.stringify({
         email,
         new_role: newRole,
+        password,
       }),
     }),
 
@@ -796,6 +811,12 @@ export const adminApi = {
     }>
     total_approved: number
     total_in_analysis: number
+    status_counts?: {
+      submitted: number
+      revisions: number
+      review: number
+      approved: number
+    }
   }> =>
     apiRequest('/admin/experiments', { method: 'GET' }),
 

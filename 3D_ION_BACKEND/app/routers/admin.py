@@ -111,6 +111,7 @@ class UpdateAdminRoleRequest(BaseModel):
     """Request model for updating admin role"""
     email: str = Field(..., description="User email")
     new_role: str = Field(..., description="New role: admin or pesquisador")
+    password: str = Field(..., min_length=1, description="Admin action password")
 
 
 class UpdateAdminRoleResponse(BaseModel):
@@ -181,12 +182,21 @@ class ExperimentItem(BaseModel):
     created_at: Optional[str] = None
 
 
+class ExperimentStatusCounts(BaseModel):
+    """Total experiment counts per status (full database, not limited to list slices)"""
+    submitted: int = 0
+    revisions: int = 0
+    review: int = 0
+    approved: int = 0
+
+
 class ExperimentsResponse(BaseModel):
     """Response for experiments list endpoint"""
     approved: List[ExperimentItem] = []
     in_analysis: List[ExperimentItem] = []
     total_approved: int = 0
     total_in_analysis: int = 0
+    status_counts: ExperimentStatusCounts = ExperimentStatusCounts()
 
 
 
@@ -287,21 +297,10 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
                 detail="Permissão negada. Apenas admins podem acessar esta rota.",
             )
 
-        if user.get("status") == "desativado":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Conta desativada.",
-            )
-
         return user
 
     except HTTPException:
         raise
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Não autenticado",
-        )
 
 
 def validate_email(email: str) -> bool:
@@ -314,6 +313,45 @@ def validate_status(status_value: str) -> bool:
     """Validate status value"""
     valid_statuses = ["regular", "irregular", "desativado"]
     return status_value in valid_statuses
+
+
+def _assert_admin_can_change_role(
+    *,
+    current_admin: dict,
+    target_email: str,
+    new_role: str,
+    target_user: dict,
+) -> None:
+    """Ensure only another admin can grant admin; block self-promotion and self-demotion."""
+    current_admin_email = (current_admin.get("email") or "").lower().strip()
+    normalized_target = target_email.lower().strip()
+    current_role = target_user.get("user_type", "pesquisador")
+    user_status = target_user.get("status", "regular")
+    target_user_id = target_user.get("id")
+
+    if normalized_target == current_admin_email or target_user_id == current_admin.get("id"):
+        if new_role == "pesquisador":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Você não pode remover suas próprias permissões de administrador",
+            )
+        if new_role == "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Você não pode promover a si mesmo. Apenas outro administrador pode conceder permissões de admin.",
+            )
+
+    if new_role == "admin" and user_status != "regular":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Apenas usuários com status 'regular' podem ser promovidos a admin. Status atual: '{user_status}'",
+        )
+
+    if current_role == new_role:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"O usuário já possui o role '{current_role}'",
+        )
 
 
 def format_user_response(user: dict) -> AdminUserResponse:
@@ -604,10 +642,12 @@ async def update_administrator_role(
     """
     Update user role (admin or pesquisador)
     
-    - Requires JWT token with admin role
+    - Requires JWT token with admin role and admin action password
     - Can promote pesquisador to admin or demote admin to pesquisador
+    - Only another admin can grant admin permissions (no self-promotion)
     - Changes take effect on next login
     """
+    verify_admin_action_password(request.password)
     
     # Validate email
     if not request.email or not validate_email(request.email):
@@ -628,7 +668,6 @@ async def update_administrator_role(
     
     try:
         # Find user by email (case-insensitive)
-        # Fetch both user_type and status for validation
         user_response = supabase.table("researchers").select("id, email, user_type, status").eq("email", request.email.lower()).execute()
         
         if not user_response.data:
@@ -639,29 +678,14 @@ async def update_administrator_role(
         
         user = user_response.data[0]
         old_role = user.get("user_type", "pesquisador")
-        user_status = user.get("status", "regular")
         user_id = user.get("id")
-        
-        # Check if role is different
-        if old_role == request.new_role:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"O usuário já possui o role '{old_role}'"
-            )
-        
-        # When promoting to admin, user MUST have status "regular"
-        if request.new_role == "admin" and user_status != "regular":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Apenas usuários com status 'regular' podem ser promovidos a administrador. Status atual: '{user_status}'"
-            )
-        
-        # Prevent demoting self
-        if admin_user.get("id") == user_id and request.new_role != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Você não pode remover suas próprias permissões de admin"
-            )
+
+        _assert_admin_can_change_role(
+            current_admin=admin_user,
+            target_email=request.email,
+            new_role=request.new_role,
+            target_user=user,
+        )
         
         # Update user role in database
         update_response = supabase.table("researchers").update({
@@ -725,16 +749,6 @@ def validate_admin_role_change(
     try:
         supabase = get_supabase_client()
         
-        # CRITICAL: Get normalized current admin email
-        current_admin_id = current_admin.get("id")
-        current_admin_email_raw = current_admin.get("email")
-        if not current_admin_email_raw:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Erro ao recuperar email do administrador atual"
-            )
-        current_admin_email = current_admin_email_raw.lower().strip()
-        
         # VALIDATION 1: Check if target email is empty
         if not request.email or not request.email.strip():
             raise HTTPException(
@@ -743,20 +757,6 @@ def validate_admin_role_change(
             )
         
         target_email = request.email.lower().strip()
-        
-        # CRITICAL VALIDATION: Check if trying to change SELF first (before other validations)
-        if target_email == current_admin_email:
-            if request.new_role == "pesquisador":
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Não é possível remover suas próprias permissões."
-                )
-            elif request.new_role != "admin":
-                # Any other role that's not admin
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Você não pode remover suas próprias permissões de administrador"
-                )
         
         # VALIDATION 2: Check if user exists
         user_response = supabase.table("researchers").select("*").eq("email", target_email).execute()
@@ -768,23 +768,13 @@ def validate_admin_role_change(
             )
         
         user = user_response.data[0]
-        user_status = user.get("status", "regular")
-        current_role = user.get("user_type", "pesquisador")
-        
-        # VALIDATION 3: If promoting to admin, check status
-        if request.new_role == "admin":
-            if user_status != "regular":
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Apenas usuários com status 'regular' podem ser promovidos a admin. Status atual: '{user_status}'"
-                )
-        
-        # VALIDATION 4: Check if trying to change to same role
-        if current_role == request.new_role:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Usuário já possui o role '{request.new_role}'"
-            )
+
+        _assert_admin_can_change_role(
+            current_admin=current_admin,
+            target_email=request.email,
+            new_role=request.new_role,
+            target_user=user,
+        )
         
         # All validations passed - can proceed with password confirmation
         return ValidateAdminRoleChangeResponse(
@@ -1521,11 +1511,22 @@ async def get_experiments_by_status(
             )
             in_analysis_experiments.append(experiment_item)
         
+        status_counts = ExperimentStatusCounts()
+        for status_key, attr in [
+            ("Submitted", "submitted"),
+            ("Revisions", "revisions"),
+            ("Review", "review"),
+            ("Approved", "approved"),
+        ]:
+            count_response = supabase.table("samples").select("id", count="exact").eq("status", status_key).execute()
+            setattr(status_counts, attr, count_response.count if count_response.count else 0)
+
         return ExperimentsResponse(
             approved=approved_experiments,
             in_analysis=in_analysis_experiments,
-            total_approved=len(approved_experiments),
-            total_in_analysis=len(in_analysis_experiments)
+            total_approved=status_counts.approved,
+            total_in_analysis=status_counts.submitted + status_counts.revisions + status_counts.review,
+            status_counts=status_counts,
         )
         
     except Exception as e:

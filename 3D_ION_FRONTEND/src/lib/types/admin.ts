@@ -72,6 +72,7 @@ export interface AdminListResponse {
 export interface UpdateAdminRoleRequest {
   email: string
   new_role: UserRole
+  password: string
 }
 
 export interface UpdateAdminRoleResponse {
