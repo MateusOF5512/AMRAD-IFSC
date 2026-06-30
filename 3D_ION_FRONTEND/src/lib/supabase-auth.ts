@@ -6,6 +6,55 @@ import type { User } from '@/store/authStore'
 
 export type AuthMode = 'login' | 'register'
 
+export class AuthApiError extends Error {
+  constructor(
+    message: string,
+    readonly statusCode?: number,
+    readonly isNetworkError = false,
+  ) {
+    super(message)
+    this.name = 'AuthApiError'
+  }
+}
+
+function isFetchNetworkError(error: unknown): boolean {
+  if (error instanceof TypeError) return true
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase()
+    return (
+      msg.includes('failed to fetch') ||
+      msg.includes('network') ||
+      msg.includes('load failed') ||
+      msg.includes('err_')
+    )
+  }
+  return false
+}
+
+async function authApiFetch(path: string, init: RequestInit): Promise<Response> {
+  const apiUrl = getNormalizedApiUrl()
+  try {
+    return await fetch(`${apiUrl}${path}`, init)
+  } catch (error) {
+    throw new AuthApiError(
+      error instanceof Error ? error.message : 'Network error',
+      undefined,
+      true,
+    )
+  }
+}
+
+/** True only when the session is definitively invalid — not on network/backend outages. */
+export function isDefinitiveSessionLoss(error: unknown): boolean {
+  if (error instanceof AuthApiError) {
+    if (error.isNetworkError) return false
+    if (error.statusCode === 401) return isSessionExpiredAuthError(error.message)
+    return error.statusCode === 403
+  }
+  if (error instanceof Error && isFetchNetworkError(error)) return false
+  return false
+}
+
 function mapBackendUser(
   data: Record<string, unknown>,
   fallbackAccessToken?: string
@@ -48,8 +97,7 @@ export async function signInWithGoogle(mode: AuthMode = 'login') {
 }
 
 export async function syncSessionWithBackend(accessToken: string) {
-  const apiUrl = getNormalizedApiUrl()
-  const response = await fetch(`${apiUrl}/auth/oauth/session`, {
+  const response = await authApiFetch('/auth/oauth/session', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -59,11 +107,14 @@ export async function syncSessionWithBackend(accessToken: string) {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}))
-    throw new Error(data.detail || 'Failed to sync session')
+    throw new AuthApiError(
+      String(data.detail || 'Failed to sync session'),
+      response.status,
+    )
   }
 
   const data = await response.json()
-  const user = mapBackendUser(data)
+  const user = mapBackendUser(data, accessToken)
   return {
     user,
     needsProfileCompletion: Boolean(data.needs_profile_completion),
@@ -71,8 +122,7 @@ export async function syncSessionWithBackend(accessToken: string) {
 }
 
 export async function refreshUserFromBackend(accessToken: string) {
-  const apiUrl = getNormalizedApiUrl()
-  const response = await fetch(`${apiUrl}/auth/me`, {
+  const response = await authApiFetch('/auth/me', {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -81,11 +131,14 @@ export async function refreshUserFromBackend(accessToken: string) {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}))
-    throw new Error(data.detail || 'Failed to refresh session')
+    throw new AuthApiError(
+      String(data.detail || 'Failed to refresh session'),
+      response.status,
+    )
   }
 
   const data = await response.json()
-  return mapBackendUser(data)
+  return mapBackendUser(data, accessToken)
 }
 
 export async function clearStaleAuthSession(): Promise<void> {
@@ -129,10 +182,13 @@ export async function completeOAuthProfile(
 }
 
 export async function signOutFromSupabase() {
-  const supabase = createClient()
-  // Local scope clears cookies/storage only — avoids 403 on /auth/v1/logout?scope=global
-  // when the session is already invalid or mid-OAuth handshake.
-  await supabase.auth.signOut({ scope: 'local' })
+  try {
+    const supabase = createClient()
+    // Local scope only — never call global logout (403 when session is already invalid).
+    await supabase.auth.signOut({ scope: 'local' })
+  } catch {
+    // Session may already be gone; app storage is cleared separately.
+  }
 }
 
 export function persistUserSession(user: User & { access_token: string }) {
@@ -189,7 +245,10 @@ async function refreshAccessTokenIfNeededImpl(force = false): Promise<string | n
       const user = await refreshUserFromBackend(token)
       updateStoredAccessToken(user.access_token)
       return user.access_token
-    } catch {
+    } catch (error) {
+      if (error instanceof AuthApiError && error.isNetworkError) {
+        return storedToken
+      }
       return null
     }
   }

@@ -9,7 +9,7 @@ import { ExperimentReportModal } from '@/components/experiments/ExperimentReport
 import { SimplifiedExperimentComparison } from '@/components/experiments/comparison/SimplifiedExperimentComparison'
 import { TableDateCell } from '@/components/ui/TableDateCell'
 import { logger } from '@/lib/logger'
-import { getNormalizedApiUrl } from '@/lib/api'
+import { getNormalizedApiUrl, authenticatedFetch } from '@/lib/api'
 import { canWriteResearchData, isIrregularUser } from '@/lib/auth-roles'
 import {
   countExperimentsByStatus,
@@ -103,30 +103,13 @@ export default function MeusExperimentosPage() {
       setLoading(true)
       setError(null)
 
-      const token = (user as any).access_token || (user as any).token
-      if (!token) {
-        throw new Error('Token de autenticação não encontrado')
-      }
-
-      let apiUrl = getNormalizedApiUrl()
-      if (!apiUrl.includes('/api/v1')) {
-        apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
-      }
-
-      const url = `${apiUrl}/experiments/resumo/meus?skip=0&limit=5000`
-
-      const response = await fetch(url, {
+      const response = await authenticatedFetch('/experiments/resumo/meus?skip=0&limit=5000', {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         cache: 'no-store',
       })
 
       if (response.status === 401) {
-        localStorage.removeItem('user')
-        router.push('/login')
+        setError('Sessão expirada. Faça login novamente.')
         return
       }
 
@@ -149,7 +132,7 @@ export default function MeusExperimentosPage() {
     } finally {
       setLoading(false)
     }
-  }, [user, router])
+  }, [user])
 
   useEffect(() => {
     fetchExperiments()
@@ -200,29 +183,12 @@ export default function MeusExperimentosPage() {
       setStatusHistoryLoading(true)
       setStatusHistoryError(null)
 
-      const token = (userToUse as any).access_token || (userToUse as any).token
-      if (!token) {
-        throw new Error('Token de autenticação não encontrado')
-      }
-
-      // Normalizando a URL para evitar duplicação de /api/v1
-      let apiUrl = getNormalizedApiUrl()
-      
-      // Se a URL não termina com /api/v1, adiciona
-      if (!apiUrl.includes('/api/v1')) {
-        apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
-      }
-
-      const response = await fetch(`${apiUrl}/samples/researcher/status-history`, {
+      const response = await authenticatedFetch('/samples/researcher/status-history', {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
       })
 
       if (response.status === 401) {
-        localStorage.removeItem('user')
+        setStatusHistoryError('Sessão expirada. Faça login novamente.')
         return
       }
 
@@ -233,7 +199,7 @@ export default function MeusExperimentosPage() {
 
       const data = await response.json()
       setStatusHistory(data.data || [])
-      setCurrentStatusHistoryPage(1) // Reset to first page on refresh
+      setCurrentStatusHistoryPage(1)
     } catch (err) {
       logger.error('meus-experimentos', err instanceof Error ? err.message : 'Unknown error')
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar histórico'

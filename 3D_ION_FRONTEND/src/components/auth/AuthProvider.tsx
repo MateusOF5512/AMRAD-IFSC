@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
-import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend, clearStaleAuthSession, signOutFromSupabase } from '@/lib/supabase-auth'
+import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend, clearStaleAuthSession, signOutFromSupabase, isDefinitiveSessionLoss } from '@/lib/supabase-auth'
 import { getStoredAccessToken, getStoredUser, hasStoredUser } from '@/lib/auth-storage'
 import { isAdminUser, canWriteResearchData } from '@/lib/auth-roles'
 import { CompleteProfileModal } from '@/components/auth/CompleteProfileModal'
@@ -56,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticating, setIsAuthenticating] = useState(true)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const pathnameRef = useRef(pathname)
+  const sessionInitializedRef = useRef(false)
 
   useEffect(() => {
     pathnameRef.current = pathname
@@ -72,13 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user?.needs_profile_completion, user?.user_id])
 
   useEffect(() => {
-    const restoreSession = async () => {
-      if (isAuthFlowRoute(pathname)) {
-        setIsAuthenticating(false)
-        setSessionReady(true)
-        return
-      }
+    if (isAuthFlowRoute(pathname)) {
+      setIsAuthenticating(false)
+      setSessionReady(true)
+      return
+    }
 
+    if (sessionInitializedRef.current) return
+    sessionInitializedRef.current = true
+
+    const restoreSession = async () => {
       const storedUserRaw = localStorage.getItem('user')
       let storedAccessToken: string | null = null
 
@@ -91,6 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {
           await clearStaleAuthSession()
           signOut()
+          setIsAuthenticating(false)
+          setSessionReady(true)
+          return
         }
       }
 
@@ -100,11 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: { session },
         } = await supabase.auth.getSession()
 
-        // Sem sessão persistida no app: limpa Supabase órfão só em telas de login.
-        // Não fazer isso durante OAuth (/auth/callback*) — correria com o handshake.
         if (!storedUserRaw) {
-          const onLoginScreen = pathname === '/login' || pathname === '/register'
-          if (session && onLoginScreen && !isAuthFlowRoute(pathname)) {
+          const onLoginScreen = pathnameRef.current === '/login' || pathnameRef.current === '/register'
+          if (session && onLoginScreen) {
             await signOutFromSupabase()
           }
           setIsAuthenticating(false)
@@ -114,30 +119,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const accessToken = storedAccessToken || session?.access_token || null
 
-        if (accessToken) {
-          try {
-            const refreshedUser = await refreshUserFromBackend(accessToken)
-            applySession(refreshedUser)
-          } catch {
+        if (!accessToken) {
+          await clearStaleAuthSession()
+          signOut()
+          setIsAuthenticating(false)
+          setSessionReady(true)
+          return
+        }
+
+        try {
+          const refreshedUser = await refreshUserFromBackend(accessToken)
+          applySession(refreshedUser)
+        } catch (refreshError) {
+          if (isDefinitiveSessionLoss(refreshError)) {
             if (session?.access_token) {
               try {
                 const result = await syncSessionWithBackend(session.access_token)
                 applySession(result.user)
-              } catch {
-                await clearStaleAuthSession()
-                signOut()
+              } catch (syncError) {
+                if (isDefinitiveSessionLoss(syncError)) {
+                  await clearStaleAuthSession()
+                  signOut()
+                }
               }
             } else {
               await clearStaleAuthSession()
               signOut()
             }
           }
-        } else {
-          await clearStaleAuthSession()
-          signOut()
+          // Transient failure (502, network): keep cached user in localStorage.
         }
       } catch {
-        // Falha transitória: mantém usuário em cache se existir.
+        // Transient Supabase/client failure: keep cached user if present.
       }
 
       setIsAuthenticating(false)
@@ -154,7 +167,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentPath = pathnameRef.current
 
+      if (isAuthFlowRoute(currentPath)) {
+        return
+      }
+
+      if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+        return
+      }
+
       if (!session?.access_token) {
+        if (event === 'SIGNED_OUT' && hasStoredUser()) {
+          return
+        }
         if (!hasStoredUser()) {
           signOut()
           setShowProfileModal(false)
@@ -162,18 +186,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      if (event === 'INITIAL_SESSION' || isAuthFlowRoute(currentPath)) {
-        return
-      }
-
-      if (!hasStoredUser() && event !== 'SIGNED_IN') {
+      if (event !== 'SIGNED_IN' && !hasStoredUser()) {
         return
       }
 
       try {
         const result = await syncSessionWithBackend(session.access_token)
         applySession(result.user)
-      } catch {
+      } catch (syncError) {
+        if (!isDefinitiveSessionLoss(syncError)) return
+
         try {
           const refreshedUser = await refreshUserFromBackend(session.access_token)
           applySession(refreshedUser)

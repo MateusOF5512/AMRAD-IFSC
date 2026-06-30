@@ -50,6 +50,43 @@ async function parseErrorResponse(response: Response): Promise<{ detail?: string
 }
 
 /**
+ * Fetch an API endpoint with the current JWT, refreshing once on 401.
+ * Does not clear localStorage — callers decide how to handle auth failures.
+ */
+export async function authenticatedFetch(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  let accessToken = await refreshAccessTokenIfNeeded()
+  const fullUrl = `${API_BASE_URL}${endpoint}`
+
+  const buildInit = (token: string | null): RequestInit => ({
+    ...options,
+    headers: {
+      ...getAuthHeader(token),
+      ...options.headers,
+    },
+  })
+
+  let response = await fetchWithAgent(fullUrl, buildInit(accessToken))
+
+  if (response.status === 401) {
+    const errorData = await parseErrorResponse(response.clone())
+    const errorDetail = String(errorData.detail || errorData.message || '')
+
+    if (isSessionExpiredAuthError(errorDetail)) {
+      const refreshedToken = await refreshAccessTokenIfNeeded(true)
+      if (refreshedToken && refreshedToken !== accessToken) {
+        accessToken = refreshedToken
+        response = await fetchWithAgent(fullUrl, buildInit(refreshedToken))
+      }
+    }
+  }
+
+  return response
+}
+
+/**
  * Generic API request function with retry logic
  */
 async function apiRequest<T>(

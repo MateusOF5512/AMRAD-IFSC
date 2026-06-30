@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { isAdminUser } from '@/lib/auth-roles'
 import { getStoredAccessToken, getStoredUser } from '@/lib/auth-storage'
-import { persistUserSession, refreshUserFromBackend } from '@/lib/supabase-auth'
+import { persistUserSession, refreshUserFromBackend, isDefinitiveSessionLoss } from '@/lib/supabase-auth'
 import type { User } from '@/store/authStore'
 
 const BACKEND_RETRY_ATTEMPTS = 3
@@ -74,7 +74,8 @@ export function useAdminProtection() {
                 return
               }
               break
-            } catch {
+            } catch (error) {
+              if (isDefinitiveSessionLoss(error)) break
               if (attempt < BACKEND_RETRY_ATTEMPTS - 1) {
                 await sleep(BACKEND_RETRY_DELAY_MS * (attempt + 1))
               }
@@ -83,10 +84,10 @@ export function useAdminProtection() {
         }
 
         if (!cancelled) {
-          adminGrantedRef.current = false
-          setVerifiedAdmin(null)
+          // Backend unreachable: trust cached admin profile instead of expelling the user.
+          adminGrantedRef.current = true
+          setVerifiedAdmin(effectiveUser)
           setIsVerifying(false)
-          router.push('/login')
         }
         return
       }
@@ -116,7 +117,8 @@ export function useAdminProtection() {
           }
 
           break
-        } catch {
+        } catch (error) {
+          if (isDefinitiveSessionLoss(error)) break
           if (attempt < BACKEND_RETRY_ATTEMPTS - 1) {
             await sleep(BACKEND_RETRY_DELAY_MS * (attempt + 1))
           }
