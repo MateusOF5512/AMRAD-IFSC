@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { Menu, X, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { isAdminUser } from '@/lib/auth-roles'
 import { useTranslation } from 'react-i18next'
 import { signOutFromSupabase } from '@/lib/supabase-auth'
 import { cn } from '@/lib/cn'
@@ -121,7 +122,7 @@ export function Header() {
                   {t('nav.myExperiments')}
                 </Link>
 
-                {user.user_type === 'admin' && (
+                {isAdminUser(user) && (
                   <Link
                     href="/admin/configuracoes-avancadas"
                     className={navLinkClass('/admin/configuracoes-avancadas', true)}
@@ -188,7 +189,7 @@ export function Header() {
                   {t('nav.myExperiments')}
                 </Link>
 
-                {user.user_type === 'admin' && (
+                {isAdminUser(user) && (
                   <Link
                     href="/admin/configuracoes-avancadas"
                     className={mobileLinkClass('/admin/configuracoes-avancadas', true)}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import { isAdminUser } from '@/lib/auth-roles'
 
 /**
  * Hook para proteger rotas de admin
@@ -20,11 +21,11 @@ export function useAdminProtection() {
       return
     }
 
-    if (user.user_type !== 'admin') {
+    if (!isAdminUser(user)) {
       router.push('/experimentos')
     }
   }, [router, user, sessionReady])
 
   if (!sessionReady) return null
-  return user && user.user_type === 'admin' ? user : null
+  return isAdminUser(user) ? user : null
 }

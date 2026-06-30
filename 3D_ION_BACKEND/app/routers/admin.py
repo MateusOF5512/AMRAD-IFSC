@@ -18,6 +18,7 @@ from datetime import datetime
 from app.database.supabase import get_supabase_client
 from app.core.config import settings
 from app.core.security import CustomHTTPBearer, verify_supabase_token
+from app.core.user_roles import is_admin_role, researcher_role
 from app.core.password import verify_password
 from app.core.user_utils import get_user_full_name
 from app.database.sample_status_history import get_status_history_manager
@@ -280,7 +281,7 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
 
         user = response.data[0]
 
-        if user.get("user_type") != "admin":
+        if not is_admin_role(user.get("user_type")):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Permissão negada. Apenas admins podem acessar esta rota.",

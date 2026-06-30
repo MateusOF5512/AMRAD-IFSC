@@ -15,6 +15,7 @@ from app.core.rate_limit import check_rate_limit
 from app.core.oauth import (
     create_oauth_researcher,
     find_researcher_by_auth,
+    get_researcher_by_id,
     get_supabase_auth_user,
     google_display_name,
     link_auth_id,
@@ -327,7 +328,31 @@ async def oauth_session(
         ).execute()
         researcher["name"] = google_name
 
-    payload = researcher_to_login_payload(researcher, credentials.credentials)
+    fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
+    payload = researcher_to_login_payload(fresh_researcher, credentials.credentials)
+    return LoginResponse(**payload)
+
+
+@router.get("/me", response_model=LoginResponse)
+async def get_current_session(
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+):
+    """Return the authenticated user profile with user_type from the database."""
+    supabase = get_supabase_client()
+    auth_user = get_supabase_auth_user(credentials.credentials)
+    researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
+
+    if not researcher:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Researcher profile not found",
+        )
+
+    if not researcher.get("auth_id"):
+        link_auth_id(supabase, researcher["id"], auth_user.id)
+
+    fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
+    payload = researcher_to_login_payload(fresh_researcher, credentials.credentials)
     return LoginResponse(**payload)
 
 

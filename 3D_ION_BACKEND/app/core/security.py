@@ -8,6 +8,7 @@ import jwt
 
 from app.database.supabase import get_supabase_client
 from app.core.config import settings
+from app.core.user_roles import normalize_user_type, researcher_role
 
 
 class CustomHTTPBearer(HTTPBearer):
@@ -68,14 +69,27 @@ def verify_jwt_token(token: str) -> dict:
         )
 
 
-def _normalize_user_context(payload: dict) -> dict:
-    user_type = payload.get("user_type") or payload.get("role") or "pesquisador"
+def _user_context_from_researcher(researcher: dict, email: str | None = None) -> dict:
+    user_type = researcher_role(researcher)
     return {
-        "user_id": payload.get("sub"),
-        "email": payload.get("email"),
+        "user_id": researcher["id"],
+        "email": researcher.get("email") or email,
         "user_type": user_type,
         "role": user_type,
     }
+
+
+def _refresh_user_type_from_db(user_id: str) -> str:
+    supabase = get_supabase_client()
+    response = (
+        supabase.table("researchers")
+        .select("user_type")
+        .eq("id", user_id)
+        .execute()
+    )
+    if not response.data:
+        return "pesquisador"
+    return researcher_role(response.data[0])
 
 
 def verify_supabase_token(token: str) -> dict:
@@ -84,10 +98,25 @@ def verify_supabase_token(token: str) -> dict:
 
     Custom JWTs carry the researcher id directly.
     Supabase tokens are resolved to the matching researchers row.
+    user_type is always read from the database (source of truth).
     """
     try:
         payload = verify_jwt_token(token)
-        return _normalize_user_context(payload)
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        user_type = _refresh_user_type_from_db(user_id)
+        return {
+            "user_id": user_id,
+            "email": payload.get("email"),
+            "user_type": user_type,
+            "role": user_type,
+        }
     except HTTPException:
         pass
 
@@ -107,14 +136,9 @@ def verify_supabase_token(token: str) -> dict:
 
         if not researcher.get("auth_id"):
             link_auth_id(supabase, researcher["id"], auth_user.id)
+            researcher["auth_id"] = auth_user.id
 
-        user_type = researcher.get("user_type", "pesquisador")
-        return {
-            "user_id": researcher["id"],
-            "email": researcher.get("email") or auth_user.email,
-            "user_type": user_type,
-            "role": user_type,
-        }
+        return _user_context_from_researcher(researcher, auth_user.email)
 
     except HTTPException:
         raise

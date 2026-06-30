@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { normalizeUserType } from '@/lib/auth-roles'
 import type { User } from '@/store/authStore'
 
 export type AuthMode = 'login' | 'register'
@@ -14,7 +15,7 @@ function mapBackendUser(data: Record<string, unknown>): User & { access_token: s
     instagram: data.instagram ? String(data.instagram) : undefined,
     country: data.country ? String(data.country) : undefined,
     language: data.language ? String(data.language) : undefined,
-    user_type: String(data.user_type || 'pesquisador'),
+    user_type: normalizeUserType(String(data.user_type || 'pesquisador')),
     needs_profile_completion: Boolean(data.needs_profile_completion),
     access_token: String(data.access_token),
   }
@@ -61,6 +62,24 @@ export async function syncSessionWithBackend(accessToken: string) {
     user,
     needsProfileCompletion: Boolean(data.needs_profile_completion),
   }
+}
+
+export async function refreshUserFromBackend(accessToken: string) {
+  const apiUrl = getNormalizedApiUrl()
+  const response = await fetch(`${apiUrl}/auth/me`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new Error(data.detail || 'Failed to refresh session')
+  }
+
+  const data = await response.json()
+  return mapBackendUser(data)
 }
 
 export async function completeOAuthProfile(

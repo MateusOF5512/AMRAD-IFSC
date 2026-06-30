@@ -9,7 +9,8 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 from app.database.supabase import get_supabase_client
-from app.core.security import CustomHTTPBearer, verify_jwt_token
+from app.core.security import CustomHTTPBearer, verify_supabase_token
+from app.core.user_roles import researcher_role
 from app.core.password import hash_password, verify_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -62,28 +63,17 @@ class UpdateResponse(BaseModel):
 # ===== HELPER FUNCTIONS =====
 
 def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> str:
-    """
-    Extract and validate user ID from JWT token
-    Returns user_id if valid
-    """
-    try:
-        payload = verify_jwt_token(credentials.credentials)
-        user_id = payload.get("sub")
-        
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: user ID not found"
-            )
-        
-        return user_id
-    except HTTPException:
-        raise
-    except Exception as e:
+    """Extract and validate user ID from custom JWT or Supabase OAuth token."""
+    user_context = verify_supabase_token(credentials.credentials)
+    user_id = user_context.get("user_id")
+
+    if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token validation failed: {str(e)}"
+            detail="Invalid token: user ID not found",
         )
+
+    return user_id
 
 
 # ===== ENDPOINTS =====
@@ -120,7 +110,7 @@ async def get_user_profile(
             phone_number=user.get("phone_number", ""),
             instagram=user.get("instagram"),
             email_notifications=user.get("email_notifications", True),
-            user_type=user.get("user_type", "pesquisador")
+            user_type=researcher_role(user)
         )
         
         return {

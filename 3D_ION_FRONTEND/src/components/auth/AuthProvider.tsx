@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
-import { persistUserSession, syncSessionWithBackend } from '@/lib/supabase-auth'
+import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend } from '@/lib/supabase-auth'
+import { isAdminUser } from '@/lib/auth-roles'
 import { CompleteProfileModal } from '@/components/auth/CompleteProfileModal'
 
 const PUBLIC_ROUTES = ['/login', '/register', '/experimentos', '/']
@@ -50,10 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const restoreSession = async () => {
+      let storedAccessToken: string | null = null
+
       const storedUser = localStorage.getItem('user')
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser)
+          storedAccessToken = userData.access_token || null
           setUser(userData)
           setShowProfileModal(Boolean(userData.needs_profile_completion))
         } catch {
@@ -68,9 +72,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: { session },
         } = await supabase.auth.getSession()
 
-        if (session?.access_token) {
-          const result = await syncSessionWithBackend(session.access_token)
-          applySession(result.user)
+        const accessToken = session?.access_token || storedAccessToken
+
+        if (accessToken) {
+          try {
+            const refreshedUser = await refreshUserFromBackend(accessToken)
+            applySession(refreshedUser)
+          } catch {
+            if (session?.access_token) {
+              const result = await syncSessionWithBackend(session.access_token)
+              applySession(result.user)
+            }
+          }
         } else if (storedUser) {
           signOut()
         }
@@ -102,7 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const result = await syncSessionWithBackend(session.access_token)
         applySession(result.user)
       } catch {
-        // Ignore transient sync errors during auth state changes.
+        try {
+          const refreshedUser = await refreshUserFromBackend(session.access_token)
+          applySession(refreshedUser)
+        } catch {
+          // Ignore transient sync errors during auth state changes.
+        }
       }
     })
 
@@ -143,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else if (
       isAuthenticated &&
       ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
-      user?.user_type !== 'admin'
+      !isAdminUser(user)
     ) {
       router.push('/experimentos')
     }
