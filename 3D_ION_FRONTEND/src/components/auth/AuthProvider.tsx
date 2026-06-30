@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
 import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend } from '@/lib/supabase-auth'
-import { getStoredAccessToken } from '@/lib/auth-storage'
+import { getStoredAccessToken, getStoredUser } from '@/lib/auth-storage'
 import { isAdminUser, canWriteResearchData } from '@/lib/auth-roles'
 import { CompleteProfileModal } from '@/components/auth/CompleteProfileModal'
 
@@ -26,6 +26,10 @@ const PROTECTED_PREFIXES = [
 ]
 
 const ADMIN_PREFIXES = ['/admin']
+
+function isAdminRoute(pathname: string): boolean {
+  return ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+}
 
 function isWriteProtectedRoute(pathname: string): boolean {
   return WRITE_PROTECTED_PREFIXES.some(
@@ -173,27 +177,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/experimentos')
     } else if (
       isAuthenticated &&
-      ADMIN_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
-      !isAdminUser(user)
+      isAdminRoute(pathname) &&
+      !isAdminUser(user) &&
+      !isAdminUser(getStoredUser())
     ) {
+      // Revalida role no backend sem expulsar admin em cache (useAdminProtection faz o gate final).
       const revalidateAdminAccess = async () => {
         const token = user?.access_token || getStoredAccessToken()
-        if (!token) {
-          router.push('/experimentos')
-          return
-        }
+        if (!token) return
 
         try {
           const freshUser = await refreshUserFromBackend(token)
           if (isAdminUser(freshUser)) {
             applySession(freshUser)
-            return
           }
         } catch {
-          // Session invalid or backend unavailable.
+          // Falha transitória: useAdminProtection decide o redirecionamento.
         }
-
-        router.push('/experimentos')
       }
 
       void revalidateAdminAccess()

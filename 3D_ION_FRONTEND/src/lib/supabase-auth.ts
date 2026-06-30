@@ -5,7 +5,11 @@ import type { User } from '@/store/authStore'
 
 export type AuthMode = 'login' | 'register'
 
-function mapBackendUser(data: Record<string, unknown>): User & { access_token: string } {
+function mapBackendUser(
+  data: Record<string, unknown>,
+  fallbackAccessToken?: string
+): User & { access_token: string } {
+  const accessToken = String(data.access_token || fallbackAccessToken || '')
   return {
     user_id: String(data.user_id || data.id),
     name: String(data.name || ''),
@@ -18,7 +22,7 @@ function mapBackendUser(data: Record<string, unknown>): User & { access_token: s
     user_type: normalizeUserType(String(data.user_type || 'pesquisador')),
     status: normalizeUserStatus(String(data.status || 'regular')),
     needs_profile_completion: Boolean(data.needs_profile_completion),
-    access_token: String(data.access_token),
+    access_token: accessToken,
   }
 }
 
@@ -58,7 +62,7 @@ export async function syncSessionWithBackend(accessToken: string) {
   }
 
   const data = await response.json()
-  const user = mapBackendUser(data)
+  const user = mapBackendUser(data, accessToken)
   return {
     user,
     needsProfileCompletion: Boolean(data.needs_profile_completion),
@@ -80,7 +84,7 @@ export async function refreshUserFromBackend(accessToken: string) {
   }
 
   const data = await response.json()
-  return mapBackendUser(data)
+  return mapBackendUser(data, accessToken)
 }
 
 export async function completeOAuthProfile(
@@ -108,7 +112,7 @@ export async function completeOAuthProfile(
     throw new Error(data.detail || 'Failed to complete profile')
   }
 
-  return mapBackendUser(data)
+  return mapBackendUser(data, accessToken)
 }
 
 export async function signOutFromSupabase() {

@@ -49,19 +49,6 @@ async function parseErrorResponse(response: Response): Promise<{ detail?: string
   }
 }
 
-function forceLoginRedirect() {
-  try {
-    localStorage.removeItem('user')
-    localStorage.removeItem('auth_token')
-  } catch {
-    // ignore
-  }
-
-  if (typeof window !== 'undefined') {
-    window.location.href = '/login'
-  }
-}
-
 /**
  * Generic API request function with retry logic
  */
@@ -102,7 +89,6 @@ async function apiRequest<T>(
         }
 
         if (isSessionExpiredAuthError(errorDetail)) {
-          forceLoginRedirect()
           throw new Error('Sessão expirada. Faça login novamente.')
         }
 
