@@ -1,5 +1,5 @@
 import { AdminUser, UserStatus } from '@/lib/types/admin'
-import { formatDateTime, formatDateTimeByLanguage } from '@/lib/utils'
+import { TableDateCell } from '@/components/ui/TableDateCell'
 import { Badge, Eye } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -107,8 +107,8 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
               </td>
               <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">{user.institution || '-'}</td>
               <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">{user.country || '-'}</td>
-              <td className="px-3 sm:px-4 py-3 text-muted text-xs whitespace-nowrap">
-                {formatDateTimeByLanguage(user.created_at, i18n.language)}
+              <td className="px-3 sm:px-4 py-3">
+                <TableDateCell value={user.created_at} />
               </td>
               <td className="px-3 sm:px-4 py-3 text-center font-semibold">
                 <span className="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">

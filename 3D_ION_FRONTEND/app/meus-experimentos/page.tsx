@@ -7,6 +7,7 @@ import { Loader2, AlertCircle, Plus, Eye, ChevronDown, RefreshCw } from 'lucide-
 import { useTranslation } from 'react-i18next'
 import { ExperimentReportModal } from '@/components/experiments/ExperimentReportModal'
 import { SimplifiedExperimentComparison } from '@/components/experiments/comparison/SimplifiedExperimentComparison'
+import { TableDateCell } from '@/components/ui/TableDateCell'
 import { logger } from '@/lib/logger'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { canWriteResearchData, isIrregularUser } from '@/lib/auth-roles'
@@ -211,25 +212,6 @@ export default function MeusExperimentosPage() {
     setIsRefreshingHistory(false)
   }
 
-  // Format date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-'
-    try {
-      const dateObj = new Date(dateString)
-      if (i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB') {
-        // English format: yyyy/mm/dd
-        const year = dateObj.getFullYear()
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-        const day = String(dateObj.getDate()).padStart(2, '0')
-        return `${year}/${month}/${day}`
-      }
-      // Portuguese format: dd/mm/yyyy
-      return dateObj.toLocaleDateString('pt-BR')
-    } catch {
-      return '-'
-    }
-  }
-
   // Format number
   const formatNumber = (value?: number, decimals: number = 2) => {
     if (value === undefined || value === null) return '-'
@@ -341,35 +323,6 @@ export default function MeusExperimentosPage() {
     return status === 'Approved'
   }
 
-  // Format date and time for status history
-  const formatStatusHistoryDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString)
-      const hour = String(date.getHours()).padStart(2, '0')
-      const minute = String(date.getMinutes()).padStart(2, '0')
-      const time = `${hour}:${minute}`
-      
-      if (i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB') {
-        // English format: yyyy/mm/dd hh:mm
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        return `${year}/${month}/${day} ${time}`
-      }
-      
-      // Portuguese format: dd/mm/yyyy hh:mm
-      return date.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    } catch {
-      return dateString
-    }
-  }
-
   // Create a map of experiments by experiment_id for quick lookup of index_visual
   const experimentIndexMap = experiments.reduce((acc, exp) => {
     if (exp.experiment_id) {
@@ -433,6 +386,8 @@ export default function MeusExperimentosPage() {
   // Separate experiments by status
   const experimentsEmAnalise = experiments.filter(isExperimentEmAnalise)
   const experimentsAprovados = experiments.filter(isExperimentAprovado)
+  const countEmAnalise = experimentsEmAnalise.length
+  const countConcluidos = experimentsAprovados.length
 
   // Pagination for Em Análise
   const totalPagesAnalise = Math.ceil(experimentsEmAnalise.length / itemsPerPage)
@@ -528,49 +483,25 @@ export default function MeusExperimentosPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Status Indicators */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              {/* Submetido */}
-              <div className="bg-surface rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
+            {/* Status Indicators — aligned with table sections */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-surface rounded-lg border border-amber-200 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
-                  <div className="text-3xl mb-2">📤</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {experiments.filter(e => e.status === 'Submitted').length}
+                  <div className="text-3xl mb-2">⏳</div>
+                  <div className="text-2xl font-bold text-amber-600">
+                    {countEmAnalise}
                   </div>
-                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.submitted')}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.inCuration')}</div>
                 </div>
               </div>
 
-              {/* Ajustes Necessários */}
-              <div className="bg-surface rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow p-4">
-                <div className="flex flex-col items-center">
-                  <div className="text-3xl mb-2">⚠️</div>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {experiments.filter(e => e.status === 'Revisions').length}
-                  </div>
-                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.revisions')}</div>
-                </div>
-              </div>
-
-              {/* Em Revisão */}
-              <div className="bg-surface rounded-lg border border-yellow-200 shadow-sm hover:shadow-md transition-shadow p-4">
-                <div className="flex flex-col items-center">
-                  <div className="text-3xl mb-2">🔍</div>
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {experiments.filter(e => e.status === 'Review').length}
-                  </div>
-                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.review')}</div>
-                </div>
-              </div>
-
-              {/* Aprovado */}
               <div className="bg-surface rounded-lg border border-primary/30 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-2">✅</div>
                   <div className="text-2xl font-bold text-primary">
-                    {experiments.filter(e => e.status === 'Approved').length}
+                    {countConcluidos}
                   </div>
-                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.approved')}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.completed')}</div>
                 </div>
               </div>
             </div>
@@ -603,7 +534,7 @@ export default function MeusExperimentosPage() {
                       <h3 className="text-lg font-semibold text-amber-900">{t('myExperiments.sections.inAnalysis.tableTitle')}</h3>
                       <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold text-sm">
                         <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        {t('myExperiments.table.count_one', { count: experimentsEmAnalise.length })}
+                        {t('myExperiments.table.count', { count: countEmAnalise })}
                       </span>
                     </div>
                   </div>
@@ -685,8 +616,8 @@ export default function MeusExperimentosPage() {
                               </td>
 
                               {/* Data */}
-                              <td className="px-6 py-4 text-sm text-muted font-medium">
-                                {formatDate(experiment.created_at)}
+                              <td className="px-6 py-4 text-sm">
+                                <TableDateCell value={experiment.created_at} />
                               </td>
 
                               {/* Máquina */}
@@ -840,7 +771,7 @@ export default function MeusExperimentosPage() {
                       <h3 className="text-lg font-semibold text-emerald-900">{t('myExperiments.sections.approved.tableTitle')}</h3>
                       <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold text-sm">
                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        {t('myExperiments.table.count_one', { count: experimentsAprovados.length })}
+                        {t('myExperiments.table.count', { count: countConcluidos })}
                       </span>
                     </div>
                   </div>
@@ -922,8 +853,8 @@ export default function MeusExperimentosPage() {
                               </td>
 
                               {/* Data */}
-                              <td className="px-6 py-4 text-sm text-muted font-medium">
-                                {formatDate(experiment.created_at)}
+                              <td className="px-6 py-4 text-sm">
+                                <TableDateCell value={experiment.created_at} />
                               </td>
 
                               {/* Máquina */}
@@ -1319,8 +1250,8 @@ export default function MeusExperimentosPage() {
                                   <span className="text-slate-400">-</span>
                                 )}
                               </td>
-                              <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap text-xs">
-                                {formatDate(record.created_at)}
+                              <td className="px-3 sm:px-4 py-3">
+                                <TableDateCell value={record.created_at} />
                               </td>
                             </tr>
                           )

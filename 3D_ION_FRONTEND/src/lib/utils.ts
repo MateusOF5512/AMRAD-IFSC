@@ -47,6 +47,16 @@ export function formatDateByLanguage(date: string | Date, language: string = 'pt
 }
 
 /**
+ * Format time with language support (24h: HH:mm)
+ */
+export function formatTimeByLanguage(date: string | Date, language: string = 'pt'): string {
+  const dateObj = new Date(date)
+  const hour = String(dateObj.getHours()).padStart(2, '0')
+  const minute = String(dateObj.getMinutes()).padStart(2, '0')
+  return `${hour}:${minute}`
+}
+
+/**
  * Format datetime with language support
  * Portuguese format: dd/mm/yyyy hh:mm
  * English format: yyyy/mm/dd hh:mm

@@ -7,7 +7,8 @@ import { useState, useEffect, useMemo as useMemoBrowser } from 'react'
 import { Settings, Users, Lock, Database, AlertCircle, Loader2, Shield, Download, Activity, Eye } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { AdminUser, UsersListResponse, UserStatus, AdminInfo, UserRole } from '@/lib/types/admin'
-import { formatDateTime, formatDateTimeByLanguage } from '@/lib/utils'
+import { formatDateTime } from '@/lib/utils'
+import { TableDateCell } from '@/components/ui/TableDateCell'
 import { UsersTable } from '@/components/admin/UsersTable'
 import { UpdateStatusForm } from '@/components/admin/UpdateStatusForm'
 import { AdminsTable } from '@/components/admin/AdminsTable'
@@ -910,8 +911,8 @@ export default function ConfiguracaesAvancadasPage() {
                                           {getStatusBadge(experiment.status).icon} {getStatusBadge(experiment.status).label}
                                         </span>
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">
-                                        {experiment.created_at ? (() => {const d = new Date(experiment.created_at); return i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB' ? `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : d.toLocaleDateString('pt-BR')})() : '-'}
+                                      <td className="px-3 sm:px-4 py-3">
+                                        <TableDateCell value={experiment.created_at} />
                                       </td>
                                       <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.researcher_name || '-'}
@@ -1055,8 +1056,8 @@ export default function ConfiguracaesAvancadasPage() {
                                           {getStatusBadge(experiment.status).icon} {getStatusBadge(experiment.status).label}
                                         </span>
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">
-                                        {experiment.created_at ? (() => {const d = new Date(experiment.created_at); return i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB' ? `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : d.toLocaleDateString('pt-BR')})() : '-'}
+                                      <td className="px-3 sm:px-4 py-3">
+                                        <TableDateCell value={experiment.created_at} />
                                       </td>
                                       <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.researcher_name || '-'}
@@ -1371,8 +1372,8 @@ export default function ConfiguracaesAvancadasPage() {
                                   <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs" title={record.comment || ''}>
                                     {record.comment ? record.comment.substring(0, 30) + (record.comment.length > 30 ? '...' : '') : '-'}
                                   </td>
-                                  <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">
-                                    {record.created_at ? formatDateTimeByLanguage(record.created_at, i18n.language) : '-'}
+                                  <td className="px-3 sm:px-4 py-3">
+                                    <TableDateCell value={record.created_at} />
                                   </td>
                                 </tr>
                               ))}
@@ -1814,26 +1815,10 @@ export default function ConfiguracaesAvancadasPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
-                            {systemLogs.slice((currentLogPage - 1) * logsPerPage, currentLogPage * logsPerPage).map((log: any, idx: number) => {
-                              // Format date correctly, handling various possible input formats
-                              let formattedDate = '-'
-                              try {
-                                const dateStr = log.created_at || log.timestamp
-                                if (dateStr) {
-                                  const date = new Date(dateStr)
-                                  // Validate that date is valid
-                                  if (!isNaN(date.getTime())) {
-                                    formattedDate = date.toLocaleString('pt-BR')
-                                  }
-                                }
-                              } catch (e) {
-                                logger.warn('configuracoes-avancadas', 'Error formatting date')
-                              }
-
-                              return (
+                            {systemLogs.slice((currentLogPage - 1) * logsPerPage, currentLogPage * logsPerPage).map((log: any, idx: number) => (
                               <tr key={idx} className="hover:bg-background transition-colors">
-                                <td className="px-4 py-3 text-sm text-foreground font-medium whitespace-nowrap">
-                                  {formattedDate}
+                                <td className="px-4 py-3 text-sm">
+                                  <TableDateCell value={log.created_at || log.timestamp} />
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -1869,7 +1854,7 @@ export default function ConfiguracaesAvancadasPage() {
                                   </div>
                                 </td>
                               </tr>
-                            )})}
+                            ))}
                           </tbody>
                         </table>
                       </div>

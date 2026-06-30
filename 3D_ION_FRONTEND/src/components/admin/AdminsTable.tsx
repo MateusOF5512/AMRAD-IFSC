@@ -1,7 +1,7 @@
 'use client'
 
 import { AdminInfo } from '@/lib/types/admin'
-import { formatDateTime, formatDateTimeByLanguage } from '@/lib/utils'
+import { TableDateCell } from '@/components/ui/TableDateCell'
 import { useTranslation } from 'react-i18next'
 
 interface AdminsTableProps {
@@ -86,8 +86,8 @@ export function AdminsTable({ admins, isLoading, error }: AdminsTableProps) {
                   {admin.experimentos_criados_total ?? 'N/A'}
                 </span>
               </td>
-              <td className="px-3 sm:px-4 py-3 text-muted text-xs whitespace-nowrap">
-                {formatDateTimeByLanguage(admin.created_at, i18n.language)}
+              <td className="px-3 sm:px-4 py-3">
+                <TableDateCell value={admin.created_at} />
               </td>
             </tr>
           ))}

@@ -7,6 +7,7 @@ import { Loader2, AlertCircle, Plus, Eye, ChevronDown, Check } from 'lucide-reac
 import { useTranslation } from 'react-i18next'
 import { ExperimentReportModal } from '@/components/experiments/ExperimentReportModal'
 import { ExperimentComparison } from '@/components/experiments/comparison/ExperimentComparison'
+import { TableDateCell } from '@/components/ui/TableDateCell'
 import { fetchWithAgent } from '@/lib/api-client'
 import { logger } from '@/lib/logger'
 import { getNormalizedApiUrl } from '@/lib/api'
@@ -225,25 +226,6 @@ export default function ExperimentsPage() {
     startIndex,
     startIndex + itemsPerPage
   )
-
-  // Format date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-'
-    try {
-      const dateObj = new Date(dateString)
-      if (i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB') {
-        // English format: yyyy/mm/dd
-        const year = dateObj.getFullYear()
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-        const day = String(dateObj.getDate()).padStart(2, '0')
-        return `${year}/${month}/${day}`
-      }
-      // Portuguese format: dd/mm/yyyy
-      return dateObj.toLocaleDateString('pt-BR')
-    } catch {
-      return '-'
-    }
-  }
 
   // Format number
   const formatNumber = (value?: number, decimals: number = 2) => {
@@ -753,8 +735,8 @@ export default function ExperimentsPage() {
                         </td>
 
                         {/* Data */}
-                        <td className="px-4 py-3 text-sm text-muted font-medium">
-                          {formatDate(experiment.created_at)}
+                        <td className="px-4 py-3 text-sm">
+                          <TableDateCell value={experiment.created_at} />
                         </td>
 
                         {/* Pesquisador */}
