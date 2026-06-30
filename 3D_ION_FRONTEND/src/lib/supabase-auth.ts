@@ -164,11 +164,9 @@ export function isSessionExpiredAuthError(detail: string | undefined): boolean {
   return !nonSessionErrors.some((msg) => normalized.includes(msg))
 }
 
-/**
- * Refresh the Supabase OAuth session when the access token is close to expiry.
- * Only runs for users with a persisted app session (localStorage user).
- */
-export async function refreshAccessTokenIfNeeded(force = false): Promise<string | null> {
+let refreshAccessTokenPromise: Promise<string | null> | null = null
+
+async function refreshAccessTokenIfNeededImpl(force = false): Promise<string | null> {
   if (typeof window === 'undefined') return null
   if (!hasStoredUser()) return null
 
@@ -231,4 +229,18 @@ export async function refreshAccessTokenIfNeeded(force = false): Promise<string 
   }
 
   return storedToken
+}
+
+/**
+ * Refresh the Supabase OAuth session when the access token is close to expiry.
+ * Only runs for users with a persisted app session (localStorage user).
+ * Concurrent callers share one in-flight refresh to avoid token races.
+ */
+export async function refreshAccessTokenIfNeeded(force = false): Promise<string | null> {
+  if (!refreshAccessTokenPromise) {
+    refreshAccessTokenPromise = refreshAccessTokenIfNeededImpl(force).finally(() => {
+      refreshAccessTokenPromise = null
+    })
+  }
+  return refreshAccessTokenPromise
 }

@@ -326,7 +326,17 @@ export default function ConfiguracaesAvancadasPage() {
 
       setStatusChangeComment('')
 
-      await Promise.all([fetchExperiments(), fetchStatusHistory()])
+      // Refresh lists separately — history fetch must not undo a successful status change
+      try {
+        await fetchExperiments()
+      } catch (refreshError: any) {
+        logger.warn('admin', refreshError.message || 'Erro ao atualizar lista de experimentos')
+      }
+      try {
+        await fetchStatusHistory()
+      } catch (refreshError: any) {
+        logger.warn('admin', refreshError.message || 'Erro ao atualizar histórico de status')
+      }
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao atualizar status'
       logger.error('admin', errorMessage)

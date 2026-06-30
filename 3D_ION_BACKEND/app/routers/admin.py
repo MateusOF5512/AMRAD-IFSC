@@ -260,7 +260,7 @@ class SystemHealthResponse(BaseModel):
 
 # ===== HELPER FUNCTIONS =====
 
-def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> dict:
+async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> dict:
     """
     Validate bearer token (custom JWT or Supabase OAuth) and require admin role.
     Always re-reads user_type from the database on each request.
