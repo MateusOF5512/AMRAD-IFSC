@@ -15,6 +15,7 @@ from app.core.security import (
     security_scheme,
     verify_supabase_token,
 )
+from app.core.user_roles import researcher_role
 from app.core.user_status import REGULAR_STATUS, ensure_account_is_active, normalize_user_status
 from app.core.password import hash_password, verify_password
 from app.core.rate_limit import check_rate_limit
@@ -101,6 +102,25 @@ class OAuthProfileStatusResponse(BaseModel):
 
 
 # ===== HELPER FUNCTIONS =====
+
+def _login_response_for_researcher(
+    researcher: dict,
+    *,
+    profile_completion_pending: bool | None = None,
+) -> LoginResponse:
+    """Issue a backend JWT for API calls (stable 24h token, independent of Supabase session)."""
+    access_token = create_access_token(
+        user_id=researcher["id"],
+        user_email=researcher["email"],
+        user_type=researcher_role(researcher),
+    )
+    payload = researcher_to_login_payload(
+        researcher,
+        access_token,
+        profile_completion_pending=profile_completion_pending,
+    )
+    return LoginResponse(**payload)
+
 
 def normalize_data(data: dict) -> dict:
     """Normalize user data: strip and lowercase where appropriate"""
@@ -348,8 +368,7 @@ async def oauth_session(
     ensure_account_is_active(
         {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
     )
-    payload = researcher_to_login_payload(fresh_researcher, credentials.credentials)
-    return LoginResponse(**payload)
+    return _login_response_for_researcher(fresh_researcher)
 
 
 @router.get("/me", response_model=LoginResponse)
@@ -377,8 +396,35 @@ async def get_current_session(
     ensure_account_is_active(
         {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
     )
-    payload = researcher_to_login_payload(fresh_researcher, credentials.credentials)
-    return LoginResponse(**payload)
+    return _login_response_for_researcher(fresh_researcher)
+
+
+@router.post("/refresh", response_model=LoginResponse)
+async def refresh_session(
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+):
+    """Return a fresh backend JWT for an authenticated user (custom JWT or Supabase token)."""
+    supabase = get_supabase_client()
+    user_context = verify_supabase_token(credentials.credentials)
+    user_id = user_context.get("user_id")
+
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Não autenticado",
+        )
+
+    fresh_researcher = get_researcher_by_id(supabase, user_id)
+    if not fresh_researcher:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Researcher profile not found",
+        )
+
+    ensure_account_is_active(
+        {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
+    )
+    return _login_response_for_researcher(fresh_researcher)
 
 
 @router.post("/oauth/complete-profile", response_model=LoginResponse)
@@ -455,12 +501,10 @@ async def oauth_complete_profile(
             detail="Failed to update profile",
         )
 
-    payload = researcher_to_login_payload(
+    return _login_response_for_researcher(
         response.data[0],
-        credentials.credentials,
         profile_completion_pending=False,
     )
-    return LoginResponse(**payload)
 
 
 @router.post("/change-password")

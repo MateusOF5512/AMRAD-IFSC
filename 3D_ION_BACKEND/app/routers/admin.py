@@ -163,7 +163,7 @@ class ExperimentItem(BaseModel):
     """Experiment item for admin listing"""
     id: str
     index_visual: Optional[int] = None
-    researcher_id: str
+    researcher_id: Optional[str] = None
     researcher_name: Optional[str] = None
     material_brand: Optional[str] = None
     material_model: Optional[str] = None
@@ -301,6 +301,12 @@ def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(securi
 
     except HTTPException:
         raise
+    except Exception as exc:
+        logger.error(f"Admin auth failed: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao validar sessão de administrador",
+        ) from exc
 
 
 def validate_email(email: str) -> bool:

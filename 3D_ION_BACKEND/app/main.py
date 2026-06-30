@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +11,8 @@ from app.core.cache_headers import CacheHeaderMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.rate_limit import check_rate_limit
 from app.routers import materials, machines, samples, experiments, auth, users, admin, logs, diagnostics, analysis
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -29,13 +33,13 @@ _cors_kwargs: dict = {
 if settings.BACKEND_CORS_ORIGIN_REGEX:
     _cors_kwargs["allow_origin_regex"] = settings.BACKEND_CORS_ORIGIN_REGEX
 
-app.add_middleware(CORSMiddleware, **_cors_kwargs)
-
+# Inner middleware first; CORS is registered last so it wraps every response (including errors).
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(APMMiddleware)
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(CacheHeaderMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CORSMiddleware, **_cors_kwargs)
 
 
 @app.middleware("http")
@@ -90,6 +94,19 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "error": "HTTP Exception",
             "detail": exc.detail,
             "status_code": exc.status_code,
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.error("Unhandled server error on %s %s", request.method, request.url.path, exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "detail": "Erro interno do servidor",
+            "status_code": 500,
         },
     )
 

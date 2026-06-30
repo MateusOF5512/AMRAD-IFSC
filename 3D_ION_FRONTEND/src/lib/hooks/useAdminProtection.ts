@@ -58,26 +58,35 @@ export function useAdminProtection() {
 
       const token = effectiveUser.access_token || getStoredAccessToken()
 
-      // Admin em cache: libera acesso imediatamente e revalida em segundo plano.
+      // Admin em cache: revalida token no backend antes de liberar a página.
       if (isAdminUser(effectiveUser)) {
-        adminGrantedRef.current = true
-        if (!cancelled) {
-          setVerifiedAdmin(effectiveUser)
-          setIsVerifying(false)
+        if (token) {
+          for (let attempt = 0; attempt < BACKEND_RETRY_ATTEMPTS; attempt++) {
+            try {
+              const freshUser = await refreshUserFromBackend(token)
+              if (cancelled) return
+              if (isAdminUser(freshUser)) {
+                adminGrantedRef.current = true
+                persistUserSession(freshUser)
+                setUser(freshUser)
+                setVerifiedAdmin(freshUser)
+                setIsVerifying(false)
+                return
+              }
+              break
+            } catch {
+              if (attempt < BACKEND_RETRY_ATTEMPTS - 1) {
+                await sleep(BACKEND_RETRY_DELAY_MS * (attempt + 1))
+              }
+            }
+          }
         }
 
-        if (token) {
-          try {
-            const freshUser = await refreshUserFromBackend(token)
-            if (cancelled) return
-            if (isAdminUser(freshUser)) {
-              persistUserSession(freshUser)
-              setUser(freshUser)
-              setVerifiedAdmin(freshUser)
-            }
-          } catch {
-            // Mantém acesso com perfil admin em cache.
-          }
+        if (!cancelled) {
+          adminGrantedRef.current = false
+          setVerifiedAdmin(null)
+          setIsVerifying(false)
+          router.push('/login')
         }
         return
       }

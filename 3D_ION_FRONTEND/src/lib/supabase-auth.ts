@@ -153,7 +153,7 @@ export function isSessionExpiredAuthError(detail: string | undefined): boolean {
 
 /**
  * Refresh the Supabase OAuth session when the access token is close to expiry.
- * Returns the best available access token for API calls.
+ * Always prefers a backend-issued JWT (24h) over the short-lived Supabase token.
  */
 export async function refreshAccessTokenIfNeeded(force = false): Promise<string | null> {
   if (typeof window === 'undefined') return null
@@ -168,34 +168,57 @@ export async function refreshAccessTokenIfNeeded(force = false): Promise<string 
     }
   }
 
+  const syncBackendJwt = async (token: string): Promise<string | null> => {
+    try {
+      const user = await refreshUserFromBackend(token)
+      updateStoredAccessToken(user.access_token)
+      return user.access_token
+    } catch {
+      return null
+    }
+  }
+
   try {
     const supabase = createClient()
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
-    if (!session?.access_token) {
-      return storedToken
-    }
+    if (session?.access_token) {
+      const expiresAt = session.expires_at ?? 0
+      const now = Math.floor(Date.now() / 1000)
+      const shouldRefresh = force || (expiresAt > 0 && expiresAt - now < 120)
 
-    const expiresAt = session.expires_at ?? 0
-    const now = Math.floor(Date.now() / 1000)
-    const shouldRefresh = force || (expiresAt > 0 && expiresAt - now < 120)
-
-    if (shouldRefresh) {
-      const { data: refreshed, error } = await supabase.auth.refreshSession()
-      const token = refreshed.session?.access_token
-      if (!error && token) {
-        updateStoredAccessToken(token)
-        return token
+      if (shouldRefresh) {
+        const { data: refreshed, error } = await supabase.auth.refreshSession()
+        const supabaseToken = refreshed.session?.access_token
+        if (!error && supabaseToken) {
+          const backendToken = await syncBackendJwt(supabaseToken)
+          if (backendToken) return backendToken
+          updateStoredAccessToken(supabaseToken)
+          return supabaseToken
+        }
       }
-    }
 
-    if (session.access_token !== storedToken) {
-      updateStoredAccessToken(session.access_token)
+      const backendToken = await syncBackendJwt(session.access_token)
+      if (backendToken) return backendToken
+
+      if (session.access_token !== storedToken) {
+        updateStoredAccessToken(session.access_token)
+      }
+      return session.access_token
     }
-    return session.access_token
   } catch {
+    // Fall through to stored token handling.
+  }
+
+  if (storedToken) {
+    if (force) {
+      const backendToken = await syncBackendJwt(storedToken)
+      if (backendToken) return backendToken
+    }
     return storedToken
   }
+
+  return null
 }
