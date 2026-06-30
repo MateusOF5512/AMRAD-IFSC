@@ -61,5 +61,11 @@ export function getAdminExperimentStatusTransitions(
 }
 
 export function canResearcherEditExperiment(status?: string): boolean {
-  return normalizeExperimentStatus(status) === 'Revisions'
+  const normalized = normalizeExperimentStatus(status)
+  return normalized === 'Submitted' || normalized === 'Revisions'
+}
+
+/** Status after researcher saves edits (must match backend edit endpoint). */
+export function getStatusAfterResearcherEdit(status?: string): ExperimentStatus {
+  return normalizeExperimentStatus(status) === 'Revisions' ? 'Review' : 'Submitted'
 }

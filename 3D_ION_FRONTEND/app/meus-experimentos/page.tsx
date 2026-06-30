@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, AlertCircle, Plus, Eye, ChevronDown, RefreshCw } from 'lucide-react'
@@ -96,68 +96,100 @@ export default function MeusExperimentosPage() {
   }, [router])
 
   // Fetch experiments with summary data
-  useEffect(() => {
+  const fetchExperiments = useCallback(async () => {
     if (!user) return
 
-    const fetchExperiments = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+    try {
+      setLoading(true)
+      setError(null)
 
-        const token = (user as any).access_token || (user as any).token
-        if (!token) {
-          throw new Error('Token de autenticação não encontrado')
-        }
-
-        // Normalizando a URL para evitar duplicação de /api/v1
-        let apiUrl = getNormalizedApiUrl()
-        
-        // Se a URL não termina com /api/v1, adiciona
-        if (!apiUrl.includes('/api/v1')) {
-          apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
-        }
-        
-        // Passando o researcher_id (user_id) como parâmetro para filtrar apenas os experimentos do usuário
-        const url = `${apiUrl}/experiments/resumo?skip=0&limit=5000&researcher_id=${user.user_id}`
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          cache: 'no-store',
-        })
-
-        if (response.status === 401) {
-          localStorage.removeItem('user')
-          router.push('/login')
-          return
-        }
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(
-            errorData.detail || 
-            `HTTP ${response.status}: Erro ao buscar seus experimentos`
-          )
-        }
-
-        const data: ExperimentsResponse = await response.json()
-        setExperiments(data.experiments || [])
-        setTotalExperimentCount(data.count ?? data.experiments?.length ?? 0)
-        setStatusCounts(data.status_counts ?? countExperimentsByStatus(data.experiments || []))
-      } catch (err) {
-        logger.error('meus-experimentos', err instanceof Error ? err.message : 'Unknown error')
-        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar experimentos'
-        setError(errorMessage)
-      } finally {
-        setLoading(false)
+      const token = (user as any).access_token || (user as any).token
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado')
       }
-    }
 
-    fetchExperiments()
+      let apiUrl = getNormalizedApiUrl()
+      if (!apiUrl.includes('/api/v1')) {
+        apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
+      }
+
+      const url = `${apiUrl}/experiments/resumo?skip=0&limit=5000&researcher_id=${user.user_id}`
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        cache: 'no-store',
+      })
+
+      if (response.status === 401) {
+        localStorage.removeItem('user')
+        router.push('/login')
+        return
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(
+          errorData.detail ||
+          `HTTP ${response.status}: Erro ao buscar seus experimentos`
+        )
+      }
+
+      const data: ExperimentsResponse = await response.json()
+      setExperiments(data.experiments || [])
+      setTotalExperimentCount(data.count ?? data.experiments?.length ?? 0)
+      setStatusCounts(data.status_counts ?? countExperimentsByStatus(data.experiments || []))
+    } catch (err) {
+      logger.error('meus-experimentos', err instanceof Error ? err.message : 'Unknown error')
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar experimentos'
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
   }, [user, router])
+
+  useEffect(() => {
+    fetchExperiments()
+  }, [fetchExperiments])
+
+  const handleExperimentUpdated = (newStatus: string) => {
+    setSelectedExperimentStatus(newStatus)
+    if (selectedExperimentId) {
+      setExperiments((prev) =>
+        prev.map((exp) =>
+          exp.experiment_id === selectedExperimentId
+            ? { ...exp, status: newStatus as ExperimentSummary['status'] }
+            : exp
+        )
+      )
+      setStatusCounts((prev) => {
+        const oldStatus = selectedExperimentStatus
+        if (!oldStatus || oldStatus === newStatus) return prev
+        const next = { ...prev }
+        const decrement = (key: keyof ExperimentStatusCounts) => {
+          next[key] = Math.max(0, next[key] - 1)
+        }
+        const increment = (key: keyof ExperimentStatusCounts) => {
+          next[key] += 1
+        }
+        const map: Record<string, keyof ExperimentStatusCounts> = {
+          Submitted: 'submitted',
+          Revisions: 'revisions',
+          Review: 'review',
+          Approved: 'approved',
+        }
+        const oldKey = map[oldStatus]
+        const newKey = map[newStatus]
+        if (oldKey) decrement(oldKey)
+        if (newKey) increment(newKey)
+        return next
+      })
+    }
+    void fetchExperiments()
+  }
 
   // Refresh function for status history (can be called anytime)
   const refreshStatusHistory = async (userContext?: any) => {
@@ -1353,6 +1385,7 @@ export default function MeusExperimentosPage() {
           && canWriteResearchData(user)
           && canResearcherEditExperiment(selectedExperimentStatus ?? undefined)
         }
+        onExperimentUpdated={handleExperimentUpdated}
       />
     </div>
   )

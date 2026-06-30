@@ -19,6 +19,7 @@ interface ExperimentReportModalProps {
   onClose: () => void
   showStatus?: boolean
   showEditButton?: boolean
+  onExperimentUpdated?: (newStatus: string) => void
 }
 
 export function ExperimentReportModal({ 
@@ -26,7 +27,8 @@ export function ExperimentReportModal({
   isOpen, 
   onClose,
   showStatus = false,
-  showEditButton = false
+  showEditButton = false,
+  onExperimentUpdated,
 }: ExperimentReportModalProps) {
   const { t, i18n } = useTranslation()
   const [experimentData, setExperimentData] = useState<any | null>(null)
@@ -175,7 +177,7 @@ export function ExperimentReportModal({
     }
   }
 
-  const handleEditComplete = async () => {
+  const handleEditComplete = async (result?: { new_status?: string }) => {
     // Exit edit mode and reload experiment data
     setIsEditing(false)
     
@@ -200,9 +202,18 @@ export function ExperimentReportModal({
         setExperimentData(data)
         const transformed = transformApiDataToEditFormat(data)
         setEditData(transformed)
+        const updatedStatus = data.status || result?.new_status
+        if (updatedStatus) {
+          onExperimentUpdated?.(updatedStatus)
+        }
+      } else if (result?.new_status) {
+        onExperimentUpdated?.(result.new_status)
       }
     } catch (err) {
       logger.error('ExperimentReportModal', err instanceof Error ? err.message : 'Unknown error')
+      if (result?.new_status) {
+        onExperimentUpdated?.(result.new_status)
+      }
     }
   }
 

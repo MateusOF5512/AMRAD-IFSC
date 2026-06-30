@@ -2166,16 +2166,17 @@ async def edit_experiment(
                 detail="You do not have permission to edit this experiment"
             )
 
-        if old_status != "Revisions":
+        if old_status not in {"Submitted", "Revisions"}:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(
-                    "Experiment can only be edited while in 'Revisions' status. "
+                    "Experiment can only be edited while in 'Submitted' or 'Revisions' status. "
                     f"Current status: {old_status}"
                 ),
             )
 
-        new_status = "Review"
+        # Submitted stays submitted; Revisions moves to Review after corrections
+        new_status = "Review" if old_status == "Revisions" else old_status
         
         # 1. Update Sample (experiment) with basic info
         if "sample" in data:
@@ -2312,36 +2313,37 @@ async def edit_experiment(
                     "rqt_9": beam.get("rqt_9"),
                 }).execute()
         
-        # Revisions → Review after researcher saves corrections
-        is_valid, error_message = history_manager.validate_status_transition(old_status, new_status)
-        if not is_valid:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=error_message,
-            )
+        # Revisions → Review after researcher saves corrections (Submitted keeps same status)
+        if old_status != new_status:
+            is_valid, error_message = history_manager.validate_status_transition(old_status, new_status)
+            if not is_valid:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=error_message,
+                )
 
-        supabase.table("samples").update({"status": new_status}).eq("id", experiment_id).execute()
+            supabase.table("samples").update({"status": new_status}).eq("id", experiment_id).execute()
 
-        try:
-            logger.info(f"[EDIT] Recording status change for experiment {experiment_id}: {old_status} → {new_status}")
+            try:
+                logger.info(f"[EDIT] Recording status change for experiment {experiment_id}: {old_status} → {new_status}")
 
-            researcher_name = await get_user_full_name(user_id)
-            researcher_email = current_user.get("email", "unknown@example.com")
+                researcher_name = await get_user_full_name(user_id)
+                researcher_email = current_user.get("email", "unknown@example.com")
 
-            history_record = history_manager.record_status_change(
-                sample_id=experiment_id,
-                old_status=old_status,
-                new_status=new_status,
-                changed_by_user_id=user_id,
-                changed_by_name=researcher_name,
-                changed_by_email=researcher_email,
-                changed_by_role="pesquisador",
-                comment="Correções enviadas para revisão",
-                is_system_action=False,
-            )
-            logger.info(f"[EDIT] ✓ Successfully recorded status history for {experiment_id}: {history_record}")
-        except Exception as e:
-            logger.error(f"[EDIT] Error recording history for {experiment_id}: {str(e)}")
+                history_record = history_manager.record_status_change(
+                    sample_id=experiment_id,
+                    old_status=old_status,
+                    new_status=new_status,
+                    changed_by_user_id=user_id,
+                    changed_by_name=researcher_name,
+                    changed_by_email=researcher_email,
+                    changed_by_role="pesquisador",
+                    comment="Correções enviadas para revisão",
+                    is_system_action=False,
+                )
+                logger.info(f"[EDIT] ✓ Successfully recorded status history for {experiment_id}: {history_record}")
+            except Exception as e:
+                logger.error(f"[EDIT] Error recording history for {experiment_id}: {str(e)}")
         
         return {
             "success": True,

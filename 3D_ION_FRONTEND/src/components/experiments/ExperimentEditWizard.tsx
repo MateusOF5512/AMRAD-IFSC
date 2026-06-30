@@ -18,7 +18,7 @@ type Section = 'material-machine' | 'sample' | 'infill' | 'mechanical' | 'attenu
 interface ExperimentEditWizardProps {
   initialData?: any | null
   experimentId: string
-  onEditComplete?: () => void
+  onEditComplete?: (result?: { new_status?: string }) => void
 }
 
 /**
@@ -116,11 +116,9 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
 
   const handleFinalizationConfirm = async () => {
     try {
-      await editExperimentConsolidated(experimentId)
-      // If onEditComplete callback provided (when inside modal), use it
-      // Otherwise redirect to meus-experimentos (when in standalone page)
+      const result = await editExperimentConsolidated(experimentId)
       if (onEditComplete) {
-        onEditComplete()
+        onEditComplete({ new_status: result?.new_status })
       } else {
         setTimeout(() => {
           window.location.href = '/meus-experimentos'
