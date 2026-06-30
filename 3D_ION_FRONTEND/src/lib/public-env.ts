@@ -1,5 +1,6 @@
 import {
   NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SUPABASE_URL,
 } from '@/lib/env.generated'
@@ -13,5 +14,6 @@ export function getPublicEnv() {
     supabaseUrl: NEXT_PUBLIC_SUPABASE_URL,
     supabaseAnonKey: NEXT_PUBLIC_SUPABASE_ANON_KEY,
     apiUrl: NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+    siteUrl: NEXT_PUBLIC_SITE_URL || '',
   }
 }
