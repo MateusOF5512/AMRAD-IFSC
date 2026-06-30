@@ -130,7 +130,9 @@ export async function completeOAuthProfile(
 
 export async function signOutFromSupabase() {
   const supabase = createClient()
-  await supabase.auth.signOut()
+  // Local scope clears cookies/storage only — avoids 403 on /auth/v1/logout?scope=global
+  // when the session is already invalid or mid-OAuth handshake.
+  await supabase.auth.signOut({ scope: 'local' })
 }
 
 export function persistUserSession(user: User & { access_token: string }) {

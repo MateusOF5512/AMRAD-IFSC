@@ -113,7 +113,7 @@ export default function MeusExperimentosPage() {
         apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
       }
 
-      const url = `${apiUrl}/experiments/resumo?skip=0&limit=5000&researcher_id=${user.user_id}`
+      const url = `${apiUrl}/experiments/resumo/meus?skip=0&limit=5000`
 
       const response = await fetch(url, {
         method: 'GET',

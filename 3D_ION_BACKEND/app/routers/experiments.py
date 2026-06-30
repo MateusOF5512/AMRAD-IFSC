@@ -326,20 +326,18 @@ def _count_experiments_by_status(
     return status_counts
 
 
-@router.get("/resumo", response_model=ExperimentsSummaryResponse)
-async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id: Optional[str] = None):
+def _fetch_experiments_summary(
+    skip: int = 0,
+    limit: int = 100,
+    researcher_id: Optional[str] = None,
+) -> ExperimentsSummaryResponse:
     """
-    Get detailed summary of experiments with cross-referenced data
-    Includes researcher, material, machine, and technical data summary
-    
-    Parameters:
-    - skip: Number of records to skip (default: 0)
-    - limit: Number of records to return (default: 100)
-    - researcher_id: Optional filter by researcher ID. When set, returns all statuses
-      for that researcher's experiments. Without it, only Approved experiments are returned (public view).
+    Build experiment summary list.
+    - researcher_id set: all statuses for that researcher.
+    - researcher_id None: public view (Approved only).
     """
     supabase: Client = get_supabase_client()
-    
+
     try:
         status_counts = _count_experiments_by_status(supabase, researcher_id) if researcher_id else None
         total_count = (
@@ -519,6 +517,55 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database error: {str(e)}"
         )
+
+
+def _assert_can_filter_by_researcher(
+    researcher_id: str,
+    current_user: Optional[dict],
+) -> None:
+    """Researchers may only list their own experiments; admins may list any."""
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Autenticação necessária para ver experimentos de um pesquisador",
+        )
+    if current_user.get("user_type") == "admin":
+        return
+    if current_user.get("user_id") != researcher_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado: você só pode ver seus próprios experimentos",
+        )
+
+
+@router.get("/resumo/meus", response_model=ExperimentsSummaryResponse)
+async def get_my_experiments_summary(
+    current_user: dict = Depends(get_current_user),
+    skip: int = 0,
+    limit: int = 5000,
+):
+    """Summary of all experiments created by the authenticated researcher."""
+    return _fetch_experiments_summary(
+        skip=skip,
+        limit=limit,
+        researcher_id=current_user["user_id"],
+    )
+
+
+@router.get("/resumo", response_model=ExperimentsSummaryResponse)
+async def get_experiments_summary(
+    skip: int = 0,
+    limit: int = 100,
+    researcher_id: Optional[str] = None,
+    current_user: Optional[dict] = Depends(get_optional_current_user),
+):
+    """
+    Public summary of approved experiments, or researcher-scoped summary when
+    researcher_id is provided (requires auth; non-admins may only use their own id).
+    """
+    if researcher_id:
+        _assert_can_filter_by_researcher(researcher_id, current_user)
+    return _fetch_experiments_summary(skip=skip, limit=limit, researcher_id=researcher_id)
 
 
 @router.get("/{experiment_id}/detalhes", response_model=ExperimentDetailResponse)

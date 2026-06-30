@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { persistUserSession, syncSessionWithBackend } from '@/lib/supabase-auth'
-import { clearAuthStorage } from '@/lib/auth-storage'
+import { clearAuthStorage, hasStoredUser } from '@/lib/auth-storage'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from 'react-i18next'
 
@@ -16,8 +16,15 @@ export default function AuthCallbackCompletePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     const finishLogin = async () => {
       try {
+        if (hasStoredUser()) {
+          router.replace('/experimentos')
+          return
+        }
+
         clearAuthStorage()
 
         const supabase = createClient()
@@ -30,10 +37,13 @@ export default function AuthCallbackCompletePage() {
         }
 
         const result = await syncSessionWithBackend(session.access_token)
+        if (cancelled) return
+
         persistUserSession(result.user)
         setUser(result.user)
         router.replace('/experimentos')
       } catch (err: unknown) {
+        if (cancelled) return
         const message =
           err instanceof Error ? err.message : t('auth.google.errors.loginFailed')
         setError(message)
@@ -41,6 +51,9 @@ export default function AuthCallbackCompletePage() {
     }
 
     finishLogin()
+    return () => {
+      cancelled = true
+    }
   }, [router, setUser, t])
 
   if (error) {

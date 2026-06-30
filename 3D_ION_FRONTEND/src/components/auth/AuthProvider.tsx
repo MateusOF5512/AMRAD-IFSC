@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
@@ -55,6 +55,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, setUser, signOut, setSessionReady } = useAuthStore()
   const [isAuthenticating, setIsAuthenticating] = useState(true)
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const pathnameRef = useRef(pathname)
+
+  useEffect(() => {
+    pathnameRef.current = pathname
+  }, [pathname])
 
   const applySession = (sessionUser: NonNullable<typeof user> & { access_token: string }) => {
     persistUserSession(sessionUser)
@@ -95,9 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: { session },
         } = await supabase.auth.getSession()
 
-        // Sem sessão persistida no app: limpa Supabase órfão e não chama /auth/me.
+        // Sem sessão persistida no app: limpa Supabase órfão só em telas de login.
+        // Não fazer isso durante OAuth (/auth/callback*) — correria com o handshake.
         if (!storedUserRaw) {
-          if (session) {
+          const onLoginScreen = pathname === '/login' || pathname === '/register'
+          if (session && onLoginScreen && !isAuthFlowRoute(pathname)) {
             await signOutFromSupabase()
           }
           setIsAuthenticating(false)
@@ -145,6 +152,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentPath = pathnameRef.current
+
       if (!session?.access_token) {
         if (!hasStoredUser()) {
           signOut()
@@ -153,16 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      if (event === 'INITIAL_SESSION') {
-        // During OAuth callback the app session is cleared before backend sync;
-        // signing out here races with /auth/callback/complete and causes 401.
-        if (!hasStoredUser() && !isAuthFlowRoute(pathname)) {
-          await signOutFromSupabase()
-        }
-        return
-      }
-
-      if (isAuthFlowRoute(pathname)) {
+      if (event === 'INITIAL_SESSION' || isAuthFlowRoute(currentPath)) {
         return
       }
 
@@ -187,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [setUser, signOut, pathname])
+  }, [setUser, signOut])
 
   useEffect(() => {
     const handleStorageChange = () => {
