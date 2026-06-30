@@ -154,7 +154,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (event === 'INITIAL_SESSION') {
-        if (!hasStoredUser()) {
+        // During OAuth callback the app session is cleared before backend sync;
+        // signing out here races with /auth/callback/complete and causes 401.
+        if (!hasStoredUser() && !isAuthFlowRoute(pathname)) {
           await signOutFromSupabase()
         }
         return
