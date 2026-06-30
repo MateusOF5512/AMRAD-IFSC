@@ -8,6 +8,7 @@ import { getNormalizedApiUrl } from '@/lib/api'
 import { transformApiDataToEditFormat, EditExperimentData } from '@/lib/utils/transformExperimentData'
 import { logger } from '@/lib/logger'
 import { useResearcherWriteProtection } from '@/lib/hooks/useResearcherWriteProtection'
+import { canResearcherEditExperiment } from '@/lib/experiment-status'
 
 const API_BASE_URL = getNormalizedApiUrl()
 
@@ -48,6 +49,11 @@ export default function EditExperimentPage() {
       }
 
       const data = await response.json()
+
+      if (!canResearcherEditExperiment(data.status)) {
+        throw new Error('Experimentos aprovados não podem ser editados.')
+      }
+
       const editData = transformApiDataToEditFormat(data)
       setEditData(editData)
     } catch (error) {

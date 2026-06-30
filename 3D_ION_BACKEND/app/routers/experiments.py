@@ -2166,16 +2166,16 @@ async def edit_experiment(
                 detail="You do not have permission to edit this experiment"
             )
 
-        if old_status not in {"Submitted", "Revisions"}:
+        if old_status not in {"Submitted", "Revisions", "Review"}:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(
-                    "Experiment can only be edited while in 'Submitted' or 'Revisions' status. "
+                    "Experiment can only be edited while in 'Submitted', 'Revisions', or 'Review' status. "
                     f"Current status: {old_status}"
                 ),
             )
 
-        # Submitted stays submitted; Revisions moves to Review after corrections
+        # Submitted/Review keep same tag; Revisions moves to Review after corrections
         new_status = "Review" if old_status == "Revisions" else old_status
         
         # 1. Update Sample (experiment) with basic info
@@ -2313,7 +2313,7 @@ async def edit_experiment(
                     "rqt_9": beam.get("rqt_9"),
                 }).execute()
         
-        # Revisions → Review after researcher saves corrections (Submitted keeps same status)
+        # Revisions → Review after researcher saves corrections; Submitted/Review unchanged
         if old_status != new_status:
             is_valid, error_message = history_manager.validate_status_transition(old_status, new_status)
             if not is_valid:
