@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2, AlertCircle, Plus, Eye, ChevronDown, RefreshCw } from 'lucide-react'
@@ -11,6 +11,14 @@ import { TableDateCell } from '@/components/ui/TableDateCell'
 import { logger } from '@/lib/logger'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { canWriteResearchData, isIrregularUser } from '@/lib/auth-roles'
+import {
+  countExperimentsByStatus,
+  countInAnalysis,
+  EMPTY_STATUS_COUNTS,
+  ExperimentStatusCounts,
+  isExperimentApproved,
+  isExperimentInAnalysis,
+} from '@/lib/experiment-status'
 
 interface ExperimentSummary {
   experiment_id: string
@@ -41,6 +49,7 @@ interface ExperimentsResponse {
   success: boolean
   count: number
   experiments: ExperimentSummary[]
+  status_counts?: ExperimentStatusCounts
 }
 
 export default function MeusExperimentosPage() {
@@ -48,6 +57,8 @@ export default function MeusExperimentosPage() {
   const { t, i18n } = useTranslation()
   const [user, setUser] = useState<{ user_id: string; name: string; email: string; user_type?: string; status?: string } | null>(null)
   const [experiments, setExperiments] = useState<ExperimentSummary[]>([])
+  const [statusCounts, setStatusCounts] = useState<ExperimentStatusCounts>(EMPTY_STATUS_COUNTS)
+  const [totalExperimentCount, setTotalExperimentCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null)
@@ -106,7 +117,7 @@ export default function MeusExperimentosPage() {
         }
         
         // Passando o researcher_id (user_id) como parâmetro para filtrar apenas os experimentos do usuário
-        const url = `${apiUrl}/experiments/resumo?skip=0&limit=100&researcher_id=${user.user_id}`
+        const url = `${apiUrl}/experiments/resumo?skip=0&limit=5000&researcher_id=${user.user_id}`
         
         const response = await fetch(url, {
           method: 'GET',
@@ -132,8 +143,9 @@ export default function MeusExperimentosPage() {
         }
 
         const data: ExperimentsResponse = await response.json()
-        // Backend já filtra os experimentos pelo researcher_id, então não precisa filtrar aqui
         setExperiments(data.experiments || [])
+        setTotalExperimentCount(data.count ?? data.experiments?.length ?? 0)
+        setStatusCounts(data.status_counts ?? countExperimentsByStatus(data.experiments || []))
       } catch (err) {
         logger.error('meus-experimentos', err instanceof Error ? err.message : 'Unknown error')
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar experimentos'
@@ -311,19 +323,20 @@ export default function MeusExperimentosPage() {
     setSelectedExperimentIds([])
   }
 
-  // Helper function to check if experiment is in analysis
-  const isExperimentEmAnalise = (experiment: ExperimentSummary): boolean => {
-    const status = experiment.status || 'Submitted'
-    return ['Submitted', 'Review', 'Revisions'].includes(status)
-  }
-
-  // Helper function to check if experiment is approved
-  const isExperimentAprovado = (experiment: ExperimentSummary): boolean => {
-    const status = experiment.status || 'Submitted'
-    return status === 'Approved'
-  }
-
-  // Create a map of experiments by experiment_id for quick lookup of index_visual
+  // Separate experiments by status
+  const experimentsEmAnalise = useMemo(
+    () => experiments.filter((e) => isExperimentInAnalysis(e.status)),
+    [experiments]
+  )
+  const experimentsAprovados = useMemo(
+    () => experiments.filter((e) => isExperimentApproved(e.status)),
+    [experiments]
+  )
+  const countSubmitted = statusCounts.submitted
+  const countRevisions = statusCounts.revisions
+  const countReview = statusCounts.review
+  const countConcluidos = statusCounts.approved
+  const countEmAnalise = countInAnalysis(statusCounts)
   const experimentIndexMap = experiments.reduce((acc, exp) => {
     if (exp.experiment_id) {
       acc[exp.experiment_id] = exp.index_visual || 0
@@ -383,12 +396,6 @@ export default function MeusExperimentosPage() {
     return statusLabels[status] || status
   }
 
-  // Separate experiments by status
-  const experimentsEmAnalise = experiments.filter(isExperimentEmAnalise)
-  const experimentsAprovados = experiments.filter(isExperimentAprovado)
-  const countEmAnalise = experimentsEmAnalise.length
-  const countConcluidos = experimentsAprovados.length
-
   // Pagination for Em Análise
   const totalPagesAnalise = Math.ceil(experimentsEmAnalise.length / itemsPerPage)
   const startIndexAnalise = (currentPageAnalise - 1) * itemsPerPage
@@ -435,7 +442,7 @@ export default function MeusExperimentosPage() {
                 {t('myExperiments.title')}
               </h1>
               <p className="mt-1 sm:mt-2 text-sm sm:text-base text-muted">
-                {t('myExperiments.subtitle', { count: experiments.length })}
+                {t('myExperiments.subtitle', { count: totalExperimentCount })}
               </p>
             </div>
             {user && canWriteResearchData(user) && (
@@ -483,25 +490,37 @@ export default function MeusExperimentosPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Status Indicators — aligned with table sections */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="bg-surface rounded-lg border border-amber-200 shadow-sm hover:shadow-md transition-shadow p-4">
+            {/* Status Indicators */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-surface rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
-                  <div className="text-3xl mb-2">⏳</div>
-                  <div className="text-2xl font-bold text-amber-600">
-                    {countEmAnalise}
-                  </div>
-                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.inCuration')}</div>
+                  <div className="text-3xl mb-2">📤</div>
+                  <div className="text-2xl font-bold text-blue-600">{countSubmitted}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.submitted')}</div>
+                </div>
+              </div>
+
+              <div className="bg-surface rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                <div className="flex flex-col items-center">
+                  <div className="text-3xl mb-2">⚠️</div>
+                  <div className="text-2xl font-bold text-orange-600">{countRevisions}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.revisions')}</div>
+                </div>
+              </div>
+
+              <div className="bg-surface rounded-lg border border-yellow-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                <div className="flex flex-col items-center">
+                  <div className="text-3xl mb-2">🔍</div>
+                  <div className="text-2xl font-bold text-yellow-600">{countReview}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.review')}</div>
                 </div>
               </div>
 
               <div className="bg-surface rounded-lg border border-primary/30 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-2">✅</div>
-                  <div className="text-2xl font-bold text-primary">
-                    {countConcluidos}
-                  </div>
-                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.completed')}</div>
+                  <div className="text-2xl font-bold text-primary">{countConcluidos}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.approved')}</div>
                 </div>
               </div>
             </div>

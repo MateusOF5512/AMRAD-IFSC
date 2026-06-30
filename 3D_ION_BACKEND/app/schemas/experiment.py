@@ -110,11 +110,20 @@ class ExperimentSummary(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ExperimentStatusCounts(BaseModel):
+    """Total experiment counts per status"""
+    submitted: int = 0
+    revisions: int = 0
+    review: int = 0
+    approved: int = 0
+
+
 class ExperimentsSummaryResponse(BaseModel):
     """Response for experiments summary list endpoint"""
     success: bool
     count: int
     experiments: list[ExperimentSummary]
+    status_counts: Optional[ExperimentStatusCounts] = None
     
     model_config = {"from_attributes": True}
 

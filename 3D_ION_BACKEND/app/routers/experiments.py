@@ -22,6 +22,7 @@ from app.schemas.experiment import (
     ExperimentListItem,
     ExperimentSummary,
     ExperimentsSummaryResponse,
+    ExperimentStatusCounts,
     ExperimentDetailResponse
 )
 
@@ -305,6 +306,26 @@ async def get_all_experiments(skip: int = 0, limit: int = 100):
         )
 
 
+def _count_experiments_by_status(
+    supabase: Client,
+    researcher_id: Optional[str] = None,
+) -> ExperimentStatusCounts:
+    """Count experiments per status, optionally filtered by researcher."""
+    status_counts = ExperimentStatusCounts()
+    for status_key, attr in [
+        ("Submitted", "submitted"),
+        ("Revisions", "revisions"),
+        ("Review", "review"),
+        ("Approved", "approved"),
+    ]:
+        query = supabase.table("samples").select("id", count="exact").eq("status", status_key)
+        if researcher_id:
+            query = query.eq("researcher_id", researcher_id)
+        count_response = query.execute()
+        setattr(status_counts, attr, count_response.count if count_response.count else 0)
+    return status_counts
+
+
 @router.get("/resumo", response_model=ExperimentsSummaryResponse)
 async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id: Optional[str] = None):
     """
@@ -320,6 +341,14 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
     supabase: Client = get_supabase_client()
     
     try:
+        status_counts = _count_experiments_by_status(supabase, researcher_id) if researcher_id else None
+        total_count = (
+            status_counts.submitted
+            + status_counts.revisions
+            + status_counts.review
+            + status_counts.approved
+        ) if status_counts else None
+
         # Get samples with related data through separate queries
         # First, fetch samples with basic info
         query = supabase.table("samples") \
@@ -339,8 +368,9 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
         if not samples_response.data:
             return ExperimentsSummaryResponse(
                 success=True,
-                count=0,
-                experiments=[]
+                count=total_count or 0,
+                experiments=[],
+                status_counts=status_counts,
             )
         
         experiments_summary = []
@@ -469,10 +499,19 @@ async def get_experiments_summary(skip: int = 0, limit: int = 100, researcher_id
             
             experiments_summary.append(summary)
         
+        if total_count is None:
+            count_query = supabase.table("samples").select("id", count="exact")
+            if researcher_id:
+                count_query = count_query.eq("researcher_id", researcher_id)
+            else:
+                count_query = count_query.eq("status", "Approved")
+            total_count = count_query.execute().count or len(experiments_summary)
+
         return ExperimentsSummaryResponse(
             success=True,
-            count=len(experiments_summary),
-            experiments=experiments_summary
+            count=total_count,
+            experiments=experiments_summary,
+            status_counts=status_counts,
         )
     
     except Exception as e:
