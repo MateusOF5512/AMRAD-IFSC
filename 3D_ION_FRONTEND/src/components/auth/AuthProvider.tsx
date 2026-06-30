@@ -68,6 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const restoreSession = async () => {
+      if (isAuthFlowRoute(pathname)) {
+        setIsAuthenticating(false)
+        setSessionReady(true)
+        return
+      }
+
       const storedUserRaw = localStorage.getItem('user')
       let storedAccessToken: string | null = null
 
@@ -132,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     restoreSession()
-  }, [])
+  }, [pathname, setSessionReady, setUser, signOut])
 
   useEffect(() => {
     const supabase = createClient()

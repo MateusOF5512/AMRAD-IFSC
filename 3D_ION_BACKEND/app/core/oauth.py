@@ -138,9 +138,30 @@ def find_researcher_by_auth(supabase: Client, auth_id: str, email: str | None):
     return None
 
 
+def _normalize_researcher_for_login(
+    researcher: dict,
+    *,
+    fallback_email: str | None = None,
+) -> dict:
+    """Ensure required login fields exist (legacy rows may have nulls)."""
+    email = (researcher.get("email") or fallback_email or "").strip().lower()
+    name = (researcher.get("name") or email or "User").strip()
+    return {**researcher, "email": email, "name": name}
+
+
 def link_auth_id(supabase: Client, researcher_id: str, auth_id: str) -> None:
     """Associate a Supabase auth user with an existing researcher row."""
-    supabase.table("researchers").update({"auth_id": auth_id}).eq("id", researcher_id).execute()
+    try:
+        supabase.table("researchers").update({"auth_id": auth_id}).eq("id", researcher_id).execute()
+    except APIError as err:
+        if getattr(err, "code", None) == "23505":
+            logger.warning(
+                "auth_id %s already linked; skipping update for researcher %s",
+                auth_id,
+                researcher_id,
+            )
+            return
+        raise
 
 
 def google_display_name(auth_user) -> str:
@@ -180,6 +201,17 @@ def create_oauth_researcher(supabase: Client, auth_user) -> dict:
     try:
         response = supabase.table("researchers").insert(new_user).execute()
     except APIError as err:
+        err_message = str(err).lower()
+        if "profile_onboarding_completed" in err_message and "profile_onboarding_completed" in new_user:
+            new_user.pop("profile_onboarding_completed", None)
+            try:
+                response = supabase.table("researchers").insert(new_user).execute()
+            except APIError as retry_err:
+                err = retry_err
+            else:
+                if response.data:
+                    return response.data[0]
+
         # Concurrent OAuth syncs can race on the same email.
         if getattr(err, "code", None) == "23505":
             raced = find_researcher_by_auth(supabase, auth_user.id, email)
@@ -211,27 +243,29 @@ def researcher_to_login_payload(
     access_token: str,
     *,
     profile_completion_pending: bool | None = None,
+    fallback_email: str | None = None,
 ) -> dict:
     """Build the login response payload from a researcher record."""
-    user_type = researcher_role(researcher)
-    account_status = normalize_user_status(researcher.get("status"))
+    normalized = _normalize_researcher_for_login(researcher, fallback_email=fallback_email)
+    user_type = researcher_role(normalized)
+    account_status = normalize_user_status(normalized.get("status"))
     return {
-        "user_id": researcher["id"],
-        "id": researcher["id"],
-        "name": researcher["name"],
-        "email": researcher["email"],
-        "institution": researcher.get("institution"),
-        "phone_number": researcher.get("phone_number"),
-        "instagram": researcher.get("instagram"),
-        "country": researcher.get("country"),
-        "language": researcher.get("language"),
+        "user_id": normalized["id"],
+        "id": normalized["id"],
+        "name": normalized["name"],
+        "email": normalized["email"],
+        "institution": normalized.get("institution"),
+        "phone_number": normalized.get("phone_number"),
+        "instagram": normalized.get("instagram"),
+        "country": normalized.get("country"),
+        "language": normalized.get("language"),
         "user_type": user_type,
         "status": account_status,
         "needs_profile_completion": (
             profile_completion_pending
             if profile_completion_pending is not None
-            else needs_profile_completion(researcher)
+            else needs_profile_completion(normalized)
         ),
-        "message": f"Welcome, {researcher['name']}!",
+        "message": f"Welcome, {normalized['name']}!",
         "access_token": access_token,
     }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { persistUserSession, syncSessionWithBackend } from '@/lib/supabase-auth'
+import { clearAuthStorage } from '@/lib/auth-storage'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from 'react-i18next'
 
@@ -17,6 +18,8 @@ export default function AuthCallbackCompletePage() {
   useEffect(() => {
     const finishLogin = async () => {
       try {
+        clearAuthStorage()
+
         const supabase = createClient()
         const {
           data: { session },

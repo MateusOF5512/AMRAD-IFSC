@@ -3,6 +3,8 @@ Authentication Router
 Handles user registration and login using the researchers table
 """
 
+import logging
+
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
@@ -29,6 +31,8 @@ from app.core.oauth import (
     researcher_to_login_payload,
 )
 from fastapi.security import HTTPAuthorizationCredentials
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -107,17 +111,22 @@ def _login_response_for_researcher(
     researcher: dict,
     *,
     profile_completion_pending: bool | None = None,
+    fallback_email: str | None = None,
 ) -> LoginResponse:
     """Issue a backend JWT for API calls (stable 24h token, independent of Supabase session)."""
+    from app.core.oauth import _normalize_researcher_for_login
+
+    normalized = _normalize_researcher_for_login(researcher, fallback_email=fallback_email)
     access_token = create_access_token(
-        user_id=researcher["id"],
-        user_email=researcher["email"],
-        user_type=researcher_role(researcher),
+        user_id=normalized["id"],
+        user_email=normalized["email"],
+        user_type=researcher_role(normalized),
     )
     payload = researcher_to_login_payload(
-        researcher,
+        normalized,
         access_token,
         profile_completion_pending=profile_completion_pending,
+        fallback_email=fallback_email,
     )
     return LoginResponse(**payload)
 
@@ -370,10 +379,14 @@ async def oauth_session(
         ensure_account_is_active(
             {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
         )
-        return _login_response_for_researcher(fresh_researcher)
+        return _login_response_for_researcher(
+            fresh_researcher,
+            fallback_email=auth_user.email,
+        )
     except HTTPException:
         raise
     except Exception:
+        logger.exception("OAuth session sync failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error during OAuth session sync",
@@ -405,7 +418,10 @@ async def get_current_session(
     ensure_account_is_active(
         {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
     )
-    return _login_response_for_researcher(fresh_researcher)
+    return _login_response_for_researcher(
+        fresh_researcher,
+        fallback_email=user_context.get("email"),
+    )
 
 
 @router.post("/refresh", response_model=LoginResponse)
@@ -433,7 +449,10 @@ async def refresh_session(
     ensure_account_is_active(
         {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
     )
-    return _login_response_for_researcher(fresh_researcher)
+    return _login_response_for_researcher(
+        fresh_researcher,
+        fallback_email=user_context.get("email"),
+    )
 
 
 @router.post("/oauth/complete-profile", response_model=LoginResponse)
