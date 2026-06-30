@@ -61,7 +61,7 @@ export function Header() {
     signOut()
     window.dispatchEvent(new Event('userLoggedOut'))
     await new Promise(resolve => setTimeout(resolve, 100))
-    router.push('/login')
+    router.push('/')
   }
 
   useEffect(() => {

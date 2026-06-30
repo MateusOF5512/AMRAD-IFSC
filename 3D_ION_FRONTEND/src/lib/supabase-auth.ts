@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { clearAuthStorage, hasStoredUser } from '@/lib/auth-storage'
 import { normalizeUserType, normalizeUserStatus } from '@/lib/auth-roles'
 import type { User } from '@/store/authStore'
 
@@ -62,7 +63,7 @@ export async function syncSessionWithBackend(accessToken: string) {
   }
 
   const data = await response.json()
-  const user = mapBackendUser(data, accessToken)
+  const user = mapBackendUser(data)
   return {
     user,
     needsProfileCompletion: Boolean(data.needs_profile_completion),
@@ -84,7 +85,19 @@ export async function refreshUserFromBackend(accessToken: string) {
   }
 
   const data = await response.json()
-  return mapBackendUser(data, accessToken)
+  return mapBackendUser(data)
+}
+
+export async function clearStaleAuthSession(): Promise<void> {
+  clearAuthStorage()
+  try {
+    await signOutFromSupabase()
+  } catch {
+    // Ignore Supabase cleanup errors.
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('userLoggedOut'))
+  }
 }
 
 export async function completeOAuthProfile(
@@ -153,10 +166,11 @@ export function isSessionExpiredAuthError(detail: string | undefined): boolean {
 
 /**
  * Refresh the Supabase OAuth session when the access token is close to expiry.
- * Always prefers a backend-issued JWT (24h) over the short-lived Supabase token.
+ * Only runs for users with a persisted app session (localStorage user).
  */
 export async function refreshAccessTokenIfNeeded(force = false): Promise<string | null> {
   if (typeof window === 'undefined') return null
+  if (!hasStoredUser()) return null
 
   const raw = localStorage.getItem('user')
   let storedToken: string | null = null
@@ -167,6 +181,8 @@ export async function refreshAccessTokenIfNeeded(force = false): Promise<string 
       storedToken = null
     }
   }
+
+  if (!storedToken) return null
 
   const syncBackendJwt = async (token: string): Promise<string | null> => {
     try {
@@ -195,30 +211,24 @@ export async function refreshAccessTokenIfNeeded(force = false): Promise<string 
         if (!error && supabaseToken) {
           const backendToken = await syncBackendJwt(supabaseToken)
           if (backendToken) return backendToken
-          updateStoredAccessToken(supabaseToken)
-          return supabaseToken
         }
       }
 
-      const backendToken = await syncBackendJwt(session.access_token)
-      if (backendToken) return backendToken
-
-      if (session.access_token !== storedToken) {
-        updateStoredAccessToken(session.access_token)
+      if (force) {
+        const backendToken = await syncBackendJwt(session.access_token)
+        if (backendToken) return backendToken
       }
-      return session.access_token
+
+      return storedToken
     }
   } catch {
-    // Fall through to stored token handling.
+    // Fall through to stored token.
   }
 
-  if (storedToken) {
-    if (force) {
-      const backendToken = await syncBackendJwt(storedToken)
-      if (backendToken) return backendToken
-    }
-    return storedToken
+  if (force) {
+    const backendToken = await syncBackendJwt(storedToken)
+    if (backendToken) return backendToken
   }
 
-  return null
+  return storedToken
 }

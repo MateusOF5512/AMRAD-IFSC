@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { createClient } from '@/lib/supabase/client'
-import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend } from '@/lib/supabase-auth'
-import { getStoredAccessToken, getStoredUser } from '@/lib/auth-storage'
+import { persistUserSession, refreshUserFromBackend, syncSessionWithBackend, clearStaleAuthSession, signOutFromSupabase } from '@/lib/supabase-auth'
+import { getStoredAccessToken, getStoredUser, hasStoredUser } from '@/lib/auth-storage'
 import { isAdminUser, canWriteResearchData } from '@/lib/auth-roles'
 import { CompleteProfileModal } from '@/components/auth/CompleteProfileModal'
 
@@ -68,17 +68,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const restoreSession = async () => {
+      const storedUserRaw = localStorage.getItem('user')
       let storedAccessToken: string | null = null
 
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
+      if (storedUserRaw) {
         try {
-          const userData = JSON.parse(storedUser)
+          const userData = JSON.parse(storedUserRaw)
           storedAccessToken = userData.access_token || null
           setUser(userData)
           setShowProfileModal(Boolean(userData.needs_profile_completion))
         } catch {
-          localStorage.removeItem('user')
+          await clearStaleAuthSession()
           signOut()
         }
       }
@@ -89,7 +89,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: { session },
         } = await supabase.auth.getSession()
 
-        const accessToken = session?.access_token || storedAccessToken
+        // Sem sessão persistida no app: limpa Supabase órfão e não chama /auth/me.
+        if (!storedUserRaw) {
+          if (session) {
+            await signOutFromSupabase()
+          }
+          setIsAuthenticating(false)
+          setSessionReady(true)
+          return
+        }
+
+        const accessToken = storedAccessToken || session?.access_token || null
 
         if (accessToken) {
           try {
@@ -97,15 +107,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             applySession(refreshedUser)
           } catch {
             if (session?.access_token) {
-              const result = await syncSessionWithBackend(session.access_token)
-              applySession(result.user)
+              try {
+                const result = await syncSessionWithBackend(session.access_token)
+                applySession(result.user)
+              } catch {
+                await clearStaleAuthSession()
+                signOut()
+              }
+            } else {
+              await clearStaleAuthSession()
+              signOut()
             }
           }
-        } else if (storedUser) {
+        } else {
+          await clearStaleAuthSession()
           signOut()
         }
       } catch {
-        // Keep local session if backend sync fails temporarily.
+        // Falha transitória: mantém usuário em cache se existir.
       }
 
       setIsAuthenticating(false)
@@ -119,12 +138,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient()
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!session?.access_token) {
-        if (!localStorage.getItem('user')) {
+        if (!hasStoredUser()) {
           signOut()
           setShowProfileModal(false)
         }
+        return
+      }
+
+      // Evita /auth/me na página pública quando só existe sessão órfã do Supabase.
+      if (event === 'INITIAL_SESSION' && !hasStoredUser()) {
+        await signOutFromSupabase()
+        return
+      }
+
+      if (!hasStoredUser() && event !== 'SIGNED_IN') {
         return
       }
 
@@ -136,7 +165,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const refreshedUser = await refreshUserFromBackend(session.access_token)
           applySession(refreshedUser)
         } catch {
-          // Ignore transient sync errors during auth state changes.
+          if (hasStoredUser()) {
+            await clearStaleAuthSession()
+            signOut()
+          }
         }
       }
     })

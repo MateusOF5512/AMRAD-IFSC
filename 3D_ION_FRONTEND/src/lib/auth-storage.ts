@@ -25,3 +25,7 @@ export function getStoredAccessToken(): string | null {
   if (!user) return null
   return user.access_token || null
 }
+
+export function hasStoredUser(): boolean {
+  return getStoredUser() !== null
+}
