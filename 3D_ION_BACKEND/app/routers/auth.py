@@ -347,28 +347,37 @@ async def oauth_session(
     Auto-provisions new Google users with name and email from the provider.
     """
     check_rate_limit(http_request)
-    supabase = get_supabase_client()
-    auth_user = get_supabase_auth_user(credentials.credentials)
-    researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
 
-    if not researcher:
-        researcher = create_oauth_researcher(supabase, auth_user)
-    elif not researcher.get("auth_id"):
-        link_auth_id(supabase, researcher["id"], auth_user.id)
-        researcher["auth_id"] = auth_user.id
+    try:
+        supabase = get_supabase_client()
+        auth_user = get_supabase_auth_user(credentials.credentials)
+        researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
 
-    google_name = google_display_name(auth_user)
-    if google_name and researcher.get("name") != google_name:
-        supabase.table("researchers").update({"name": google_name}).eq(
-            "id", researcher["id"]
-        ).execute()
-        researcher["name"] = google_name
+        if not researcher:
+            researcher = create_oauth_researcher(supabase, auth_user)
+        elif not researcher.get("auth_id"):
+            link_auth_id(supabase, researcher["id"], auth_user.id)
+            researcher["auth_id"] = auth_user.id
 
-    fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
-    ensure_account_is_active(
-        {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
-    )
-    return _login_response_for_researcher(fresh_researcher)
+        google_name = google_display_name(auth_user)
+        if google_name and researcher.get("name") != google_name:
+            supabase.table("researchers").update({"name": google_name}).eq(
+                "id", researcher["id"]
+            ).execute()
+            researcher["name"] = google_name
+
+        fresh_researcher = get_researcher_by_id(supabase, researcher["id"]) or researcher
+        ensure_account_is_active(
+            {"user_type": fresh_researcher.get("user_type"), "status": fresh_researcher.get("status")}
+        )
+        return _login_response_for_researcher(fresh_researcher)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error during OAuth session sync",
+        )
 
 
 @router.get("/me", response_model=LoginResponse)

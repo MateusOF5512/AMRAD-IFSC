@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
+from app.core.cors_utils import apply_cors_headers
 from app.core.apm_middleware import APMMiddleware, RequestContextMiddleware
 from app.core.cache_headers import CacheHeaderMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
@@ -88,26 +89,32 @@ async def health_check_v1():
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": "HTTP Exception",
-            "detail": exc.detail,
-            "status_code": exc.status_code,
-        },
+    return apply_cors_headers(
+        request,
+        JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": "HTTP Exception",
+                "detail": exc.detail,
+                "status_code": exc.status_code,
+            },
+        ),
     )
 
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
     logger.error("Unhandled server error on %s %s", request.method, request.url.path, exc_info=exc)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal Server Error",
-            "detail": "Erro interno do servidor",
-            "status_code": 500,
-        },
+    return apply_cors_headers(
+        request,
+        JSONResponse(
+            status_code=500,
+            content={
+                "error": "Internal Server Error",
+                "detail": "Erro interno do servidor",
+                "status_code": 500,
+            },
+        ),
     )
 
 

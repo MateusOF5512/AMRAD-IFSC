@@ -147,9 +147,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Evita /auth/me na página pública quando só existe sessão órfã do Supabase.
-      if (event === 'INITIAL_SESSION' && !hasStoredUser()) {
-        await signOutFromSupabase()
+      if (event === 'INITIAL_SESSION') {
+        if (!hasStoredUser()) {
+          await signOutFromSupabase()
+        }
+        return
+      }
+
+      if (isAuthFlowRoute(pathname)) {
         return
       }
 
@@ -174,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [setUser, signOut])
+  }, [setUser, signOut, pathname])
 
   useEffect(() => {
     const handleStorageChange = () => {

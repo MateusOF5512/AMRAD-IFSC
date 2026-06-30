@@ -1,6 +1,10 @@
 """Supabase OAuth helpers for linking auth.users to researchers."""
 
+import logging
+
 from fastapi import HTTPException, status
+from gotrue.errors import AuthApiError
+from postgrest.exceptions import APIError
 from supabase import Client
 
 from app.core.user_roles import (
@@ -12,18 +16,28 @@ from app.core.user_roles import (
 from app.core.user_status import REGULAR_STATUS, normalize_user_status
 from app.database.supabase import get_supabase_client
 
+logger = logging.getLogger(__name__)
+
+_INVALID_CREDENTIALS = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Invalid authentication credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
+
 
 def get_supabase_auth_user(token: str):
     """Validate a Supabase access token and return the auth user."""
     supabase: Client = get_supabase_client()
-    user_response = supabase.auth.get_user(token)
+    try:
+        user_response = supabase.auth.get_user(jwt=token)
+    except AuthApiError:
+        raise _INVALID_CREDENTIALS from None
+    except Exception:
+        logger.exception("Unexpected error validating Supabase token")
+        raise _INVALID_CREDENTIALS from None
 
     if not user_response or not user_response.user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise _INVALID_CREDENTIALS
 
     return user_response.user
 
@@ -163,7 +177,26 @@ def create_oauth_researcher(supabase: Client, auth_user) -> dict:
         "profile_onboarding_completed": False,
     }
 
-    response = supabase.table("researchers").insert(new_user).execute()
+    try:
+        response = supabase.table("researchers").insert(new_user).execute()
+    except APIError as err:
+        # Concurrent OAuth syncs can race on the same email.
+        if getattr(err, "code", None) == "23505":
+            raced = find_researcher_by_auth(supabase, auth_user.id, email)
+            if raced:
+                return raced
+            raced = find_researcher_by_email(supabase, email)
+            if raced:
+                if not raced.get("auth_id"):
+                    link_auth_id(supabase, raced["id"], auth_user.id)
+                    raced["auth_id"] = auth_user.id
+                return raced
+        logger.exception("Failed to create OAuth researcher for %s", email)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user",
+        ) from err
+
     if not response.data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
