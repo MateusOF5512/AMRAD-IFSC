@@ -1,6 +1,6 @@
 # Documentação - Índice
 
-Bem-vindo à documentação do ION3D Platform Frontend!
+Bem-vindo à documentação do AMRAD Frontend!
 
 ## 📁 Estrutura
 

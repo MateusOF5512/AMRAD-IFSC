@@ -8,6 +8,9 @@ import { useTranslation } from 'react-i18next'
 import { ExperimentReportModal } from '@/components/experiments/ExperimentReportModal'
 import { ExperimentComparison } from '@/components/experiments/comparison/ExperimentComparison'
 import { fetchWithAgent } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
+import { getNormalizedApiUrl } from '@/lib/api'
+import { getPublicEnv } from '@/lib/public-env'
 
 interface ExperimentSummary {
   experiment_id: string
@@ -84,7 +87,7 @@ export default function ExperimentsPage() {
       try {
         setLoadingFilterOptions(true)
         
-        let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+        let apiUrl = getNormalizedApiUrl()
         if (!apiUrl.includes('/api/v1')) {
           apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
         }
@@ -111,7 +114,7 @@ export default function ExperimentsPage() {
           }
         }
       } catch (err) {
-        console.error('Error fetching filter options:', err)
+        logger.error('experimentos', err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoadingFilterOptions(false)
       }
@@ -140,7 +143,7 @@ export default function ExperimentsPage() {
         setError(null)
 
         // Normalizando a URL para evitar duplicação de /api/v1
-        let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+        let apiUrl = getNormalizedApiUrl()
         
         // Se a URL não termina com /api/v1, adiciona
         if (!apiUrl.includes('/api/v1')) {
@@ -148,8 +151,6 @@ export default function ExperimentsPage() {
         }
         
         const url = `${apiUrl}/experiments/resumo?skip=0&limit=100`
-        
-        console.log('🔗 Fetching experiments from:', url)
 
         const response = await fetchWithAgent(url, {
           method: 'GET',
@@ -159,11 +160,8 @@ export default function ExperimentsPage() {
           },
         })
 
-        console.log('📊 Response status:', response.status, response.statusText)
-
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
-          console.error('❌ Error response:', errorData)
           throw new Error(
             errorData.detail || 
             `HTTP ${response.status}: Erro ao buscar experimentos. Verifique se o servidor backend está rodando em ${apiUrl.replace('/api/v1', '')}`
@@ -171,8 +169,7 @@ export default function ExperimentsPage() {
         }
 
         const data: ExperimentsResponse = await response.json()
-        console.log('✅ Experiments loaded:', data.count)
-        
+
         // Filter only approved experiments (status === "Approved")
         const approvedExperiments = (data.experiments || []).filter(
           exp => exp.status === 'Approved'
@@ -180,7 +177,7 @@ export default function ExperimentsPage() {
         
         setExperiments(approvedExperiments)
       } catch (err) {
-        console.error('Error fetching experiments:', err)
+        logger.error('experimentos', err instanceof Error ? err.message : 'Unknown error')
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar experimentos'
         
         let displayError = errorMessage
@@ -193,13 +190,13 @@ export default function ExperimentsPage() {
             'Esta situação está sendo ignorada em modo desenvolvedor.\n\n' +
             'Se o problema persistir:\n' +
             '1. Verifique se o servidor está rodando\n' +
-            '2. Confirme a URL da API: ' + process.env.NEXT_PUBLIC_API_URL + '\n' +
+            '2. Confirme a URL da API: ' + getPublicEnv().apiUrl + '\n' +
             '3. Consulte os logs do servidor para mais detalhes'
         } else if (errorMessage.includes('Failed to fetch')) {
           displayError = 
             '❌ Erro de Conexão: Não conseguiu conectar ao servidor.\n\n' +
             'Possíveis causas:\n' +
-            '1. Backend não está rodando (' + (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + ')\n' +
+            '1. Backend não está rodando (' + getPublicEnv().apiUrl + ')\n' +
             '2. CORS bloqueado - verifique a configuração\n' +
             '3. Problema de rede ou firewall\n\n' +
             'Verifique o console do navegador (F12) para mais detalhes.'
@@ -257,10 +254,7 @@ export default function ExperimentsPage() {
   const getShapeEmoji = (shapeType?: string) => {
     if (!shapeType) return '❓'
     const normalized = shapeType.toLowerCase().trim()
-    
-    // Log para debug
-    console.log('Shape type:', shapeType, '| Normalized:', normalized)
-    
+
     // Check for Cube variations
     if (normalized.includes('cube') || normalized.includes('cubo')) return '📦'
     
@@ -401,8 +395,8 @@ export default function ExperimentsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-gray-600">{ready ? t('experiments.loading') : 'Loading...'}</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted">{ready ? t('experiments.loading') : 'Loading...'}</p>
         </div>
       </div>
     )
@@ -412,24 +406,24 @@ export default function ExperimentsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-gray-600">Initializing...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted">Initializing...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-surface shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 {t('experiments.allExperiments')}
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-muted">
                 {t('experiments.availableCount', { count: experiments.length })}
               </p>
             </div>
@@ -437,7 +431,7 @@ export default function ExperimentsPage() {
               {user && (
                 <Link
                   href="/novo-experimento"
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   <Plus className="h-5 w-5" />
                   {t('experiments.newExperiment')}
@@ -451,22 +445,22 @@ export default function ExperimentsPage() {
       {/* Filters Section */}
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gray-100 rounded-lg border border-gray-200">
+          <div className="bg-slate-100 rounded-lg border border-border">
             {/* Filter Header / Toggle */}
             <button
               onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-              className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-150 transition-colors"
+              className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-100 transition-colors"
             >
-              <h3 className="text-sm font-semibold text-gray-900">{t('experiments.filters.toggle')}</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('experiments.filters.toggle')}</h3>
               <ChevronDown
                 size={20}
-                className={`text-gray-600 transition-transform ${isFiltersExpanded ? 'transform rotate-180' : ''}`}
+                className={`text-muted transition-transform ${isFiltersExpanded ? 'transform rotate-180' : ''}`}
               />
             </button>
 
             {/* Filter Content - Expandable */}
             {isFiltersExpanded && (
-              <div className="border-t border-gray-200 px-6 pb-6 pt-6 space-y-4">
+              <div className="border-t border-border px-6 pb-6 pt-6 space-y-4">
                 {/* Row 1: Text Input - Pesquisador */}
                 <div className="grid grid-cols-1 gap-3">
                   <input
@@ -474,7 +468,7 @@ export default function ExperimentsPage() {
                     placeholder={t('experiments.filters.researcher')}
                     value={filters.researcher_name}
                     onChange={(e) => setFilters({...filters, researcher_name: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
 
@@ -484,7 +478,7 @@ export default function ExperimentsPage() {
                   <select
                     value={filters.researcher_institution}
                     onChange={(e) => setFilters({...filters, researcher_institution: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 bg-surface"
                   >
                     <option value="">{t('experiments.filters.allInstitutions')}</option>
                     {filterOptions.institutions.map((inst) => (
@@ -498,7 +492,7 @@ export default function ExperimentsPage() {
                   <select
                     value={filters.material_brand}
                     onChange={(e) => setFilters({...filters, material_brand: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 bg-surface"
                   >
                     <option value="">{t('experiments.filters.allMaterials')}</option>
                     {filterOptions.materials.map((mat) => (
@@ -512,7 +506,7 @@ export default function ExperimentsPage() {
                   <select
                     value={filters.machine_brand}
                     onChange={(e) => setFilters({...filters, machine_brand: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 bg-surface"
                   >
                     <option value="">{t('experiments.filters.allMachines')}</option>
                     {filterOptions.machines.map((maq) => (
@@ -529,7 +523,7 @@ export default function ExperimentsPage() {
                   <select
                     value={filters.shape_type}
                     onChange={(e) => setFilters({...filters, shape_type: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 bg-surface"
                   >
                     <option value="">{t('experiments.filters.allFormats')}</option>
                     {filterOptions.shapes.map((fmt) => (
@@ -545,7 +539,7 @@ export default function ExperimentsPage() {
                     placeholder={t('experiments.filters.huMin')}
                     value={filters.infill_hu_min}
                     onChange={(e) => setFilters({...filters, infill_hu_min: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                   
                   {/* HU Max */}
@@ -554,7 +548,7 @@ export default function ExperimentsPage() {
                     placeholder={t('experiments.filters.huMax')}
                     value={filters.infill_hu_max}
                     onChange={(e) => setFilters({...filters, infill_hu_max: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                   
                   {/* Data From */}
@@ -562,7 +556,7 @@ export default function ExperimentsPage() {
                     type="date"
                     value={filters.date_from}
                     onChange={(e) => setFilters({...filters, date_from: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                   
                   {/* Data To */}
@@ -570,13 +564,13 @@ export default function ExperimentsPage() {
                     type="date"
                     value={filters.date_to}
                     onChange={(e) => setFilters({...filters, date_to: e.target.value})}
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
 
                 {/* Row 4: Checkboxes - Dados do Experimento */}
                 <div className="flex flex-wrap gap-4 items-center pt-2 pb-2">
-                  <span className="text-sm font-semibold text-gray-900">{t('experiments.filters.dataTitle')}</span>
+                  <span className="text-sm font-semibold text-foreground">{t('experiments.filters.dataTitle')}</span>
                 
                   {/* Checkboxes for optional data */}
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -586,7 +580,7 @@ export default function ExperimentsPage() {
                       onChange={(e) => setFilters({...filters, has_mechanical: e.target.checked})}
                       className="rounded w-4 h-4 cursor-pointer"
                     />
-                    <span className="text-gray-700">{t('experiments.filters.mechanical')}</span>
+                    <span className="text-foreground">{t('experiments.filters.mechanical')}</span>
                   </label>
                   
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -596,7 +590,7 @@ export default function ExperimentsPage() {
                       onChange={(e) => setFilters({...filters, has_attenuation: e.target.checked})}
                       className="rounded w-4 h-4 cursor-pointer"
                     />
-                    <span className="text-gray-700">{t('experiments.filters.attenuation')}</span>
+                    <span className="text-foreground">{t('experiments.filters.attenuation')}</span>
                   </label>
                   
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -606,7 +600,7 @@ export default function ExperimentsPage() {
                       onChange={(e) => setFilters({...filters, has_beam: e.target.checked})}
                       className="rounded w-4 h-4 cursor-pointer"
                     />
-                    <span className="text-gray-700">{t('experiments.filters.beamQuality')}</span>
+                    <span className="text-foreground">{t('experiments.filters.beamQuality')}</span>
                   </label>
 
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -616,7 +610,7 @@ export default function ExperimentsPage() {
                       onChange={(e) => setFilters({...filters, no_data: e.target.checked})}
                       className="rounded w-4 h-4 cursor-pointer"
                     />
-                    <span className="text-gray-700">{t('experiments.filters.noData')}</span>
+                    <span className="text-foreground">{t('experiments.filters.noData')}</span>
                   </label>
                 </div>
 
@@ -624,18 +618,18 @@ export default function ExperimentsPage() {
                 <div className="flex gap-3 flex-wrap pt-2">
                   <button
                     onClick={applyFilters}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium"
                   >
                     {t('experiments.filters.applyFilters')}
                   </button>
                   <button
                     onClick={clearFilters}
-                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-slate-300 text-foreground rounded-lg hover:bg-slate-400 transition-colors text-sm font-medium"
                   >
                     {t('experiments.filters.clearFilters')}
                   </button>
                   {filtersApplied && (
-                    <span className="text-sm text-gray-600 py-2 ml-2">
+                    <span className="text-sm text-muted py-2 ml-2">
                       {t('experiments.filters.results', { count: displayedExperiments.length })}
                     </span>
                   )}
@@ -659,12 +653,12 @@ export default function ExperimentsPage() {
         )}
 
         {experiments.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-600 mb-4">{t('experiments.empty.title')}</p>
+          <div className="bg-surface rounded-lg shadow p-12 text-center">
+            <p className="text-muted mb-4">{t('experiments.empty.title')}</p>
             {user && (
               <Link
                 href="/novo-experimento"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
               >
                 <Plus className="h-5 w-5" />
                 {t('experiments.empty.createFirst')}
@@ -674,12 +668,12 @@ export default function ExperimentsPage() {
         ) : (
           <>
             {/* Table Header with Modern Design */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-linear-to-r from-green-50 via-green-50 to-emerald-50 px-6 py-4 border-b-2 border-green-200">
+            <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
+              <div className="bg-linear-to-r from-green-50 via-green-50 to-emerald-50 px-6 py-4 border-b-2 border-primary/30">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-green-900">{t('experiments.allExperiments')}</h3>
-                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  <h3 className="text-lg font-semibold text-primary">{t('experiments.allExperiments')}</h3>
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-muted text-primary font-semibold text-sm">
+                    <span className="w-2 h-2 rounded-full bg-primary-light0"></span>
                     {displayedExperiments.length} {displayedExperiments.length === 1 ? t('experiments.table.singularExperiment') : t('experiments.table.pluralExperiments')}
                   </span>
                 </div>
@@ -688,9 +682,9 @@ export default function ExperimentsPage() {
               {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-100 border-b border-gray-200">
+                  <thead className="bg-slate-100 border-b border-border">
                     <tr>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider w-12">
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider w-12">
                         <input
                           type="checkbox"
                           checked={selectedExperimentIds.length > 0 && selectedExperimentIds.length === paginatedExperiments.length}
@@ -705,31 +699,31 @@ export default function ExperimentsPage() {
                           title={t('experiments.table.selectAllTooltip')}
                         />
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.index')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.date')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.researcher')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.material')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.machine')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.sample')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.infill')}
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.data')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                         {t('experiments.table.columns.details')}
                       </th>
                     </tr>
@@ -738,8 +732,8 @@ export default function ExperimentsPage() {
                     {paginatedExperiments.map((experiment, index) => (
                       <tr key={experiment.experiment_id || `experiment-${index}`} className={`transition-colors ${
                         selectedExperimentIds.includes(experiment.experiment_id)
-                          ? 'bg-green-50 hover:bg-green-100'
-                          : 'hover:bg-gray-50'
+                          ? 'bg-primary-light hover:bg-primary-muted'
+                          : 'hover:bg-background'
                       }`}>
                         {/* Checkbox */}
                         <td className="px-4 py-3 text-center">
@@ -753,35 +747,35 @@ export default function ExperimentsPage() {
                         </td>
 
                         {/* Index */}
-                        <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                        <td className="px-4 py-3 text-sm font-semibold text-foreground">
                           {experiment.index_visual || '-'}
                         </td>
 
                         {/* Data */}
-                        <td className="px-4 py-3 text-sm text-gray-600 font-medium">
+                        <td className="px-4 py-3 text-sm text-muted font-medium">
                           {formatDate(experiment.created_at)}
                         </td>
 
                         {/* Pesquisador */}
                         <td className="px-4 py-3 text-sm">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-foreground">
                             {experiment.researcher_name || '-'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted">
                             {experiment.researcher_institution || '-'}
                           </div>
                         </td>
 
                         {/* Material */}
                         <td className="px-4 py-3 text-sm">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-foreground">
                             {experiment.material_brand || '-'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted">
                             {experiment.material_model || '-'}
                           </div>
                           {experiment.material_color && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted">
                               {t('experiments.table.color')} {experiment.material_color}
                             </div>
                           )}
@@ -789,14 +783,14 @@ export default function ExperimentsPage() {
 
                         {/* Máquina */}
                         <td className="px-4 py-3 text-sm">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-foreground">
                             {experiment.machine_brand || '-'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted">
                             {experiment.machine_model || '-'}
                           </div>
                           {experiment.machine_technology && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted">
                               {experiment.machine_technology}
                             </div>
                           )}
@@ -806,11 +800,11 @@ export default function ExperimentsPage() {
                         <td className="px-4 py-3 text-sm">
                           <div className="flex items-center gap-2">
                             <div>
-                              <div className="font-medium text-gray-900">
+                              <div className="font-medium text-foreground">
                                 {getShapeEmoji(experiment.shape_type)} {experiment.shape_type || '-'}
                               </div>
                               {experiment.dimension_a && experiment.dimension_b && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted">
                                   {formatNumber(experiment.dimension_a, 1)} × {formatNumber(experiment.dimension_b, 1)}
                                 </div>
                               )}
@@ -822,15 +816,15 @@ export default function ExperimentsPage() {
                         <td className="px-4 py-3 text-sm">
                           {experiment.infill_count > 0 ? (
                             <div>
-                              <div className="font-medium text-gray-900">
+                              <div className="font-medium text-foreground">
                                 {formatNumber(experiment.infill_hu_mean)}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-muted">
                                 ({experiment.infill_count} {t('experiments.table.measurements')})
                               </div>
                             </div>
                           ) : (
-                            <span className="text-gray-500">-</span>
+                            <span className="text-muted">-</span>
                           )}
                         </td>
 
@@ -853,7 +847,7 @@ export default function ExperimentsPage() {
                               </span>
                             )}
                             {!experiment.mechanical_tests && experiment.attenuation_count === 0 && !experiment.beam_qualities_exists && (
-                              <span className="text-gray-400 text-xs">-</span>
+                              <span className="text-slate-400 text-xs">-</span>
                             )}
                           </div>
                         </td>
@@ -862,7 +856,7 @@ export default function ExperimentsPage() {
                         <td className="px-4 py-3 text-sm">
                           <button
                             onClick={() => handleViewDetails(experiment.experiment_id)}
-                            className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium text-xs"
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-primary-muted text-primary rounded-lg hover:bg-green-200 transition-colors font-medium text-xs"
                             title={t('experiments.table.viewDetails')}
                           >
                             <Eye className="h-4 w-4" />
@@ -882,7 +876,7 @@ export default function ExperimentsPage() {
                 <button
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('common.pagination.previous')}
                 </button>
@@ -893,8 +887,8 @@ export default function ExperimentsPage() {
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 py-2 rounded text-sm font-medium ${
                       currentPage === page
-                        ? 'bg-green-600 text-white'
-                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-primary text-white'
+                        : 'bg-surface border border-border text-foreground hover:bg-background'
                     }`}
                   >
                     {page}
@@ -904,7 +898,7 @@ export default function ExperimentsPage() {
                 <button
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('common.pagination.next')}
                 </button>
@@ -915,7 +909,7 @@ export default function ExperimentsPage() {
       </div>
 
       {/* Comparison Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-200 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-border bg-background">
         <ExperimentComparison
           selectedIds={selectedExperimentIds}
           experiments={experiments}

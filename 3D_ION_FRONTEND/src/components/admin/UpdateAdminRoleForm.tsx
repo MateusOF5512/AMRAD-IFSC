@@ -169,7 +169,7 @@ export function UpdateAdminRoleForm({
 
   return (
     <>
-      <form onSubmit={handleFormSubmit} className="space-y-4 bg-white p-6 rounded-lg border-2 border-orange-300">
+      <form onSubmit={handleFormSubmit} className="space-y-4 bg-surface p-6 rounded-lg border-2 border-orange-300">
         {/* Info Box - Requisitos */}
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-orange-800">
@@ -178,7 +178,7 @@ export function UpdateAdminRoleForm({
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
             E-mail <span className="text-red-500">*</span>
           </label>
           <input
@@ -191,14 +191,14 @@ export function UpdateAdminRoleForm({
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">Digite o e-mail do pesquisador que deseja promover a administrador</p>
+          <p className="text-xs text-muted mt-1">Digite o e-mail do pesquisador que deseja promover a administrador</p>
         </div>
 
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="role" className="block text-sm font-medium text-foreground mb-2">
             Novo Role <span className="text-red-500">*</span>
             {isEditingExistingAdmin && (
-              <span className="text-gray-500 text-xs ml-2">
+              <span className="text-muted text-xs ml-2">
                 (Atual: {admin?.user_type === 'admin' ? 'Admin' : 'Pesquisador'})
               </span>
             )}
@@ -208,7 +208,7 @@ export function UpdateAdminRoleForm({
             value={newRole}
             onChange={(e) => setNewRole(e.target.value as UserRole)}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-200 disabled:text-gray-500"
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-200 disabled:text-muted"
           >
             <option value="pesquisador">🔎 Pesquisador</option>
             <option value="admin">💼 Administrador</option>
@@ -222,7 +222,7 @@ export function UpdateAdminRoleForm({
           <div
             className={`p-3 rounded-lg text-sm ${
               message.type === 'success'
-                ? 'bg-green-50 text-green-800 border border-green-200'
+                ? 'bg-primary-light text-primary border border-primary/30'
                 : message.type === 'warning'
                 ? 'bg-yellow-50 text-yellow-800 border border-yellow-200'
                 : 'bg-red-50 text-red-800 border border-red-200'
@@ -236,7 +236,7 @@ export function UpdateAdminRoleForm({
         <button
           type="submit"
           disabled={isSubmitting || Boolean(isLoading) || !!isSameRole}
-          className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting ? 'Processando...' : isEditingExistingAdmin ? 'Confirmar Alteração' : 'Adicionar como Admin'}
         </button>

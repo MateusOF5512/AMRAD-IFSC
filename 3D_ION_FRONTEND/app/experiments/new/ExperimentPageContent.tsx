@@ -33,7 +33,7 @@ export default function ExperimentPageContent() {
   if (isCheckingAuth) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-600">Verificando autenticação...</div>
+        <div className="text-muted">Verificando autenticação...</div>
       </div>
     )
   }

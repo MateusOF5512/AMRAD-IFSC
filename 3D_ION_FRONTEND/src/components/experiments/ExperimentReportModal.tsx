@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { transformApiDataToEditFormat, EditExperimentData } from '@/lib/utils/transformExperimentData'
+import { logger } from '@/lib/logger'
+import { getNormalizedApiUrl } from '@/lib/api'
 
 // ⚡ PERFORMANCE: Lazy load heavy components
 const ExperimentEditWizard = dynamic(() => import('./ExperimentEditWizard'), { ssr: false })
@@ -39,7 +41,7 @@ export function ExperimentReportModal({
       setLoading(true)
       setError(null)
       try {
-        let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+        let apiUrl = getNormalizedApiUrl()
         if (!apiUrl.includes('/api/v1')) {
           apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
         }
@@ -59,19 +61,10 @@ export function ExperimentReportModal({
         setExperimentData(data)
         // Transform data for editing (but don't show edit mode yet)
         const transformed = transformApiDataToEditFormat(data)
-        // DEBUG: Log transformed data
-        console.log('[ExperimentReportModal] API response infill_measurements:', {
-          length: data.infill_measurements?.length,
-          data: data.infill_measurements
-        })
-        console.log('[ExperimentReportModal] transformed infill_data:', {
-          length: transformed.infill_data?.length,
-          data: transformed.infill_data
-        })
         setEditData(transformed)
       } catch (err: any) {
         setError(err.message || 'Erro ao carregar dados')
-        console.error('Erro ao buscar detalhes:', err)
+        logger.error('ExperimentReportModal', err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoading(false)
       }
@@ -88,7 +81,7 @@ export function ExperimentReportModal({
 
   const getStatusBadge = (status?: string) => {
     if (status === 'Approved') {
-      return { label: t('experiments.report.status.approved'), icon: '✅', bgColor: 'bg-green-100', textColor: 'text-green-800' }
+      return { label: t('experiments.report.status.approved'), icon: '✅', bgColor: 'bg-primary-muted', textColor: 'text-primary' }
     }
     if (status === 'Submitted') {
       return { label: t('experiments.report.status.submitted'), icon: '📤', bgColor: 'bg-blue-100', textColor: 'text-blue-800' }
@@ -99,7 +92,7 @@ export function ExperimentReportModal({
     if (status === 'Revisions') {
       return { label: t('experiments.report.status.revisions'), icon: '⚠️', bgColor: 'bg-orange-100', textColor: 'text-orange-800' }
     }
-    return { label: status || t('experiments.report.status.unknown'), icon: '❓', bgColor: 'bg-gray-100', textColor: 'text-gray-800' }
+    return { label: status || t('experiments.report.status.unknown'), icon: '❓', bgColor: 'bg-slate-100', textColor: 'text-foreground' }
   }
 
   const getShapeEmoji = (shapeType?: string): string => {
@@ -164,9 +157,9 @@ export function ExperimentReportModal({
   const getStageStyle = (isComplete: boolean) => {
     if (isComplete) {
       return {
-        bgColor: 'bg-green-50',
+        bgColor: 'bg-primary-light',
         borderColor: 'border-green-300',
-        titleColor: 'text-green-900',
+        titleColor: 'text-primary',
         icon: '✅',
       }
     } else {
@@ -185,7 +178,7 @@ export function ExperimentReportModal({
     
     // Reload experiment data from API
     try {
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+      let apiUrl = getNormalizedApiUrl()
       if (!apiUrl.includes('/api/v1')) {
         apiUrl = apiUrl.replace(/\/$/, '') + '/api/v1'
       }
@@ -204,7 +197,7 @@ export function ExperimentReportModal({
         setEditData(transformed)
       }
     } catch (err) {
-      console.error('Erro ao recarregar dados:', err)
+      logger.error('ExperimentReportModal', err instanceof Error ? err.message : 'Unknown error')
     }
   }
 
@@ -221,20 +214,20 @@ export function ExperimentReportModal({
   if (isEditing && editData) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-surface rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto">
           {/* Wizard in Edit Mode */}
-          <div className="px-6 py-4 border-b bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 border-green-200 sticky top-0 flex items-center justify-between">
+          <div className="px-6 py-4 border-b bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 border-primary/30 sticky top-0 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-green-900">
+              <h2 className="text-2xl font-bold text-primary">
                 {t('experiments.report.editButton')}
               </h2>
-              <p className="text-sm text-green-700 mt-1">
+              <p className="text-sm text-primary mt-1">
                 {t('experiments.report.editSubtitle')}
               </p>
             </div>
             <button
               onClick={() => setIsEditing(false)}
-              className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              className="text-muted hover:text-foreground text-2xl leading-none"
             >
               ✕
             </button>
@@ -255,7 +248,7 @@ export function ExperimentReportModal({
   // Regular report view (approved experiments section)
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 border-blue-200 sticky top-0">
           <div className="flex items-start justify-between">
@@ -269,7 +262,7 @@ export function ExperimentReportModal({
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              className="text-muted hover:text-foreground text-2xl leading-none"
             >
               ✕
             </button>
@@ -299,25 +292,25 @@ export function ExperimentReportModal({
             <div className="border rounded-lg p-4 bg-emerald-50 border-emerald-300">
               <h3 className="text-lg font-bold text-emerald-900 mb-4">👤 {t('experiments.report.sections.info')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-3 bg-white rounded border border-emerald-100">
-                  <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.index')}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1">{experimentData.index_visual || '-'}</p>
+                <div className="p-3 bg-surface rounded border border-emerald-100">
+                  <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.index')}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{experimentData.index_visual || '-'}</p>
                 </div>
-                <div className="p-3 bg-white rounded border border-emerald-100">
-                  <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.researcher')}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1">{experimentData.researcher_name || '-'}</p>
+                <div className="p-3 bg-surface rounded border border-emerald-100">
+                  <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.researcher')}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{experimentData.researcher_name || '-'}</p>
                 </div>
-                <div className="p-3 bg-white rounded border border-emerald-100">
-                  <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.institution')}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1">{experimentData.researcher_institution || '-'}</p>
+                <div className="p-3 bg-surface rounded border border-emerald-100">
+                  <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.institution')}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{experimentData.researcher_institution || '-'}</p>
                 </div>
-                <div className="p-3 bg-white rounded border border-emerald-100">
-                  <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.createdDate')}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-1">{formatDateTime(experimentData.created_at)}</p>
+                <div className="p-3 bg-surface rounded border border-emerald-100">
+                  <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.createdDate')}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">{formatDateTime(experimentData.created_at)}</p>
                 </div>
                 {showStatus && (
-                  <div className="p-3 bg-white rounded border border-emerald-100 md:col-span-2">
-                    <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.status')}</p>
+                  <div className="p-3 bg-surface rounded border border-emerald-100 md:col-span-2">
+                    <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.status')}</p>
                     <p className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mt-1 ${getStatusBadge(experimentData.status).bgColor} ${getStatusBadge(experimentData.status).textColor}`}>
                       {getStatusBadge(experimentData.status).icon} {getStatusBadge(experimentData.status).label}
                     </p>
@@ -340,44 +333,44 @@ export function ExperimentReportModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Material */}
                     <div>
-                      <h4 className="text-sm font-bold text-gray-700 mb-2">{t('experiments.report.sectionTitles.material')}</h4>
+                      <h4 className="text-sm font-bold text-foreground mb-2">{t('experiments.report.sectionTitles.material')}</h4>
                       <div className="space-y-2">
-                        <div className="p-2 bg-white rounded border border-gray-200">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.brand')}</p>
-                          <p className="text-sm font-semibold text-gray-900">{experimentData.material_brand || '-'}</p>
+                        <div className="p-2 bg-surface rounded border border-border">
+                          <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.brand')}</p>
+                          <p className="text-sm font-semibold text-foreground">{experimentData.material_brand || '-'}</p>
                         </div>
-                        <div className="p-2 bg-white rounded border border-gray-200">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.model')}</p>
-                          <p className="text-sm font-semibold text-gray-900">{experimentData.material_model || '-'}</p>
+                        <div className="p-2 bg-surface rounded border border-border">
+                          <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.model')}</p>
+                          <p className="text-sm font-semibold text-foreground">{experimentData.material_model || '-'}</p>
                         </div>
-                        <div className="p-2 bg-white rounded border border-gray-200">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.color')}</p>
-                          <p className="text-sm font-semibold text-gray-900">{experimentData.material_color || '-'}</p>
+                        <div className="p-2 bg-surface rounded border border-border">
+                          <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.color')}</p>
+                          <p className="text-sm font-semibold text-foreground">{experimentData.material_color || '-'}</p>
                         </div>
                         {experimentData.material_is_composite !== null && (
-                          <div className="p-2 bg-white rounded border border-gray-200">
-                            <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.composite')}</p>
-                            <p className="text-sm font-semibold text-gray-900">{experimentData.material_is_composite ? t('experiments.report.boolean.yes') : t('experiments.report.boolean.no')}</p>
+                          <div className="p-2 bg-surface rounded border border-border">
+                            <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.composite')}</p>
+                            <p className="text-sm font-semibold text-foreground">{experimentData.material_is_composite ? t('experiments.report.boolean.yes') : t('experiments.report.boolean.no')}</p>
                           </div>
                         )}
                       </div>
                     </div>
                     {/* Máquina */}
                     <div>
-                      <h4 className="text-sm font-bold text-gray-700 mb-2">{t('experiments.report.sectionTitles.machine')}</h4>
+                      <h4 className="text-sm font-bold text-foreground mb-2">{t('experiments.report.sectionTitles.machine')}</h4>
                       <div className="space-y-2">
-                        <div className="p-2 bg-white rounded border border-gray-200">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.brand')}</p>
-                          <p className="text-sm font-semibold text-gray-900">{experimentData.machine_brand || '-'}</p>
+                        <div className="p-2 bg-surface rounded border border-border">
+                          <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.brand')}</p>
+                          <p className="text-sm font-semibold text-foreground">{experimentData.machine_brand || '-'}</p>
                         </div>
-                        <div className="p-2 bg-white rounded border border-gray-200">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.model')}</p>
-                          <p className="text-sm font-semibold text-gray-900">{experimentData.machine_model || '-'}</p>
+                        <div className="p-2 bg-surface rounded border border-border">
+                          <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.model')}</p>
+                          <p className="text-sm font-semibold text-foreground">{experimentData.machine_model || '-'}</p>
                         </div>
                         {experimentData.machine_technology && (
-                          <div className="p-2 bg-white rounded border border-gray-200">
-                            <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.technology')}</p>
-                            <p className="text-sm font-semibold text-gray-900">{experimentData.machine_technology}</p>
+                          <div className="p-2 bg-surface rounded border border-border">
+                            <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.technology')}</p>
+                            <p className="text-sm font-semibold text-foreground">{experimentData.machine_technology}</p>
                           </div>
                         )}
                       </div>
@@ -397,20 +390,20 @@ export function ExperimentReportModal({
                     {style.icon} {t('experiments.report.sections.sample')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-3 bg-white rounded border border-gray-200">
-                      <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.shapeType')}</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">
+                    <div className="p-3 bg-surface rounded border border-border">
+                      <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.shapeType')}</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">
                         {getShapeEmoji(experimentData.shape_type)} {experimentData.shape_type || '-'}
                       </p>
                     </div>
-                    <div className="p-3 bg-white rounded border border-gray-200">
-                      <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.dimension')}</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">{formatNumber(experimentData.shape_dimension)}</p>
+                    <div className="p-3 bg-surface rounded border border-border">
+                      <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.dimension')}</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{formatNumber(experimentData.shape_dimension)}</p>
                     </div>
                     {experimentData.circle_roi_area !== null && (
-                      <div className="p-3 bg-white rounded border border-gray-200">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.roiArea')}</p>
-                        <p className="text-sm font-semibold text-gray-900 mt-1">{formatNumber(experimentData.circle_roi_area)}</p>
+                      <div className="p-3 bg-surface rounded border border-border">
+                        <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.roiArea')}</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{formatNumber(experimentData.circle_roi_area)}</p>
                       </div>
                     )}
                   </div>
@@ -437,32 +430,32 @@ export function ExperimentReportModal({
                           return aPercentage - bPercentage
                         })
                         .map((im: any, idx: number) => (
-                        <div key={idx} className="p-3 bg-white rounded border border-gray-200">
+                        <div key={idx} className="p-3 bg-surface rounded border border-border">
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {im.infill_percentage !== null && (
                               <div>
-                                <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.infillPercentage')}</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">
+                                <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.infillPercentage')}</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">
                                   {formatNumber(im.infill_percentage ?? im.infill_pct)}%
                                 </p>
                               </div>
                             )}
                             {im.hu_mean !== null && (
                               <div>
-                                <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.huMean')}</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">{formatNumber(im.hu_mean)}</p>
+                                <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.huMean')}</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">{formatNumber(im.hu_mean)}</p>
                               </div>
                             )}
                             {im.hu_value !== null && (
                               <div>
-                                <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.huMeasured')}</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">{formatNumber(im.hu_value)}</p>
+                                <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.huMeasured')}</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">{formatNumber(im.hu_value)}</p>
                               </div>
                             )}
                             {im.notes && (
                               <div className="md:col-span-2">
-                                <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.notes')}</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">{im.notes}</p>
+                                <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.notes')}</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">{im.notes}</p>
                               </div>
                             )}
                           </div>
@@ -470,7 +463,7 @@ export function ExperimentReportModal({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 italic">{t('experiments.report.messages.noInfillMeasurements')}</p>
+                    <p className="text-sm text-muted italic">{t('experiments.report.messages.noInfillMeasurements')}</p>
                   )}
                 </div>
               )
@@ -486,36 +479,36 @@ export function ExperimentReportModal({
                     {style.icon} {t('experiments.report.sections.beamQuality')}
                   </h3>
                   {experimentData.beam_qualities ? (
-                    <div className="p-3 bg-white rounded border border-gray-200">
+                    <div className="p-3 bg-surface rounded border border-border">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                         {experimentData.beam_qualities.rqr_2 !== null && (
                           <div>
-                            <p className="text-gray-600 font-semibold uppercase text-xs">RQR-2</p>
-                            <p className="text-gray-900 font-bold mt-1">{experimentData.beam_qualities.rqr_2 || '-'}</p>
+                            <p className="text-muted font-semibold uppercase text-xs">RQR-2</p>
+                            <p className="text-foreground font-bold mt-1">{experimentData.beam_qualities.rqr_2 || '-'}</p>
                           </div>
                         )}
                         {experimentData.beam_qualities.rqr_3 !== null && (
                           <div>
-                            <p className="text-gray-600 font-semibold uppercase text-xs">RQR-3</p>
-                            <p className="text-gray-900 font-bold mt-1">{experimentData.beam_qualities.rqr_3 || '-'}</p>
+                            <p className="text-muted font-semibold uppercase text-xs">RQR-3</p>
+                            <p className="text-foreground font-bold mt-1">{experimentData.beam_qualities.rqr_3 || '-'}</p>
                           </div>
                         )}
                         {experimentData.beam_qualities.rqr_4 !== null && (
                           <div>
-                            <p className="text-gray-600 font-semibold uppercase text-xs">RQR-4</p>
-                            <p className="text-gray-900 font-bold mt-1">{experimentData.beam_qualities.rqr_4 || '-'}</p>
+                            <p className="text-muted font-semibold uppercase text-xs">RQR-4</p>
+                            <p className="text-foreground font-bold mt-1">{experimentData.beam_qualities.rqr_4 || '-'}</p>
                           </div>
                         )}
                         {experimentData.beam_qualities.rqr_5 !== null && (
                           <div>
-                            <p className="text-gray-600 font-semibold uppercase text-xs">RQR-5</p>
-                            <p className="text-gray-900 font-bold mt-1">{experimentData.beam_qualities.rqr_5 || '-'}</p>
+                            <p className="text-muted font-semibold uppercase text-xs">RQR-5</p>
+                            <p className="text-foreground font-bold mt-1">{experimentData.beam_qualities.rqr_5 || '-'}</p>
                           </div>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 italic">{t('experiments.report.messages.noBeamQualities')}</p>
+                    <p className="text-sm text-muted italic">{t('experiments.report.messages.noBeamQualities')}</p>
                   )}
                 </div>
               )
@@ -535,13 +528,13 @@ export function ExperimentReportModal({
                     <div className="space-y-4">
                       {/* Dados Tabulares */}
                       {experimentData.attenuation_tests?.map((test: any) => (
-                        <div key={test.id} className="p-3 bg-white rounded border border-gray-200 mb-3">
-                          <p className="text-sm font-semibold text-gray-900 mb-2">
+                        <div key={test.id} className="p-3 bg-surface rounded border border-border mb-3">
+                          <p className="text-sm font-semibold text-foreground mb-2">
                             {test.rqr_energy} · I₀ = {formatNumber(test.i0)} · μ ={' '}
                             {test.mu_coefficient != null ? formatNumber(test.mu_coefficient) : '—'}
                           </p>
                           {test.measurements?.map((m: any, midx: number) => (
-                            <div key={midx} className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                            <div key={midx} className="grid grid-cols-2 gap-4 text-sm text-foreground">
                               <span>
                                 {t('experiments.report.fields.thickness')}: {formatNumber(m.thickness)} mm
                               </span>
@@ -552,15 +545,15 @@ export function ExperimentReportModal({
                       ))}
                       <div className="space-y-3">
                         {(experimentData.linear_attenuation || []).map((la: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-white rounded border border-gray-200">
+                          <div key={idx} className="p-3 bg-surface rounded border border-border">
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.thickness')}</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">{formatNumber(la.thickness)}</p>
+                                <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.thickness')}</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">{formatNumber(la.thickness)}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-600 uppercase font-semibold">{t('experiments.report.fields.lambertBeer')}</p>
-                                <p className="text-sm font-semibold text-gray-900 mt-1">{formatNumber(la.value_lambert_beer)}</p>
+                                <p className="text-xs text-muted uppercase font-semibold">{t('experiments.report.fields.lambertBeer')}</p>
+                                <p className="text-sm font-semibold text-foreground mt-1">{formatNumber(la.value_lambert_beer)}</p>
                               </div>
                             </div>
                           </div>
@@ -568,7 +561,7 @@ export function ExperimentReportModal({
                       </div>
 
                       {/* Gráfico dentro do Card */}
-                      <div className="mt-6 pt-4 border-t border-gray-200">
+                      <div className="mt-6 pt-4 border-t border-border">
                         <LinearAttenuationChart
                           data={experimentData.linear_attenuation}
                           tests={experimentData.attenuation_tests}
@@ -576,7 +569,7 @@ export function ExperimentReportModal({
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 italic">{t('experiments.report.messages.noLinearAttenuation')}</p>
+                    <p className="text-sm text-muted italic">{t('experiments.report.messages.noLinearAttenuation')}</p>
                   )}
                 </div>
               )
@@ -594,55 +587,55 @@ export function ExperimentReportModal({
                   {experimentData.mechanical_properties ? (
                     <div className="space-y-4">
                       {/* Dados Tabulares */}
-                      <div className="p-3 bg-white rounded border border-gray-200">
+                      <div className="p-3 bg-surface rounded border border-border">
                         {experimentData.mechanical_properties.test_condition && (
-                          <div className="mb-4 p-2 bg-gray-50 rounded">
-                            <p className="text-xs text-gray-600 uppercase font-bold">{t('experiments.report.fields.testCondition')}</p>
-                            <p className="text-gray-900 font-semibold">{experimentData.mechanical_properties.test_condition}</p>
+                          <div className="mb-4 p-2 bg-background rounded">
+                            <p className="text-xs text-muted uppercase font-bold">{t('experiments.report.fields.testCondition')}</p>
+                            <p className="text-foreground font-semibold">{experimentData.mechanical_properties.test_condition}</p>
                           </div>
                         )}
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                           {experimentData.mechanical_properties.tensile_modulus_mpa !== null && (
                             <div>
-                              <p className="text-gray-600 uppercase font-semibold text-xs">{t('experiments.report.fields.tensileModulus')}</p>
-                              <p className="text-gray-900 font-bold mt-1">{formatNumber(experimentData.mechanical_properties.tensile_modulus_mpa)} MPa</p>
+                              <p className="text-muted uppercase font-semibold text-xs">{t('experiments.report.fields.tensileModulus')}</p>
+                              <p className="text-foreground font-bold mt-1">{formatNumber(experimentData.mechanical_properties.tensile_modulus_mpa)} MPa</p>
                             </div>
                           )}
                           {experimentData.mechanical_properties.tensile_strength_mpa !== null && (
                             <div>
-                              <p className="text-gray-600 uppercase font-semibold text-xs">{t('experiments.report.fields.tensileStrength')}</p>
-                              <p className="text-gray-900 font-bold mt-1">{formatNumber(experimentData.mechanical_properties.tensile_strength_mpa)} MPa</p>
+                              <p className="text-muted uppercase font-semibold text-xs">{t('experiments.report.fields.tensileStrength')}</p>
+                              <p className="text-foreground font-bold mt-1">{formatNumber(experimentData.mechanical_properties.tensile_strength_mpa)} MPa</p>
                             </div>
                           )}
                           {experimentData.mechanical_properties.break_deformation_percent !== null && (
                             <div>
-                              <p className="text-gray-600 uppercase font-semibold text-xs">{t('experiments.report.fields.breakDeformation')}</p>
-                              <p className="text-gray-900 font-bold mt-1">{formatNumber(experimentData.mechanical_properties.break_deformation_percent)}%</p>
+                              <p className="text-muted uppercase font-semibold text-xs">{t('experiments.report.fields.breakDeformation')}</p>
+                              <p className="text-foreground font-bold mt-1">{formatNumber(experimentData.mechanical_properties.break_deformation_percent)}%</p>
                             </div>
                           )}
                           {experimentData.mechanical_properties.flexural_modulus_mpa !== null && (
                             <div>
-                              <p className="text-gray-600 uppercase font-semibold text-xs">{t('experiments.report.fields.flexuralModulus')}</p>
-                              <p className="text-gray-900 font-bold mt-1">{formatNumber(experimentData.mechanical_properties.flexural_modulus_mpa)} MPa</p>
+                              <p className="text-muted uppercase font-semibold text-xs">{t('experiments.report.fields.flexuralModulus')}</p>
+                              <p className="text-foreground font-bold mt-1">{formatNumber(experimentData.mechanical_properties.flexural_modulus_mpa)} MPa</p>
                             </div>
                           )}
                           {experimentData.mechanical_properties.flexural_strength_mpa !== null && (
                             <div>
-                              <p className="text-gray-600 uppercase font-semibold text-xs">{t('experiments.report.fields.flexuralStrength')}</p>
-                              <p className="text-gray-900 font-bold mt-1">{formatNumber(experimentData.mechanical_properties.flexural_strength_mpa)} MPa</p>
+                              <p className="text-muted uppercase font-semibold text-xs">{t('experiments.report.fields.flexuralStrength')}</p>
+                              <p className="text-foreground font-bold mt-1">{formatNumber(experimentData.mechanical_properties.flexural_strength_mpa)} MPa</p>
                             </div>
                           )}
                           {experimentData.mechanical_properties.hardness_rockwell !== null && (
                             <div>
-                              <p className="text-gray-600 uppercase font-semibold text-xs">{t('experiments.report.fields.hardnessRockwell')}</p>
-                              <p className="text-gray-900 font-bold mt-1">{experimentData.mechanical_properties.hardness_rockwell}</p>
+                              <p className="text-muted uppercase font-semibold text-xs">{t('experiments.report.fields.hardnessRockwell')}</p>
+                              <p className="text-foreground font-bold mt-1">{experimentData.mechanical_properties.hardness_rockwell}</p>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 italic">{t('experiments.report.messages.noMechanicalProperties')}</p>
+                    <p className="text-sm text-muted italic">{t('experiments.report.messages.noMechanicalProperties')}</p>
                   )}
                 </div>
               )
@@ -652,11 +645,11 @@ export function ExperimentReportModal({
         )}
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3 sticky bottom-0">
+        <div className="px-6 py-4 border-t bg-background flex justify-end gap-3 sticky bottom-0">
           {showEditButton && (
             <button
               onClick={handleEditExperiment}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm font-medium"
             >
               {t('experiments.report.buttonLabels.edit')}
             </button>

@@ -5,6 +5,7 @@ import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ComparisonHUChart } from './ComparisonHUChart'
 import { ComparisonROIChart } from './ComparisonROIChart'
+import { getNormalizedApiUrl } from '@/lib/api'
 
 interface ExperimentWithDetails {
   experiment_id: string
@@ -38,7 +39,7 @@ export function SimplifiedExperimentComparison({ selectedIds, experiments }: Sim
     setComparisonData(null)
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+      const apiUrl = getNormalizedApiUrl()
       const token = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).access_token : null
 
       // Fetch data for each selected experiment
@@ -159,10 +160,10 @@ export function SimplifiedExperimentComparison({ selectedIds, experiments }: Sim
   if (comparisonData === null) {
     return (
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('experimentComparison.sampleComparison.title')}</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">{t('experimentComparison.sampleComparison.title')}</h3>
 
-        <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center mb-6">
-          <p className="text-gray-600 mb-4">
+        <div className="bg-surface rounded-lg border-2 border-dashed border-border p-8 text-center mb-6">
+          <p className="text-muted mb-4">
             {selectedIds.length === 0
               ? t('experimentComparison.labels.selectMinimumHU')
               : selectedIds.length === 1
@@ -177,8 +178,8 @@ export function SimplifiedExperimentComparison({ selectedIds, experiments }: Sim
               inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors
               ${
                 canGenerate && !isGenerating
-                  ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-primary hover:bg-primary-hover text-white cursor-pointer'
+                  : 'bg-slate-300 text-muted cursor-not-allowed'
               }
             `}
           >
@@ -194,7 +195,7 @@ export function SimplifiedExperimentComparison({ selectedIds, experiments }: Sim
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">{t('experimentComparison.sampleComparison.title')}</h3>
+        <h3 className="text-lg font-semibold text-foreground">{t('experimentComparison.sampleComparison.title')}</h3>
         <button
           onClick={handleReset}
           className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
@@ -222,8 +223,8 @@ export function SimplifiedExperimentComparison({ selectedIds, experiments }: Sim
         {huChartData && huChartData.length > 0 ? (
           <ComparisonHUChart data={huChartData} />
         ) : (
-          <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-gray-500 text-sm">{t('experimentComparison.errors.noHUData')}</p>
+          <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+            <p className="text-muted text-sm">{t('experimentComparison.errors.noHUData')}</p>
           </div>
         )}
 
@@ -231,8 +232,8 @@ export function SimplifiedExperimentComparison({ selectedIds, experiments }: Sim
         {roiChartData && roiChartData.length > 0 ? (
           <ComparisonROIChart data={roiChartData} />
         ) : (
-          <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-gray-500 text-sm">{t('experimentComparison.errors.noROIData')}</p>
+          <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+            <p className="text-muted text-sm">{t('experimentComparison.errors.noROIData')}</p>
           </div>
         )}
       </div>

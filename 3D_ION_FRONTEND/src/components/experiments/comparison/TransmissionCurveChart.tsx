@@ -27,8 +27,8 @@ export function TransmissionCurveChart({ bundles }: TransmissionCurveChartProps)
 
   if (!bundles.length) {
     return (
-      <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-sm">{t('experiments.charts.transmissionCurve.noData')}</p>
+      <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+        <p className="text-muted text-sm">{t('experiments.charts.transmissionCurve.noData')}</p>
       </div>
     )
   }
@@ -59,8 +59,8 @@ export function TransmissionCurveChart({ bundles }: TransmissionCurveChartProps)
   }))
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
-      <h4 className="text-sm font-bold text-gray-700 mb-4">
+    <div className="w-full bg-surface rounded-lg p-4 border border-border shadow-sm">
+      <h4 className="text-sm font-bold text-foreground mb-4">
         {t('experiments.charts.transmissionCurve.title')}
       </h4>
       <ResponsiveContainer width="100%" height={350}>
@@ -100,7 +100,7 @@ export function TransmissionCurveChart({ bundles }: TransmissionCurveChartProps)
         </LineChart>
       </ResponsiveContainer>
       <ComparisonExperimentsLegend items={legendItems} />
-      <p className="mt-3 text-xs text-gray-500">{t('experiments.charts.transmissionCurve.description')}</p>
+      <p className="mt-3 text-xs text-muted">{t('experiments.charts.transmissionCurve.description')}</p>
     </div>
   )
 }

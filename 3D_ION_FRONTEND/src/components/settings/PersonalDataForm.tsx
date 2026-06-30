@@ -95,7 +95,6 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
 
   // Sincronizar formData quando initialData mudar
   useEffect(() => {
-    console.log('InitialData received:', initialData)
     const newFormData = {
       name: initialData.name || '',
       institution: initialData.institution || '',
@@ -105,21 +104,15 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
       country: initialData.country || '',
       language: initialData.language || ''
     }
-    console.log('Setting formData to:', newFormData)
     setFormData(newFormData)
   }, [initialData])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    console.log(`Updating ${name}:`, value)
-    setFormData((prev: typeof formData) => {
-      const updated = {
-        ...prev,
-        [name]: value
-      }
-      console.log('Updated formData:', updated)
-      return updated
-    })
+    setFormData((prev: typeof formData) => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,7 +232,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Name Field */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
           {t('settings.personalData.fields.fullName')}
         </label>
         <input
@@ -248,13 +241,13 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
           name="name"
           value={formData.name}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
         />
       </div>
 
       {/* Institution Field */}
       <div>
-        <label htmlFor="institution" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="institution" className="block text-sm font-medium text-foreground mb-2">
           {t('settings.personalData.fields.institution')}
         </label>
         <input
@@ -263,13 +256,13 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
           name="institution"
           value={formData.institution}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
         />
       </div>
 
       {/* Email Field (Read-only) */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
           {t('settings.personalData.fields.email')}
         </label>
         <input
@@ -278,14 +271,14 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
           name="email"
           value={formData.email}
           disabled
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+          className="w-full px-4 py-2 border border-border rounded-lg bg-slate-100 cursor-not-allowed"
         />
-        <p className="text-xs text-gray-500 mt-1">{t('settings.personalData.emailNote')}</p>
+        <p className="text-xs text-muted mt-1">{t('settings.personalData.emailNote')}</p>
       </div>
 
       {/* Phone Number Field */}
       <div>
-        <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="phone_number" className="block text-sm font-medium text-foreground mb-2">
           {t('settings.personalData.fields.phone')}
         </label>
         <input
@@ -294,13 +287,13 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
           name="phone_number"
           value={formData.phone_number}
           onChange={handleInputChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
         />
       </div>
 
       {/* Instagram Field */}
       <div>
-        <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 mb-2">
+        <label htmlFor="instagram" className="block text-sm font-medium text-foreground mb-2">
           {t('settings.personalData.fields.instagram')}
         </label>
         <input
@@ -310,7 +303,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
           value={formData.instagram || ''}
           onChange={handleInputChange}
           placeholder="@seuinstagram"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
         />
       </div>
 
@@ -318,7 +311,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
       <div className="grid grid-cols-2 gap-4">
         {/* Country Field */}
         <div>
-          <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="country" className="block text-sm font-medium text-foreground mb-2">
             {t('settings.personalData.country')}
           </label>
           <select
@@ -326,7 +319,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
             name="country"
             value={formData.country || ''}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
             required
           >
             <option value="">{t('settings.personalData.selectCountry')}</option>
@@ -340,7 +333,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
 
         {/* Language Field */}
         <div>
-          <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="language" className="block text-sm font-medium text-foreground mb-2">
             {t('settings.personalData.fields.language')}
           </label>
           <select
@@ -348,7 +341,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
             name="language"
             value={formData.language || ''}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
             required
           >
             <option value="">{t('settings.personalData.selectLanguage')}</option>
@@ -362,12 +355,12 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
       </div>
 
       {/* Password Change Section */}
-      <div className="border-t border-gray-200 pt-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('settings.personalData.changePassword')}</h3>
+      <div className="border-t border-border pt-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">{t('settings.personalData.changePassword')}</h3>
         
         {/* New Password */}
         <div className="mb-4">
-          <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
             {t('settings.personalData.fields.newPassword')}
           </label>
           <div className="relative">
@@ -377,12 +370,12 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
               name="newPassword"
               value={passwordData.newPassword}
               onChange={handlePasswordChange}
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 pr-10 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -395,7 +388,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
 
         {/* Confirm Password */}
         <div className="mb-4">
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
             {t('settings.personalData.fields.confirmPassword')}
           </label>
           <div className="relative">
@@ -405,12 +398,12 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
               name="confirmPassword"
               value={passwordData.confirmPassword}
               onChange={handlePasswordChange}
-              className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-transparent outline-none"
+              className="w-full px-4 py-2 pr-10 border border-border rounded-lg focus:ring-primary/40 focus:border-transparent outline-none"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground"
             >
               {showConfirmPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -426,7 +419,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
       {message && (
         <div className={`flex items-center gap-2 p-4 rounded-lg ${
           message.type === 'success'
-            ? 'bg-green-50 text-green-700'
+            ? 'bg-primary-light text-primary'
             : 'bg-red-50 text-red-700'
         }`}>
           {message.type === 'success' ? (
@@ -441,7 +434,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
       {confirmPasswordMessage && (
         <div className={`flex items-center gap-2 p-4 rounded-lg ${
           confirmPasswordMessage.type === 'success'
-            ? 'bg-green-50 text-green-700'
+            ? 'bg-primary-light text-primary'
             : 'bg-red-50 text-red-700'
         }`}>
           {confirmPasswordMessage.type === 'success' ? (
@@ -458,7 +451,7 @@ export function PersonalDataForm({ initialData, onSubmit, isLoading = false }: P
         <button
           type="submit"
           disabled={isLoading || formLoading}
-          className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-6 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading || formLoading ? t('common.saving') : t('settings.personalData.saveButton')}
         </button>

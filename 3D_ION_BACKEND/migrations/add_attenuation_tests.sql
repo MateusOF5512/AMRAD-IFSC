@@ -34,8 +34,9 @@ CREATE POLICY "Users can manage attenuation tests for their samples"
   USING (
     sample_id IN (
       SELECT s.id FROM public.samples s
-      JOIN public.researchers r ON s.researcher_id = r.id
-      WHERE r.user_id = auth.uid()
+      WHERE s.researcher_id = (
+        SELECT r.id FROM public.researchers r WHERE r.auth_id = auth.uid()
+      )
     )
   );
 
@@ -46,7 +47,8 @@ CREATE POLICY "Users can manage attenuation measurements for their tests"
     test_id IN (
       SELECT t.id FROM public.attenuation_tests t
       JOIN public.samples s ON t.sample_id = s.id
-      JOIN public.researchers r ON s.researcher_id = r.id
-      WHERE r.user_id = auth.uid()
+      WHERE s.researcher_id = (
+        SELECT r.id FROM public.researchers r WHERE r.auth_id = auth.uid()
+      )
     )
   );

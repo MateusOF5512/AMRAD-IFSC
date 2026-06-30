@@ -14,9 +14,9 @@ interface UsersTableProps {
 }
 
 const statusColorMap: Record<UserStatus, { bg: string; text: string; badge: string }> = {
-  regular: { bg: 'bg-green-50', text: 'text-green-700', badge: 'bg-green-100 text-green-800' },
+  regular: { bg: 'bg-primary-light', text: 'text-primary', badge: 'bg-primary-muted text-primary' },
   irregular: { bg: 'bg-yellow-50', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-800' },
-  desativado: { bg: 'bg-gray-50', text: 'text-gray-700', badge: 'bg-gray-100 text-gray-800' },
+  desativado: { bg: 'bg-background', text: 'text-foreground', badge: 'bg-slate-100 text-foreground' },
 }
 
 const statusLabelMap: Record<UserStatus, string> = {
@@ -29,20 +29,11 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
   const { t, i18n } = useTranslation()
   const colors = statusColorMap[status]
 
-  // DEBUG: Log exatamente o que foi recebido
-  console.log(`[UsersTable-${status}] Received ${users.length} users`)
-  if (users.length > 0) {
-    console.log(`[UsersTable-${status}] First user:`, users[0])
-    console.log(`[UsersTable-${status}] First user user_type:`, users[0].user_type)
-    console.log(`[UsersTable-${status}] Type of user_type:`, typeof users[0].user_type)
-    console.log(`[UsersTable-${status}] All users user_type values:`, users.map(u => ({ name: u.name, user_type: u.user_type })))
-  }
-
   if (isLoading) {
     return (
       <div className="text-center py-8">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        <p className="mt-2 text-gray-600">{t('admin.advanced.usersTab.loading')}</p>
+        <p className="mt-2 text-muted">{t('admin.advanced.usersTab.loading')}</p>
       </div>
     )
   }
@@ -67,7 +58,7 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
   if (users.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">{t('usersTable.noUsersFound', { status: statusLabelMap[status] })}</p>
+        <p className="text-muted">{t('usersTable.noUsersFound', { status: statusLabelMap[status] })}</p>
       </div>
     )
   }
@@ -75,17 +66,17 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs sm:text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+        <thead className="bg-background border-b border-border sticky top-0">
           <tr>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.status')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.name')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.email')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">Role</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">Instituição</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">País</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">Criado em</th>
-            <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider">Experimentos</th>
-            <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider">Detalhes</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.status')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.name')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.email')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">Role</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">Instituição</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">País</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">Criado em</th>
+            <th className="px-3 sm:px-4 py-3 text-center font-semibold text-foreground uppercase tracking-wider">Experimentos</th>
+            <th className="px-3 sm:px-4 py-3 text-center font-semibold text-foreground uppercase tracking-wider">Detalhes</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
@@ -101,8 +92,8 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
                   {statusLabelMap[user.status]}
                 </span>
               </td>
-              <td className="px-3 sm:px-4 py-3 text-gray-900">{user.name}</td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+              <td className="px-3 sm:px-4 py-3 text-foreground">{user.name}</td>
+              <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                 {user.email || '-'}
               </td>
               <td className="px-3 sm:px-4 py-3">
@@ -111,24 +102,17 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
                     ? 'bg-red-100 text-red-700'
                     : 'bg-blue-100 text-blue-700'
                 }`}>
-                  {(() => {
-                    console.log(`[UsersTable RENDER] User: ${user.name}, user_type: "${user.user_type}", equals 'admin': ${user.user_type === 'admin'}`)
-                    return user.user_type === 'admin' ? '🔐 Admin' : '👤 Pesquisador'
-                  })()}
+                  {user.user_type === 'admin' ? '🔐 Admin' : '👤 Pesquisador'}
                 </span>
               </td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">{user.institution || '-'}</td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap">{user.country || '-'}</td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 text-xs whitespace-nowrap">
+              <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">{user.institution || '-'}</td>
+              <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">{user.country || '-'}</td>
+              <td className="px-3 sm:px-4 py-3 text-muted text-xs whitespace-nowrap">
                 {formatDateTimeByLanguage(user.created_at, i18n.language)}
               </td>
               <td className="px-3 sm:px-4 py-3 text-center font-semibold">
                 <span className="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  {(() => {
-                    const value = user.experimentos_criados_total
-                    console.log(`[UsersTable RENDER] User: ${user.name}, experimentos_criados_total: ${value}, type: ${typeof value}`)
-                    return value
-                  })()}
+                  {user.experimentos_criados_total}
                 </span>
               </td>
               <td className="px-3 sm:px-4 py-3 text-center">
@@ -137,7 +121,7 @@ export function UsersTable({ users, status, isLoading, error, onStatusChange, on
                     e.stopPropagation()
                     onViewDetails?.(user)
                   }}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-xs font-medium transition-colors"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-muted hover:bg-green-200 text-primary rounded-lg text-xs font-medium transition-colors"
                   title="Ver detalhes"
                 >
                   <Eye className="h-4 w-4" />

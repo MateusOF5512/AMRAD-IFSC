@@ -41,16 +41,16 @@ export default function FinalizationConfirmationModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200 p-6">
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 border-b border-border p-6">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+            <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-foreground">
                 {isEditMode ? 'Finalizar Edição' : 'Finalizar Cadastro'}
               </h2>
-              <p className="text-lg text-gray-600 mt-1">
+              <p className="text-lg text-muted mt-1">
                 {isEditMode ? 'Confirmação de alterações' : 'Confirmação de dados'}
               </p>
             </div>
@@ -94,10 +94,10 @@ export default function FinalizationConfirmationModal({
 
           {/* Success Message (while submitting) */}
           {isSubmitting && !error && (
-            <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+            <div className="bg-primary-light border-l-4 border-primary p-4 rounded">
               <div className="flex items-center gap-2">
-                <Loader className="w-4 h-4 text-green-600 animate-spin" />
-                <p className="text-base text-green-900 font-semibold">
+                <Loader className="w-4 h-4 text-primary animate-spin" />
+                <p className="text-base text-primary font-semibold">
                   {isEditMode ? 'Salvando alterações...' : 'Finalizando cadastro...'}
                 </p>
               </div>
@@ -106,11 +106,11 @@ export default function FinalizationConfirmationModal({
         </div>
 
         {/* Footer with Actions */}
-        <div className="border-t border-gray-200 p-6 bg-gray-50 flex gap-3">
+        <div className="border-t border-border p-6 bg-background flex gap-3">
           <button
             onClick={onCancel}
             disabled={isSubmitting || isLoading}
-            className="flex-1 px-4 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-3 text-base font-medium text-foreground bg-surface border border-border rounded-lg hover:bg-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continuar Editando
           </button>
@@ -119,8 +119,8 @@ export default function FinalizationConfirmationModal({
             disabled={isSubmitting || isLoading}
             className={`flex-1 px-4 py-3 text-base font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
               isSubmitting || isLoading
-                ? 'text-white bg-green-400 cursor-not-allowed'
-                : 'text-white bg-green-600 hover:bg-green-700'
+                ? 'text-white bg-primary/60 cursor-not-allowed'
+                : 'text-white bg-primary hover:bg-primary-hover'
             }`}
           >
             {isSubmitting || isLoading ? (

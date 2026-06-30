@@ -1,11 +1,13 @@
-# ION3D Platform
+# AMRAD
 
 Plataforma de gestão de experimentos científicos em impressão 3D. O projeto é dividido em dois repositórios internos:
 
 | Pasta | Stack | Porta padrão |
 |-------|-------|--------------|
-| `3D_ION_BACKEND` | Python · FastAPI · Supabase | `8000` |
-| `3D_ION_FRONTEND` | Next.js · React · TypeScript | `3000` |
+| `AMRAD_BACKEND` | Python · FastAPI · Supabase | `8000` |
+| `AMRAD_FRONTEND` | Next.js · React · TypeScript | `3000` |
+
+> **Pastas no disco:** se ainda aparecerem como `3D_ION_BACKEND` / `3D_ION_FRONTEND`, feche servidores dev e o Cursor, execute `.\rename-to-amrad.ps1` na raiz e reabra o workspace em `AMRAD/`.
 
 ```
 Frontend (Next.js)  ──HTTP──▶  Backend (FastAPI)  ──▶  Supabase (PostgreSQL + Auth)
@@ -36,10 +38,10 @@ As chaves do Supabase ficam em **Settings → API** do seu projeto:
 
 ### Variáveis de ambiente (raiz do monorepo)
 
-Na **raiz do projeto** (`3D_ION/`), copie o template e preencha:
+Na **raiz do projeto** (`AMRAD/`), copie o template e preencha:
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION
+cd C:\Users\mateu\2_PESSOAL\AMRAD
 copy .env.example .env
 ```
 
@@ -80,7 +82,7 @@ DEBUG=True
 Abra um **CMD** e navegue até a pasta do backend:
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION_BACKEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD_BACKEND
 ```
 
 > Ajuste o caminho se o projeto estiver em outro local.
@@ -126,7 +128,7 @@ O servidor recarrega automaticamente ao salvar arquivos (`--reload`).
 Abra **outro CMD** (mantenha o backend rodando no primeiro):
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION_FRONTEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD_FRONTEND
 npm install
 npm run dev
 ```
@@ -160,7 +162,7 @@ O frontend envia requisições autenticadas para `NEXT_PUBLIC_API_URL` com o tok
 **CMD 1 — Backend:**
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION_BACKEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD_BACKEND
 venv\Scripts\activate.bat
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -168,7 +170,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 **CMD 2 — Frontend:**
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION_FRONTEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD_FRONTEND
 npm run dev
 ```
 
@@ -177,8 +179,8 @@ npm run dev
 ## Estrutura do projeto
 
 ```
-3D_ION/
-├── 3D_ION_BACKEND/          # API REST (FastAPI)
+AMRAD/
+├── AMRAD_BACKEND/          # API REST (FastAPI)
 │   ├── app/
 │   │   ├── main.py          # Ponto de entrada da aplicação
 │   │   ├── core/            # Config, segurança, middleware
@@ -188,7 +190,7 @@ npm run dev
 │   ├── requirements.txt
 │   └── load_env.py          # Carrega .env da raiz
 │
-├── 3D_ION_FRONTEND/         # Interface web (Next.js)
+├── AMRAD_FRONTEND/         # Interface web (Next.js)
 │   ├── app/                 # Rotas e páginas (App Router)
 │   ├── src/
 │   │   ├── components/      # Componentes React
@@ -249,7 +251,7 @@ pip install --upgrade -r requirements.txt
 ### Frontend não inicia ou apresenta erro de Supabase
 
 - Confirme que o `.env` na raiz tem `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Limpe cache e reinstale (dentro de `3D_ION_FRONTEND`):
+- Limpe cache e reinstale (dentro de `AMRAD_FRONTEND`):
 
 ```cmd
 rmdir /s /q .next
@@ -292,11 +294,11 @@ npm run dev -- -p 3001
 
 | Documento | Local |
 |-----------|-------|
-| Backend — API e endpoints | `3D_ION_BACKEND/README.md` |
-| Backend — guia rápido | `3D_ION_BACKEND/docs/QUICK_START.md` |
-| Frontend — documentação geral | `3D_ION_FRONTEND/docs/README.md` |
-| Frontend — setup e admin | `3D_ION_FRONTEND/docs/setup/QUICK_START.md` |
-| Testes do backend | `3D_ION_BACKEND/tests/README.md` |
+| Backend — API e endpoints | `AMRAD_BACKEND/README.md` |
+| Backend — guia rápido | `AMRAD_BACKEND/docs/QUICK_START.md` |
+| Frontend — documentação geral | `AMRAD_FRONTEND/docs/README.md` |
+| Frontend — setup e admin | `AMRAD_FRONTEND/docs/setup/QUICK_START.md` |
+| Testes do backend | `AMRAD_BACKEND/tests/README.md` |
 
 ---
 
@@ -304,6 +306,6 @@ npm run dev -- -p 3001
 
 - [ ] Python 3.11+ e Node.js 18+ instalados
 - [ ] Projeto Supabase criado; chaves copiadas
-- [ ] `3D_ION/.env` configurado (copiado de `.env.example`)
+- [ ] `AMRAD/.env` configurado (copiado de `.env.example`)
 - [ ] Frontend rodando em http://localhost:3000
 - [ ] Login e criação de experimento funcionando

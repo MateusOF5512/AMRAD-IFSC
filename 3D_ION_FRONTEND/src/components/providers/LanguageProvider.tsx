@@ -30,9 +30,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           i18n.changeLanguage(locale);
         }
       }
-    } catch (err) {
+    } catch {
       // localStorage not available or invalid data, fallback to default
-      console.debug('Could not preload language from localStorage:', err);
     }
   }, []); // Run once on mount
 

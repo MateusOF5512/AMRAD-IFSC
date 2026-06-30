@@ -1,4 +1,4 @@
-# Organização do Projeto Frontend - ION3D
+# Organização do Projeto Frontend - AMRAD
 
 ## 📋 Status da Organização
 
@@ -7,7 +7,7 @@ Projeto reorganizado em **21 de fevereiro de 2026** para melhor estrutura e manu
 ## 🗂️ Estrutura de Pastas
 
 ```
-3D_ION_FRONTEND/
+AMRAD_FRONTEND/
 ├── app/                          # Código da aplicação Next.js
 ├── src/                          # Código-fonte adicional (componentes, libs, store)
 ├── public/                       # Arquivos públicos (imagens, logos)

@@ -1,34 +1,29 @@
-# Setup da Logo ION3D
+# Logo e ícone AMRAD
 
-## ⚠️ Ação Necessária
+## Logo (header, login, registro)
 
-A logo ION3D foi configurada para ser exibida no header do sistema, mas o arquivo ainda precisa ser adicionado manualmente.
+| Arquivo | Uso |
+|---------|-----|
+| `public/logo_amrad.png` | Logo horizontal AMRAD |
+| `src/components/layout/BrandLogo.tsx` | Componente reutilizável |
 
-## 📍 Local do Arquivo
+## Ícone / favicon (aba do navegador)
 
-**Caminho:** `/public/logo_ion3d.png`
+Gerados a partir do símbolo de radiação AMRAD (`scripts/brand/amrad-icon.ico`):
 
-Salve a imagem da logo com o nome `logo_ion3d.png` neste diretório.
+| Arquivo | Uso |
+|---------|-----|
+| `app/favicon.ico` | Favicon clássico (16/32/48px) |
+| `app/icon.png` | Ícone PWA / metadados (512×512) |
+| `app/apple-icon.png` | Apple Touch Icon (180×180) |
+| `public/icone.png` | Ícone legado em `public/` |
 
-## 📋 Especificações Recomendadas
+O `app/layout.tsx` usa os arquivos em `app/` (convenção do Next.js App Router) — não é necessário declarar `metadata.icons` manualmente.
 
-- **Formato:** PNG com transparência
-- **Dimensões:** Aproximadamente 200x50px (proporção 4:1)
-- **Transparência:** Recomendado para melhor integração visual
-- **Cores:** Verde e Amarelo (conforme a identidade visual atual)
+## Regenerar ícones
 
-## ✅ Verificação
+Se trocar a arte, substitua `logo_amrad.png` na raiz do frontend e rode:
 
-Após salvar o arquivo, a logo aparecerá automaticamente:
-1. No header do sistema
-2. Todas as páginas que usam o Header
-
-## 🔗 Referência no Código
-
-O arquivo foi configurado em: `src/components/layout/Header.tsx`
-
-```tsx
-<img src="/logo_ion3d.png" alt="ION3D Logo" className="h-8 w-auto" />
+```bash
+python scripts/generate-brand-assets.py
 ```
-
-O arquivo será servido via Next.js public directory sem necessidade de imports adicionais.

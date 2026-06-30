@@ -92,10 +92,7 @@ CREATE POLICY "user_view_own_logs" ON public.application_logs
   FOR SELECT
   USING (user_id = auth.uid());
 
--- Policy: Only backend can insert logs (no direct user inserts)
-CREATE POLICY "backend_insert_logs" ON public.application_logs
-  FOR INSERT
-  WITH CHECK (true);
+-- No INSERT policy: logs are written only via backend service_role (bypasses RLS)
 
 -- Policy: Logs are immutable (no updates or deletes)
 CREATE POLICY "logs_immutable" ON public.application_logs

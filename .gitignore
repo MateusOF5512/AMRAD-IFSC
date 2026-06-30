@@ -77,5 +77,5 @@ desktop.ini
 # =============================================================================
 # Scripts de desenvolvimento sensíveis
 # =============================================================================
-3D_ION_BACKEND/tests/development/generate_token.py
+AMRAD_BACKEND/tests/development/generate_token.py
 **/test_output.txt

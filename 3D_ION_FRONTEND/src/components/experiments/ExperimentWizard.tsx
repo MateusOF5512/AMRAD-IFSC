@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { logger } from '@/lib/logger'
 import MaterialMachineForm from './steps/MaterialMachineForm'
 import SampleForm from './steps/SampleForm'
 import PredefinedInfillsForm from './steps/PredefinedInfillsForm'
@@ -356,24 +357,6 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
   }
 
   const handleSectionEdit = (sectionId: Section) => {
-    // Log bem robusta para garantir que aparece no console
-    const timestamp = new Date().toLocaleTimeString('pt-BR')
-    const msg = `🔴 [${timestamp}] EDIT CHAMADO PARA: ${sectionId}`
-    window.console.log(msg)
-    console.log('[ExperimentWizard] handleSectionEdit CHAMADO:', {
-      sectionId,
-      sample: {
-        id: sample?.id,
-        shape_type: sample?.shape_type,
-        shape_dimension: sample?.shape_dimension
-      },
-      estadoAtual: {
-        infillDataLength: infillData.length,
-        infillPendingDataLength: infillPendingData.length,
-        selectedPredefinedInfillsLength: selectedPredefinedInfills.length
-      }
-    })
-    
     setEditingSection(sectionId)
     setCompletedSections((prev) => {
       const next = new Set(prev)
@@ -392,22 +375,16 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
     
     // Se editando infill, carrega dados já salvos do banco (como em meus-experimentos)
     if (sectionId === 'infill' && sample?.id) {
-      console.log('[ExperimentWizard] INICIANDO loadInfillDataFromBank para sample:', sample.id)
       loadInfillDataFromBank(sample.id)
-    } else if (sectionId === 'infill') {
-      console.warn('[ExperimentWizard] Não pode carregar infill data: sample?.id não está disponível', {
-        sampleId: sample?.id
-      })
     }
   }
 
   // Carregar dados de infill do banco (assim como em meus-experimentos)
   const loadInfillDataFromBank = async (sampleId: string) => {
-    window.console.log(`🟡 loadInfillDataFromBank INICIANDO com sampleId: ${sampleId}`)
     try {
       const user = localStorage.getItem('user')
       if (!user) {
-        console.error('[ExperimentWizard] loadInfillDataFromBank: Sem token de autenticação')
+        logger.error('ExperimentWizard', 'loadInfillDataFromBank: Sem token de autenticação')
         return
       }
       
@@ -417,12 +394,6 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
       const apiUrl = getNormalizedApiUrl()
       const detalhesUrl = `${apiUrl}/experiments/${sampleId}/detalhes`
       
-      console.log('[ExperimentWizard] loadInfillDataFromBank INICIANDO:', {
-        sampleId,
-        detalhesUrl,
-        hasToken: !!token
-      })
-      
       const response = await fetch(detalhesUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -430,46 +401,15 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
         },
       })
 
-      console.log('[ExperimentWizard] loadInfillDataFromBank RESPONSE STATUS:', response.status)
-
       if (response.ok) {
         const data = await response.json()
         
-        console.log('[ExperimentWizard] loadInfillDataFromBank RESPONSE DATA BRUTO:', {
-          hasData: !!data,
-          experimentId: data?.experiment_id,
-          infillMeasurementsCount: data?.infill_measurements?.length,
-          infillMeasurementsKeys: data?.infill_measurements?.[0] ? Object.keys(data.infill_measurements[0]) : [],
-        })
-        
-        console.log('[ExperimentWizard] loadInfillDataFromBank INFILL MEASUREMENTS COMPLETOS:', data?.infill_measurements)
-        
-        // Usar os dados reais do banco
         if (data?.infill_measurements && data.infill_measurements.length > 0) {
-          console.log('[ExperimentWizard] loadInfillDataFromBank CARREGANDO:', {
-            count: data.infill_measurements.length,
-            items: data.infill_measurements.map((im: any) => ({
-              id: im.id,
-              pattern_type: im.pattern_type,
-              infill_pct: im.infill_pct,
-              hu_mean: im.hu_mean,
-              sd_value: im.sd_value,
-              notes: im.notes
-            }))
-          })
-          
-          console.log('[ExperimentWizard] Antes de setInfillPendingData, infillData estava:', {
-            length: infillData.length,
-            data: infillData
-          })
-          
           setInfillPendingData(data.infill_measurements)
           setInfillDataLocal(data.infill_measurements)
           
-          // 🔑 IMPORTANTE: Também atualizar selectedPredefinedInfills com base nos dados carregados
-          // para que PredefinedInfillsForm saiba quais patterns/percentuais estão presentes
           const uniqueInfills = data.infill_measurements
-            .filter((im: any) => im.pattern_type && im.pattern_type.trim() !== '')  // ✨ FILTRAR NULLS
+            .filter((im: any) => im.pattern_type && im.pattern_type.trim() !== '')
             .reduce((acc: any[], im: any) => {
               const exists = acc.some(x => x.pattern_type === im.pattern_type && x.infill_pct === im.infill_pct)
               if (!exists) {
@@ -481,30 +421,13 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
               return acc
             }, [])
           
-          console.log('[ExperimentWizard] Atualizando selectedPredefinedInfills com patterns únicos:', {
-            count: uniqueInfills.length,
-            patterns: uniqueInfills.map((p: any) => `${p.pattern_type} ${p.infill_pct}%`)
-          })
-          
           setSelectedPredefinedInfills(uniqueInfills)
-          
-          console.log('[ExperimentWizard] Depois de setInfillPendingData (assíncrono), states setados')
-        } else {
-          console.warn('[ExperimentWizard] loadInfillDataFromBank: Sem infill_measurements na resposta:', {
-            hasInfillMeasurements: !!data?.infill_measurements,
-            length: data?.infill_measurements?.length
-          })
         }
       } else {
-        console.warn('[ExperimentWizard] loadInfillDataFromBank: Falha ao carregar dados do banco:', {
-          status: response.status,
-          statusText: response.statusText
-        })
-        const errorText = await response.text()
-        console.warn('[ExperimentWizard] loadInfillDataFromBank: Response body:', errorText)
+        logger.warn('ExperimentWizard', 'loadInfillDataFromBank: Falha ao carregar dados do banco')
       }
     } catch (err) {
-      console.error('[ExperimentWizard] loadInfillDataFromBank: Erro ao carregar infill data do banco:', err)
+      logger.error('ExperimentWizard', err instanceof Error ? err.message : 'Unknown error')
     }
   }
 
@@ -534,7 +457,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
         window.location.href = '/meus-experimentos'
       }, 800)
     } catch (err) {
-      console.error('Erro ao finalizar:', err)
+      logger.error('ExperimentWizard', err instanceof Error ? err.message : 'Unknown error')
       throw err
     }
   }
@@ -558,11 +481,6 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
   // Sincronizar infillPendingData quando entra em modo de edição de infill
   useEffect(() => {
     if (editingSection === 'infill' && infillData.length > 0 && infillPendingData.length === 0) {
-      // Carrega dados já salvos em infillPendingData quando abre a seção de infill
-      console.log('[ExperimentWizard] Sincronizando infillPendingData com infillData:', {
-        infillDataLength: infillData.length,
-        data: infillData
-      })
       setInfillPendingData(infillData)
     }
   }, [editingSection, infillData, infillPendingData.length])
@@ -740,9 +658,6 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
   }
 
   const renderSectionContent = (hideButtons: boolean = false) => {
-    if (editingSection) {
-      window.console.log(`🟢 RENDERIZANDO SEÇÃO: ${editingSection}`)
-    }
     switch (editingSection) {
       case null:
         return null
@@ -844,15 +759,6 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
         )
 
       case 'infill':
-        // Preencher dados dos infills para cada pattern selecionado no sample
-        window.console.log(`🟠 SEÇÃO INFILL SENDO RENDERIZADA - Padrões: ${selectedPredefinedInfills.length}, InfillData: ${infillData.length}`)
-        console.log('[ExperimentWizard] Renderizando seção infill:', {
-          selectedPredefinedInfillsLength: selectedPredefinedInfills.length,
-          infillPendingDataLength: infillPendingData.length,
-          infillDataLength: infillData.length,
-          infillPendingData,
-          infillData
-        })
         return (
           <SectionCard
             id="infill"
@@ -865,7 +771,6 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
             onToggleExpand={() => toggleSectionExpanded('infill')}
             hideButtons={hideButtons}
             onComplete={async () => {
-              console.log('[ExperimentWizard] onComplete chamado com infillPendingData:', infillPendingData.length)
               if (infillPendingData.length === 0) {
                 setValidationAttempts((prev) => new Set(prev).add('infill'))
                 return
@@ -888,7 +793,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                 setInfillPendingData([])
                 handleSectionComplete('infill')
               } catch (err) {
-                console.error('Erro ao salvar infill:', err)
+                logger.error('ExperimentWizard', err instanceof Error ? err.message : 'Unknown error')
                 setValidationAttempts((prev) => new Set(prev).add('infill'))
               }
             }}
@@ -1050,10 +955,10 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-bold text-foreground">
                 📝 {t('experimentWizardNew.title')}
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-muted">
                 {t('experimentWizardNew.subtitle')}
               </p>
             </div>
@@ -1061,7 +966,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
               <button
                 onClick={handleReset}
                 disabled={isLoading}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground bg-surface border border-border rounded-lg hover:bg-background transition-colors disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
                 {t('experimentWizardNew.buttons.restart')}
@@ -1082,9 +987,9 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
         )}
 
         {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-green-900">
+          <div className="mb-6 bg-primary-light border border-primary/30 rounded-lg p-4 flex gap-3">
+            <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-primary">
               <p className="font-semibold">{t('experimentWizardNew.alerts.success')}</p>
               <p>{success}</p>
             </div>
@@ -1118,13 +1023,13 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                         <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                           <button
                             onClick={() => setEditingSection(null)}
-                            className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                            className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                           >
                             ✕ Fechar
                           </button>
                           <button
                             onClick={() => materialMachineFormRef.current?.submit()}
-                            className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                            className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                           >
                             ✅ Salvar
                           </button>
@@ -1160,13 +1065,13 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                           <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                             <button
                               onClick={() => setEditingSection(null)}
-                              className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                              className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                             >
                               ✕ Fechar
                             </button>
                             <button
                               onClick={() => sampleFormRef.current?.submit()}
-                              className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                              className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                             >
                               ✅ Salvar
                             </button>
@@ -1204,7 +1109,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                           <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                             <button
                               onClick={() => setEditingSection(null)}
-                              className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                              className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                             >
                               ✕ Fechar
                             </button>
@@ -1233,15 +1138,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                                   const itemsToUpdate = infillPendingData.filter((item: any) => item.id)
                                   const itemsToCreate = infillPendingData.filter((item: any) => !item.id)
                                   
-                                  console.log('[ExperimentWizard] Salvando infill:', {
-                                    toUpdate: itemsToUpdate.length,
-                                    toCreate: itemsToCreate.length,
-                                    sample_id: sample?.id,
-                                    first_update_item: itemsToUpdate[0]
-                                  })
-                                  
                                   for (const item of itemsToUpdate) {
-                                    console.log('[ExperimentWizard] Chamando updateInfill para:', item.id)
                                     await updateInfill(item.id, item)
                                   }
                                   if (itemsToCreate.length > 0) {
@@ -1251,11 +1148,11 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                                   handleSectionComplete('infill')
                                   setEditingSection(null)
                                 } catch (err) {
-                                  console.error('Erro ao salvar infill:', err)
+                                  logger.error('ExperimentWizard', err instanceof Error ? err.message : 'Unknown error')
                                   setValidationAttempts((prev) => new Set(prev).add('infill'))
                                 }
                               }}
-                              className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                              className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                             >
                               ✅ Salvar
                             </button>
@@ -1302,13 +1199,13 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                             <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                               <button
                                 onClick={() => setEditingSection(null)}
-                                className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                                className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                               >
                                 ✕ Fechar
                               </button>
                               <button
                                 onClick={() => mechanicalFormRef.current?.submit()}
-                                className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                                className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                               >
                                 ✅ Salvar
                               </button>
@@ -1343,13 +1240,13 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                             <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                               <button
                                 onClick={() => setEditingSection(null)}
-                                className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                                className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                               >
                                 ✕ Fechar
                               </button>
                               <button
                                 onClick={() => attenuationFormRef.current?.submit()}
-                                className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                                className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                               >
                                 ✅ Salvar
                               </button>
@@ -1381,13 +1278,13 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                             <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                               <button
                                 onClick={() => setEditingSection(null)}
-                                className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                                className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                               >
                                 ✕ Fechar
                               </button>
                               <button
                                 onClick={() => beamFormRef.current?.submit()}
-                                className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                                className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                               >
                                 ✅ Salvar
                               </button>
@@ -1422,7 +1319,7 @@ export default function ExperimentWizard({}: ExperimentWizardProps = {}) {
                       <div className="flex justify-end gap-3 pt-6 border-t mt-8">
                         <button
                           onClick={() => setShowFinalizationModal(true)}
-                          className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                          className="px-8 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2"
                         >
                           ✅ Finalizar Cadastro de Novo Experimento
                         </button>

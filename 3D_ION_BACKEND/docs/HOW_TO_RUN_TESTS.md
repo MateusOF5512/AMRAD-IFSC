@@ -6,7 +6,7 @@
 
 ```powershell
 # Navegue até o diretório backend
-cd "C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION\3D_ION_BACKEND"
+cd "C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD\AMRAD_BACKEND"
 
 # Execute o script
 .\run_tests.bat
@@ -16,7 +16,7 @@ cd "C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION\3D_ION_BACKEND"
 
 ```powershell
 # Navegue até o diretório backend
-cd "C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION\3D_ION_BACKEND"
+cd "C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD\AMRAD_BACKEND"
 
 # Instale dependências se necessário
 pip install python-dotenv supabase requests
@@ -49,7 +49,7 @@ python tests/test_api_endpoints.py
 
 ```bash
 # Navegue até o diretório backend
-cd ~/3D_ION/3D_ION/3D_ION_BACKEND
+cd ~/AMRAD/AMRAD/AMRAD_BACKEND
 
 # Dê permissão de execução
 chmod +x run_tests.sh
@@ -61,7 +61,7 @@ chmod +x run_tests.sh
 ### Método 2: Executar Diretamente com Python
 
 ```bash
-cd ~/3D_ION/3D_ION/3D_ION_BACKEND
+cd ~/AMRAD/AMRAD/AMRAD_BACKEND
 
 pip3 install python-dotenv supabase requests
 
@@ -76,7 +76,7 @@ python3 tests/run_all_tests.py
 
 ```
 ████████████████████████████████████████████████████████████████████████████████
-█ ION3D PLATFORM - COMPLETE TEST SUITE                                     █
+█ AMRAD PLATFORM - COMPLETE TEST SUITE                                     █
 ████████████████████████████████████████████████████████████████████████████████
 
 Running Supabase Connection Tests...
@@ -166,7 +166,7 @@ ModuleNotFoundError: No module named 'app'
 **Solução:**
 Certifique-se de estar no diretório correto:
 ```powershell
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION\3D_ION_BACKEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD\AMRAD_BACKEND
 python tests/run_all_tests.py
 ```
 
@@ -232,7 +232,7 @@ Quando todos os testes passarem ✓:
 ### 1. Inicie o Backend
 
 ```powershell
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION\3D_ION_BACKEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD\AMRAD_BACKEND
 python -m app.main
 ```
 
@@ -246,7 +246,7 @@ INFO:     Uvicorn running on http://127.0.0.1:8000
 
 Em outro terminal PowerShell:
 ```powershell
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION\3D_ION_FRONTEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD\AMRAD_FRONTEND
 npm run dev
 ```
 
@@ -270,11 +270,11 @@ Você deve ver:
 Se você precisar de ajuda para preencher o `.env`, copie o template na raiz do monorepo:
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION
+cd C:\Users\mateu\2_PESSOAL\AMRAD
 copy .env.example .env
 ```
 
-Edite `.env` na **raiz do projeto** (`3D_ION/.env`) — backend e frontend leem deste arquivo:
+Edite `.env` na **raiz do projeto** (`AMRAD/.env`) — backend e frontend leem deste arquivo:
 
 ```env
 # Obtenha estes valores em: https://supabase.com/dashboard/project/[seu-projeto]/settings/api
@@ -288,7 +288,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=[sua-anon-key]
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 
 JWT_SECRET=[string-secreta-longa]
-TEST_EMAIL=test.researcher@3dion.local
+TEST_EMAIL=test.researcher@amrad.local
 TEST_PASSWORD=TestPassword123!
 ```
 

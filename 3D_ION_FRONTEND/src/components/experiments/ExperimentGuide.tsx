@@ -52,29 +52,29 @@ export default function ExperimentGuide({ onNext }: ExperimentGuideProps) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <p className="text-green-900">
+      <div className="bg-primary-light border border-primary/30 rounded-lg p-4">
+        <p className="text-primary">
           {t('experimentGuide.welcome')}
         </p>
       </div>
 
       <div className="space-y-2">
         {sections.map((section) => (
-          <div key={section.id} className="border border-gray-200 rounded-lg overflow-hidden">
+          <div key={section.id} className="border border-border rounded-lg overflow-hidden">
             <button
               onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center justify-between p-4 bg-background hover:bg-slate-100 transition-colors"
             >
-              <h3 className="font-semibold text-gray-900">{t(section.titleKey)}</h3>
+              <h3 className="font-semibold text-foreground">{t(section.titleKey)}</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 transition-transform ${
+                className={`w-5 h-5 text-muted transition-transform ${
                   expandedSection === section.id ? 'rotate-180' : ''
                 }`}
               />
             </button>
             {expandedSection === section.id && (
-              <div className="p-4 bg-white border-t border-gray-200">
-                <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+              <div className="p-4 bg-surface border-t border-border">
+                <p className="text-foreground whitespace-pre-wrap text-sm leading-relaxed">
                   {t(section.contentKey)}
                 </p>
               </div>
@@ -85,7 +85,7 @@ export default function ExperimentGuide({ onNext }: ExperimentGuideProps) {
 
       <button
         onClick={onNext}
-        className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+        className="w-full py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors"
       >
         {t('experimentGuide.buttons.start')}
       </button>

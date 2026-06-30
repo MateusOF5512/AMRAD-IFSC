@@ -1,26 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ion-primary: #16a34a;
+  --ion-primary-hover: #15803d;
+  --ion-primary-light: #f0fdf4;
+  --ion-primary-muted: #dcfce7;
+  --ion-admin: #ea580c;
+  --ion-admin-hover: #c2410c;
+  --ion-admin-light: #fff7ed;
+  --ion-foreground: #0f172a;
+  --ion-muted: #64748b;
+  --ion-background: #f8fafc;
+  --ion-surface: #ffffff;
+  --ion-border: #e2e8f0;
+  --ion-danger: #dc2626;
+  --ion-warning: #d97706;
+  --ion-info: #2563eb;
+
+  --background: var(--ion-background);
+  --foreground: var(--ion-foreground);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--ion-background);
+  --color-foreground: var(--ion-foreground);
+  --color-surface: var(--ion-surface);
+  --color-muted: var(--ion-muted);
+  --color-border: var(--ion-border);
+  --color-primary: var(--ion-primary);
+  --color-primary-hover: var(--ion-primary-hover);
+  --color-primary-light: var(--ion-primary-light);
+  --color-primary-muted: var(--ion-primary-muted);
+  --color-admin: var(--ion-admin);
+  --color-admin-hover: var(--ion-admin-hover);
+  --color-admin-light: var(--ion-admin-light);
+  --color-danger: var(--ion-danger);
+  --color-warning: var(--ion-warning);
+  --color-info: var(--ion-info);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ion-background);
+  color: var(--ion-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Utility classes for legacy markup migration */
+.ion-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border: 1px solid var(--ion-border);
+  border-radius: 0.5rem;
+  background: var(--ion-surface);
+  color: var(--ion-foreground);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.ion-input:focus {
+  outline: none;
+  border-color: var(--ion-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ion-primary) 25%, transparent);
+}
+
+.ion-card {
+  background: var(--ion-surface);
+  border: 1px solid var(--ion-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }

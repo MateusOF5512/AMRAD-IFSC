@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
 import FormFieldLabel from '../FormFieldLabel'
+import { logger } from '@/lib/logger'
+import { getNormalizedApiUrl } from '@/lib/api'
 
 interface PatternOption {
   id: string
@@ -45,7 +47,7 @@ export default function PatternSelect({ selectedPatterns, onChange, onError }: P
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/experiments/patterns`)
+        const response = await fetch(`${getNormalizedApiUrl()}/experiments/patterns`)
         if (!response.ok) {
           throw new Error('Falha ao carregar padrões')
         }
@@ -59,7 +61,7 @@ export default function PatternSelect({ selectedPatterns, onChange, onError }: P
           setPatterns(DEFAULT_PATTERNS)
         }
       } catch (err) {
-        console.warn('Usando padrões locais como fallback:', err)
+        logger.warn('PatternSelect', err instanceof Error ? err.message : 'Unknown error')
         // Usar padrões locais como fallback
         setPatterns(DEFAULT_PATTERNS)
       } finally {
@@ -88,7 +90,7 @@ export default function PatternSelect({ selectedPatterns, onChange, onError }: P
           hint="Selecione um ou mais padrões usados na amostra"
         />
         {selectedPatterns.length > 0 && (
-          <CheckCircle2 className="w-5 h-5 text-green-600" />
+          <CheckCircle2 className="w-5 h-5 text-primary" />
         )}
       </div>
 
@@ -106,22 +108,22 @@ export default function PatternSelect({ selectedPatterns, onChange, onError }: P
             key={pattern.id}
             className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
               selectedPatterns.includes(pattern.id)
-                ? 'border-green-500 bg-green-50'
-                : 'border-gray-300 hover:border-gray-400'
+                ? 'border-primary bg-primary-light'
+                : 'border-border hover:border-gray-400'
             }`}
           >
             <input
               type="checkbox"
               checked={selectedPatterns.includes(pattern.id)}
               onChange={() => togglePattern(pattern.id)}
-              className="w-5 h-5 text-green-600 rounded mt-0.5"
+              className="w-5 h-5 text-primary rounded mt-0.5"
             />
             <div className="flex-1">
-              <div className="font-medium text-sm text-gray-900">
+              <div className="font-medium text-sm text-foreground">
                 {pattern.name}
               </div>
               {pattern.description && (
-                <div className="text-xs text-gray-600 mt-1">
+                <div className="text-xs text-muted mt-1">
                   {pattern.description}
                 </div>
               )}

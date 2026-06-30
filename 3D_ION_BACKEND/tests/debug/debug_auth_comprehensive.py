@@ -17,7 +17,7 @@ try:
     from core.config import settings
 except ImportError as e:
     print(f"❌ ERROR: Could not import from app: {e}")
-    print("Make sure you're running this from the 3D_ION_BACKEND directory")
+    print("Make sure you're running this from the AMRAD_BACKEND directory")
     sys.exit(1)
 
 # Configuration

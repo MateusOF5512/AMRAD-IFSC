@@ -70,7 +70,7 @@ export function AdminSecurityConfirmModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden border border-orange-200">
+      <div className="bg-surface rounded-lg shadow-2xl max-w-md w-full overflow-hidden border border-orange-200">
         {/* Orange Header */}
         <div className="bg-linear-to-r from-orange-500 to-orange-600 px-6 py-4">
           <div className="flex items-center gap-3">
@@ -98,7 +98,7 @@ export function AdminSecurityConfirmModal({
 
           {/* Password Input */}
           <div>
-            <label htmlFor="admin-password" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="admin-password" className="block text-sm font-semibold text-foreground mb-2">
               Digite sua senha para confirmar
             </label>
             <div className="relative">
@@ -110,14 +110,14 @@ export function AdminSecurityConfirmModal({
                 onKeyDown={handleKeyDown}
                 disabled={isLoading || loading}
                 placeholder="Sua senha de administrador"
-                className="w-full px-4 py-2 pr-10 border-2 border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                className="w-full px-4 py-2 pr-10 border-2 border-border rounded-lg focus:ring-orange-500 focus:border-orange-500 outline-none disabled:bg-slate-100 disabled:cursor-not-allowed transition-colors"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading || loading}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-orange-600 disabled:cursor-not-allowed transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-orange-600 disabled:cursor-not-allowed transition-colors"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -138,26 +138,26 @@ export function AdminSecurityConfirmModal({
 
           {/* Success Message */}
           {success && (
-            <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded-sm">
-              <p className="text-green-700 text-sm font-medium">✓ Confirmado com sucesso</p>
+            <div className="bg-primary-light border-l-4 border-primary p-3 rounded-sm">
+              <p className="text-primary text-sm font-medium">✓ Confirmado com sucesso</p>
             </div>
           )}
 
           {/* Info Tip */}
-          <div className="bg-gray-50 border border-gray-200 rounded p-3">
-            <p className="text-xs text-gray-600">
+          <div className="bg-background border border-border rounded p-3">
+            <p className="text-xs text-muted">
               💡 Por sua segurança, você deve confirmar com sua própria senha de administrador. Esta ação será registrada nos logs de auditoria.
             </p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-200">
+        <div className="bg-background px-6 py-4 flex gap-3 border-t border-border">
           <button
             type="button"
             onClick={handleCancel}
             disabled={isLoading || loading}
-            className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:bg-gray-100 disabled:cursor-not-allowed font-medium transition-colors"
+            className="flex-1 px-4 py-2 border-2 border-border rounded-lg text-foreground hover:bg-slate-100 disabled:bg-slate-100 disabled:cursor-not-allowed font-medium transition-colors"
           >
             Cancelar
           </button>

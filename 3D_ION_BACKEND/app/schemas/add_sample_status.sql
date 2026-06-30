@@ -1,4 +1,4 @@
--- ION3D Platform: Add status column to samples table
+-- AMRAD: Add status column to samples table
 -- Execute this in Supabase SQL Editor
 
 -- Create ENUM type for sample status

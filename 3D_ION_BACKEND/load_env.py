@@ -1,4 +1,4 @@
-"""Carrega variáveis de ambiente do .env na raiz do monorepo (3D_ION/.env)."""
+"""Carrega variáveis de ambiente do .env na raiz do monorepo (AMRAD/.env)."""
 from pathlib import Path
 
 from dotenv import load_dotenv

@@ -9,9 +9,18 @@ from typing import Optional
 from supabase import Client
 
 from app.database.supabase import get_supabase_client
-from app.core.security import create_access_token, get_current_user
+from app.core.security import create_access_token, get_current_user, security_scheme
 from app.core.password import hash_password, verify_password
 from app.core.rate_limit import check_rate_limit
+from app.core.oauth import (
+    create_oauth_researcher,
+    find_researcher_by_auth,
+    get_supabase_auth_user,
+    google_display_name,
+    link_auth_id,
+    researcher_to_login_payload,
+)
+from fastapi.security import HTTPAuthorizationCredentials
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -56,6 +65,7 @@ class LoginResponse(BaseModel):
     country: Optional[str] = None
     language: Optional[str] = None
     user_type: str
+    needs_profile_completion: bool = False
     message: str
     access_token: str
 
@@ -64,6 +74,22 @@ class ChangePasswordRequest(BaseModel):
     """Schema for authenticated password change"""
     old_password: str = Field(..., min_length=8, max_length=100)
     new_password: str = Field(..., min_length=8, max_length=100)
+
+
+class OAuthCompleteProfileRequest(BaseModel):
+    """Optional researcher details after Google sign-in"""
+    institution: Optional[str] = Field(None, max_length=100)
+    phone_number: Optional[str] = Field(None, max_length=20)
+    instagram: Optional[str] = Field(None, max_length=50)
+    country: Optional[str] = Field(None, max_length=100)
+    language: Optional[str] = Field(None, max_length=50)
+
+
+class OAuthProfileStatusResponse(BaseModel):
+    """Whether the Google account already has a researcher profile"""
+    has_profile: bool
+    email: Optional[str] = None
+    name: Optional[str] = None
 
 
 # ===== HELPER FUNCTIONS =====
@@ -256,6 +282,137 @@ async def login(request: LoginRequest, http_request: Request):
         )
 
 
+@router.get("/oauth/profile-status", response_model=OAuthProfileStatusResponse)
+async def oauth_profile_status(
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+):
+    """Check if the authenticated Google user already has a researcher profile."""
+    auth_user = get_supabase_auth_user(credentials.credentials)
+    supabase = get_supabase_client()
+    researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
+
+    return OAuthProfileStatusResponse(
+        has_profile=researcher is not None,
+        email=auth_user.email,
+        name=(auth_user.user_metadata or {}).get("full_name")
+        or (auth_user.user_metadata or {}).get("name")
+        or auth_user.email,
+    )
+
+
+@router.post("/oauth/session", response_model=LoginResponse)
+async def oauth_session(
+    http_request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+):
+    """
+    Sync a researcher profile with a Supabase Google session.
+    Auto-provisions new Google users with name and email from the provider.
+    """
+    check_rate_limit(http_request)
+    supabase = get_supabase_client()
+    auth_user = get_supabase_auth_user(credentials.credentials)
+    researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
+
+    if not researcher:
+        researcher = create_oauth_researcher(supabase, auth_user)
+    elif not researcher.get("auth_id"):
+        link_auth_id(supabase, researcher["id"], auth_user.id)
+        researcher["auth_id"] = auth_user.id
+
+    google_name = google_display_name(auth_user)
+    if google_name and researcher.get("name") != google_name:
+        supabase.table("researchers").update({"name": google_name}).eq(
+            "id", researcher["id"]
+        ).execute()
+        researcher["name"] = google_name
+
+    payload = researcher_to_login_payload(researcher, credentials.credentials)
+    return LoginResponse(**payload)
+
+
+@router.post("/oauth/complete-profile", response_model=LoginResponse)
+async def oauth_complete_profile(
+    request: OAuthCompleteProfileRequest,
+    http_request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
+):
+    """Save optional researcher details after Google sign-in."""
+    check_rate_limit(http_request)
+    supabase = get_supabase_client()
+    auth_user = get_supabase_auth_user(credentials.credentials)
+    researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
+
+    if not researcher:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Researcher profile not found",
+        )
+
+    updates: dict = {"profile_onboarding_completed": True}
+
+    if request.institution is not None:
+        institution = request.institution.strip()
+        if institution:
+            updates["institution"] = institution
+
+    if request.phone_number is not None:
+        phone_number = request.phone_number.strip()
+        if phone_number:
+            if not phone_number.isdigit() or len(phone_number) < 8:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Phone number must contain only digits (minimum 8)",
+                )
+            updates["phone_number"] = phone_number
+
+    if request.instagram is not None:
+        instagram = request.instagram.strip().lower()
+        if instagram:
+            existing_ig = (
+                supabase.table("researchers")
+                .select("id")
+                .eq("instagram", instagram)
+                .neq("id", researcher["id"])
+                .execute()
+            )
+            if existing_ig.data:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Instagram handle already registered",
+                )
+            updates["instagram"] = instagram
+
+    if request.country is not None:
+        country = request.country.strip()
+        if country:
+            updates["country"] = country
+
+    if request.language is not None:
+        language = request.language.strip()
+        if language:
+            updates["language"] = language
+
+    response = (
+        supabase.table("researchers")
+        .update(updates)
+        .eq("id", researcher["id"])
+        .execute()
+    )
+    if not response.data:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update profile",
+        )
+
+    payload = researcher_to_login_payload(
+        response.data[0],
+        credentials.credentials,
+        profile_completion_pending=False,
+    )
+    return LoginResponse(**payload)
+
+
 @router.post("/change-password")
 async def change_password(
     request: ChangePasswordRequest,
@@ -279,6 +436,11 @@ async def change_password(
             )
 
         stored_hash = user.data[0].get("password_hash")
+        if not stored_hash:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password change is not available for Google sign-in accounts",
+            )
         if not verify_password(request.old_password, stored_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

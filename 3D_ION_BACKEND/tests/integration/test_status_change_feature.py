@@ -94,7 +94,7 @@ def test_get_experiments() -> Dict[str, Any]:
     except requests.exceptions.ConnectionError:
         print_error(f"Não foi possível conectar a {API_URL}")
         print_warning("Certifique-se de que o servidor está rodando:")
-        print_warning("  cd 3D_ION_BACKEND && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000")
+        print_warning("  cd AMRAD_BACKEND && python -m uvicorn app.main:app --host 127.0.0.1 --port 8000")
         return {"success": False}
     except Exception as e:
         print_error(f"Erro: {str(e)}")

@@ -12,19 +12,12 @@ interface AdminsTableProps {
 
 export function AdminsTable({ admins, isLoading, error }: AdminsTableProps) {
   const { t, i18n } = useTranslation()
-  // DEBUG: Log the data received
-  console.log('[AdminsTable] Received admins:', admins)
-  if (admins.length > 0) {
-    console.log('[AdminsTable] First admin:', admins[0])
-    console.log('[AdminsTable] First admin experimentos_criados_total:', admins[0].experimentos_criados_total)
-    console.log('[AdminsTable] Type of experimentos_criados_total:', typeof admins[0].experimentos_criados_total)
-  }
 
   if (isLoading) {
     return (
       <div className="text-center py-8">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        <p className="mt-2 text-gray-600">{t('admin.advanced.adminsTab.loading')}</p>
+        <p className="mt-2 text-muted">{t('admin.advanced.adminsTab.loading')}</p>
       </div>
     )
   }
@@ -46,7 +39,7 @@ export function AdminsTable({ admins, isLoading, error }: AdminsTableProps) {
   if (admins.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">{t('admin.advanced.adminsTab.noAdminsFound')}</p>
+        <p className="text-muted">{t('admin.advanced.adminsTab.noAdminsFound')}</p>
       </div>
     )
   }
@@ -54,14 +47,14 @@ export function AdminsTable({ admins, isLoading, error }: AdminsTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs sm:text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+        <thead className="bg-background border-b border-border sticky top-0">
           <tr>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.name')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.email')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.role')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.institution')}</th>
-            <th className="px-3 sm:px-4 py-3 text-center font-semibold text-gray-700 uppercase tracking-wider">{t('admin.advanced.adminsTab.experiments')}</th>
-            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('common.createdAt')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.name')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.email')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.role')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.institution')}</th>
+            <th className="px-3 sm:px-4 py-3 text-center font-semibold text-foreground uppercase tracking-wider">{t('admin.advanced.adminsTab.experiments')}</th>
+            <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('common.createdAt')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
@@ -70,10 +63,10 @@ export function AdminsTable({ admins, isLoading, error }: AdminsTableProps) {
               key={admin.id}
               className="transition hover:bg-blue-50"
             >
-              <td className="px-3 sm:px-4 py-3 font-medium text-gray-900">
+              <td className="px-3 sm:px-4 py-3 font-medium text-foreground">
                 {admin.name}
               </td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+              <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                 {admin.email}
               </td>
               <td className="px-3 sm:px-4 py-3">
@@ -85,19 +78,15 @@ export function AdminsTable({ admins, isLoading, error }: AdminsTableProps) {
                   {admin.user_type === 'admin' ? '🔐 Admin' : '👤 Pesquisador'}
                 </span>
               </td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+              <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                 {admin.institution || '-'}
               </td>
               <td className="px-3 sm:px-4 py-3 text-center font-semibold">
                 <span className="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  {(() => {
-                    const value = admin.experimentos_criados_total
-                    console.log(`[AdminsTable RENDER] Admin: ${admin.name}, experimentos_criados_total: ${value}, type: ${typeof value}`)
-                    return value ?? 'N/A'
-                  })()}
+                  {admin.experimentos_criados_total ?? 'N/A'}
                 </span>
               </td>
-              <td className="px-3 sm:px-4 py-3 text-gray-600 text-xs whitespace-nowrap">
+              <td className="px-3 sm:px-4 py-3 text-muted text-xs whitespace-nowrap">
                 {formatDateTimeByLanguage(admin.created_at, i18n.language)}
               </td>
             </tr>

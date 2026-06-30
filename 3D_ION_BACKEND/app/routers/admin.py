@@ -17,7 +17,7 @@ from datetime import datetime
 
 from app.database.supabase import get_supabase_client
 from app.core.config import settings
-from app.core.security import CustomHTTPBearer, verify_jwt_token
+from app.core.security import CustomHTTPBearer, verify_supabase_token
 from app.core.password import verify_password
 from app.core.user_utils import get_user_full_name
 from app.database.sample_status_history import get_status_history_manager
@@ -251,45 +251,55 @@ class SystemHealthResponse(BaseModel):
 
 def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> dict:
     """
-    Extract and validate admin user from JWT token
-    Returns user data if valid and is admin
+    Validate bearer token (custom JWT or Supabase OAuth) and require admin role.
+    Always re-reads user_type from the database on each request.
     """
     try:
-        payload = verify_jwt_token(credentials.credentials)
-        user_id = payload.get("sub")
-        
+        user_context = verify_supabase_token(credentials.credentials)
+        user_id = user_context.get("user_id")
+
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Não autenticado"
+                detail="Não autenticado",
             )
-        
-        # Fetch user from database to verify admin status and get email
+
         supabase = get_supabase_client()
-        response = supabase.table("researchers").select("id, user_type, email, name").eq("id", user_id).execute()
-        
+        response = (
+            supabase.table("researchers")
+            .select("id, user_type, email, name, status")
+            .eq("id", user_id)
+            .execute()
+        )
+
         if not response.data:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Não autenticado"
+                detail="Não autenticado",
             )
-        
+
         user = response.data[0]
-        
+
         if user.get("user_type") != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permissão negada. Apenas admins podem acessar esta rota."
+                detail="Permissão negada. Apenas admins podem acessar esta rota.",
             )
-        
+
+        if user.get("status") == "desativado":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Conta desativada.",
+            )
+
         return user
-        
+
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Não autenticado"
+            detail="Não autenticado",
         )
 
 
@@ -886,29 +896,16 @@ def validate_status_change(
 
 
 @router.post("/check-database-integrity")
-def check_database_integrity(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+def check_database_integrity(admin_user: dict = Depends(get_current_admin)):
     """
     Check database connection and integrity
     Validates all tables and returns status
     """
     try:
         print("[INTEGRITY] Starting database integrity check...")
-        
-        # Verify token and check if admin
-        payload = verify_jwt_token(credentials.credentials)
-        user_id = payload.get("sub")
-        
+        print(f"[INTEGRITY] Admin verified ({admin_user.get('email')}), checking tables...")
+
         supabase = get_supabase_client()
-        
-        # Check if user is admin
-        admin_check = supabase.table("researchers").select("user_type").eq("id", user_id).execute()
-        if not admin_check.data or admin_check.data[0].get("user_type") != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Apenas administradores podem verificar integridade do banco"
-            )
-        
-        print("[INTEGRITY] Admin verified, checking tables...")
         
         # Initialize results
         tables_to_check = [
@@ -1029,57 +1026,17 @@ def check_database_integrity(credentials: HTTPAuthorizationCredentials = Depends
 
 
 @router.post("/export-tables")
-def export_all_tables(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+def export_all_tables(admin_user: dict = Depends(get_current_admin)):
     """
     Export all database tables as CSV files in a ZIP archive
     Only admins can export data
     """
     try:
         print("[EXPORT] Starting table export...")
-        print(f"[EXPORT] Credentials scheme: {credentials.scheme}")
-        
-        # Verify token and check if admin
-        try:
-            payload = verify_jwt_token(credentials.credentials)
-            user_id = payload.get("sub")
-            print(f"[EXPORT] Token verified for user: {user_id}")
-        except Exception as token_err:
-            print(f"[EXPORT] Token verification error: {str(token_err)}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Token inválido: {str(token_err)}"
-            )
-        
+        print(f"[EXPORT] Admin verified: {admin_user.get('email')}")
+
         supabase = get_supabase_client()
-        
-        # Check if user is admin
-        try:
-            admin_check = supabase.table("researchers").select("user_type").eq("id", user_id).execute()
-            if not admin_check.data:
-                print(f"[EXPORT] User not found: {user_id}")
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Usuário não encontrado"
-                )
-            
-            user_type = admin_check.data[0].get("user_type")
-            print(f"[EXPORT] User type: {user_type}")
-            
-            if user_type != "admin":
-                print(f"[EXPORT] Access denied - user is not admin")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Apenas administradores podem exportar dados"
-                )
-        except HTTPException:
-            raise
-        except Exception as db_err:
-            print(f"[EXPORT] Database error: {str(db_err)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erro ao verificar permissões: {str(db_err)}"
-            )
-        
+
         # Create ZIP file in memory
         print("[EXPORT] Creating ZIP buffer...")
         zip_buffer = io.BytesIO()
@@ -1143,7 +1100,7 @@ def export_all_tables(credentials: HTTPAuthorizationCredentials = Depends(securi
         
         # Generate filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"3d_ion_backup_{timestamp}.zip"
+        filename = f"amrad_backup_{timestamp}.zip"
         
         # Log export action
         print(f"[EXPORT] ✓ User {user_id} successfully exported all tables")
@@ -1165,7 +1122,7 @@ def export_all_tables(credentials: HTTPAuthorizationCredentials = Depends(securi
 
 
 @router.post("/system-health")
-def check_system_health(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)):
+def check_system_health(admin_user: dict = Depends(get_current_admin)):
     """
     Comprehensive system health check
     Verifies API, database, authentication, and performance
@@ -1177,22 +1134,9 @@ def check_system_health(credentials: HTTPAuthorizationCredentials = Depends(secu
     try:
         print("[HEALTH] Starting system health check...")
         start_time = time.time()
-        
-        # Verify token and check if admin
-        payload = verify_jwt_token(credentials.credentials)
-        user_id = payload.get("sub")
-        
+        print(f"[HEALTH] Admin verified ({admin_user.get('email')}), checking all components...")
+
         supabase = get_supabase_client()
-        
-        # Check if user is admin
-        admin_check = supabase.table("researchers").select("user_type").eq("id", user_id).execute()
-        if not admin_check.data or admin_check.data[0].get("user_type") != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Apenas administradores podem verificar saúde do sistema"
-            )
-        
-        print("[HEALTH] Admin verified, checking all components...")
         
         components = []
         overall_healthy = True

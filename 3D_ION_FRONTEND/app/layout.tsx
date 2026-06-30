@@ -12,8 +12,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ION3D Platform",
-  description: "Scientific experiment management system for 3D printed materials",
+  title: "AMRAD",
+  description: "Plataforma científica para gestão e análise de experimentos com materiais impressos em 3D sob radiação ionizante",
 };
 
 export default function RootLayout({
@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} antialiased flex flex-col min-h-screen`}>
+      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen bg-background text-foreground`}>
         <AuthProvider>
           <LanguageProvider>
             <Header />

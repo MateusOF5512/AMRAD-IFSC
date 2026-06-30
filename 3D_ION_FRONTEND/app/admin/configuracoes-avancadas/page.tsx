@@ -1,5 +1,7 @@
 'use client'
 
+import { logger } from '@/lib/logger'
+
 import { useAdminProtection } from '@/lib/hooks/useAdminProtection'
 import { useState, useEffect, useMemo as useMemoBrowser } from 'react'
 import { Settings, Users, Lock, Database, AlertCircle, Loader2, Shield, Download, Activity, Eye } from 'lucide-react'
@@ -116,19 +118,10 @@ export default function ConfiguracaesAvancadasPage() {
   }, [approvedExperiments, inAnalysisExperiments])
 
   const fetchUsersByStatus = async (status: UserStatus) => {
-    console.log(`[Page] Fetching users with status: ${status}`)
     setLoadingStates((prev) => ({ ...prev, [status]: true }))
     setErrorStates((prev) => ({ ...prev, [status]: null }))
     try {
-      console.log(`[Page] Calling adminApi.getUsersByStatus("${status}")`)
       const response = await adminApi.getUsersByStatus(status)
-      console.log(`[Page] Response received for status ${status}:`, response)
-      console.log(`[Page] Total users: ${response.users.length}`)
-      if (response.users.length > 0) {
-        console.log(`[Page] First user:`, response.users[0])
-        console.log(`[Page] First user experimentos_criados_total:`, response.users[0].experimentos_criados_total)
-      }
-      
       if (status === 'regular') {
         setRegularUsers(response.users)
       } else if (status === 'irregular') {
@@ -138,15 +131,12 @@ export default function ConfiguracaesAvancadasPage() {
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao carregar usuários'
-      console.error(`[Page] Error fetching users ${status}:`, error)
-      console.error(`[Page] Error message:`, errorMessage)
-      
-      // Check if it's a 401 Unauthorized error
+      logger.error('admin', errorMessage)
+
       if (errorMessage.includes('Sessão expirada') || errorMessage.includes('401') || errorMessage.includes('Não autorizado')) {
-        console.error('[Page] ❌ 401 Unauthorized - User needs to login again')
-        setErrorStates((prev) => ({ 
-          ...prev, 
-          [status]: t('admin.advanced.errors.sessionExpired') 
+        setErrorStates((prev) => ({
+          ...prev,
+          [status]: t('admin.advanced.errors.sessionExpired')
         }))
       } else {
         setErrorStates((prev) => ({ ...prev, [status]: errorMessage }))
@@ -158,35 +148,16 @@ export default function ConfiguracaesAvancadasPage() {
 
   // Fetch administrators
   const fetchAdministrators = async () => {
-    console.log('[Page] Fetching administrators')
     setAdminsLoading(true)
     setAdminsError(null)
     try {
-      console.log('[Page] About to call adminApi.getAdministrators()')
       const response = await adminApi.getAdministrators()
-      console.log('[Page] Response received:', response)
-      console.log('[Page] Response object type:', typeof response)
-      console.log('[Page] Response.admins type:', typeof response.admins)
-      console.log('[Page] Response.admins is array:', Array.isArray(response.admins))
-      console.log('[Page] Response.admins length:', response.admins ? response.admins.length : 'undefined')
-      console.log('[Page] Full response.admins:', response.admins)
-      if (response.admins && response.admins.length > 0) {
-        console.log('[Page] First admin:', response.admins[0])
-        console.log('[Page] First admin keys:', Object.keys(response.admins[0]))
-        console.log('[Page] First admin experimentos_criados_total:', response.admins[0].experimentos_criados_total)
-        console.log('[Page] Type:', typeof response.admins[0].experimentos_criados_total)
-      }
-      console.log('[Page] About to call setAdmins with:', response.admins)
       setAdmins(response.admins)
-      console.log('[Page] setAdmins called successfully')
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao carregar administradores'
-      console.error('[Page] Error fetching administrators:', error)
-      console.error('[Page] Error full object:', JSON.stringify(error, null, 2))
-      
-      // Check if it's a 401 Unauthorized error
+      logger.error('admin', errorMessage)
+
       if (errorMessage.includes('Sessão expirada') || errorMessage.includes('401') || errorMessage.includes('Não autorizado')) {
-        console.error('[Page] ❌ 401 Unauthorized - User needs to login again')
         setAdminsError('Sua sessão expirou. Por favor, faça login novamente.')
       } else {
         setAdminsError(errorMessage)
@@ -198,17 +169,15 @@ export default function ConfiguracaesAvancadasPage() {
 
   // Fetch experiments
   const fetchExperiments = async () => {
-    console.log('[Page] Fetching experiments')
     setExperimentsLoading(true)
     setExperimentsError(null)
     try {
       const response = await adminApi.getExperimentsByStatus()
-      console.log('[Page] Experiments response:', response)
       setApprovedExperiments(response.approved)
       setInAnalysisExperiments(response.in_analysis)
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao carregar experimentos'
-      console.error('[Page] Error fetching experiments:', error)
+      logger.error('admin', errorMessage)
       
       if (errorMessage.includes('Sessão expirada') || errorMessage.includes('401') || errorMessage.includes('Não autorizado')) {
         setExperimentsError('Sua sessão expirou. Por favor, faça login novamente.')
@@ -222,11 +191,9 @@ export default function ConfiguracaesAvancadasPage() {
 
   // Fetch status history with filters
   const fetchStatusHistory = async () => {
-    console.log('[Page] Fetching status history with filters:', statusHistoryFilters)
     setStatusHistoryLoading(true)
     setStatusHistoryError(null)
     try {
-      // Build filters, excluding empty strings but including __NULL__ values
       const filters: any = {}
       if (statusHistoryFilters.old_status) filters.old_status = statusHistoryFilters.old_status
       if (statusHistoryFilters.new_status) filters.new_status = statusHistoryFilters.new_status
@@ -234,14 +201,12 @@ export default function ConfiguracaesAvancadasPage() {
       if (statusHistoryFilters.changed_by_role) filters.changed_by_role = statusHistoryFilters.changed_by_role
       if (statusHistoryFilters.start_date) filters.start_date = statusHistoryFilters.start_date
       if (statusHistoryFilters.end_date) filters.end_date = statusHistoryFilters.end_date
-      
-      console.log('[Page] Sending filters to API:', filters)
+
       const response = await adminApi.getExperimentsStatusHistory(filters)
-      console.log('[Page] Status history response:', response)
       setStatusHistoryData(response.data || [])
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao carregar histórico de status'
-      console.error('[Page] Error fetching status history:', error)
+      logger.error('admin', errorMessage)
       
       if (errorMessage.includes('Sessão expirada') || errorMessage.includes('401') || errorMessage.includes('Não autorizado')) {
         setStatusHistoryError('Sua sessão expirou. Por favor, faça login novamente.')
@@ -332,7 +297,7 @@ export default function ConfiguracaesAvancadasPage() {
       await Promise.all([fetchExperiments(), fetchStatusHistory()])
     } catch (error: any) {
       const errorMessage = error.message || 'Erro ao atualizar status'
-      console.error('[Page] Error updating experiment status:', error)
+      logger.error('admin', errorMessage)
 
       const alreadyHasStatusMatch = errorMessage.match(/já possui o status '(\w+)'/)
       if (alreadyHasStatusMatch && selectedExperiment) {
@@ -388,9 +353,9 @@ export default function ConfiguracaesAvancadasPage() {
   const getStageStyle = (isComplete: boolean) => {
     if (isComplete) {
       return {
-        bg: 'bg-green-50',
+        bg: 'bg-primary-light',
         border: 'border-green-300',
-        textColor: 'text-green-900',
+        textColor: 'text-primary',
         headerBg: 'bg-gradient-to-r from-green-100 to-emerald-100',
         icon: '✅',
         status: 'Preenchido'
@@ -409,16 +374,13 @@ export default function ConfiguracaesAvancadasPage() {
 
   // Load data when tab changes
   useEffect(() => {
-    console.log(`[Page] useEffect triggered: activeTab=${activeTab}, user=${user ? user.name : 'null'}`)
     if (activeTab === 'users' && user) {
       const loadAllUsers = async () => {
-        console.log('[Page] loadAllUsers started')
         await Promise.all([
           fetchUsersByStatus('regular'),
           fetchUsersByStatus('irregular'),
           fetchUsersByStatus('desativado'),
         ])
-        console.log('[Page] loadAllUsers completed')
       }
       loadAllUsers()
     } else if (activeTab === 'administradores' && user) {
@@ -434,7 +396,7 @@ export default function ConfiguracaesAvancadasPage() {
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -458,35 +420,24 @@ export default function ConfiguracaesAvancadasPage() {
   }
 
   const handleAdminRoleUpdate = async (email: string, newRole: UserRole) => {
-    console.log(`[Page] Updating admin role: ${email} -> ${newRole}`)
     try {
-      const response = await adminApi.updateAdministratorRole(email, newRole)
-      console.log('[Page] Admin role updated:', response)
-      // Reload admins list after successful update
+      await adminApi.updateAdministratorRole(email, newRole)
       await fetchAdministrators()
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      
-      // Erros esperados (validação): conflito (409), status inválido (400), ou permissão negada (403)
-      // Também são registrados mas não como erro crítico
-      const isExpectedError = errorMessage.includes('já possui') || 
-                             errorMessage.includes('Conflito') ||
-                             errorMessage.includes('status') ||
-                             errorMessage.includes('permissão') ||
-                             errorMessage.includes('não pode remover') ||
-                             errorMessage.includes('não encontrado') ||
-                             errorMessage.includes('não existe') ||
-                             errorMessage.includes('não cadastrado') ||
-                             errorMessage.includes('rebaixar') ||
-                             errorMessage.includes('próprias permissões')
-      
-      if (isExpectedError) {
-        console.warn('[Page] Expected validation error:', errorMessage)
-      } else {
-        console.error('[Page] Error updating admin role:', error)
+      if (!errorMessage.includes('já possui') &&
+          !errorMessage.includes('Conflito') &&
+          !errorMessage.includes('status') &&
+          !errorMessage.includes('permissão') &&
+          !errorMessage.includes('não pode remover') &&
+          !errorMessage.includes('não encontrado') &&
+          !errorMessage.includes('não existe') &&
+          !errorMessage.includes('não cadastrado') &&
+          !errorMessage.includes('rebaixar') &&
+          !errorMessage.includes('próprias permissões')) {
+        logger.error('admin', errorMessage)
       }
-      
-      throw error // Relançar para que o componente trate com warning/error
+      throw error
     }
   }
 
@@ -506,7 +457,7 @@ export default function ConfiguracaesAvancadasPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `3d_ion_backup_${new Date().toISOString().slice(0, 10)}.zip`
+      a.download = `amrad_backup_${new Date().toISOString().slice(0, 10)}.zip`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -517,7 +468,7 @@ export default function ConfiguracaesAvancadasPage() {
         text: '✅ Exportação realizada com sucesso! Arquivo baixado.'
       })
     } catch (error: any) {
-      console.error('Error exporting tables:', error)
+      logger.error('admin', error.message || 'Erro ao exportar tabelas')
       setExportMessage({
         type: 'error',
         text: `❌ Erro ao exportar: ${error.message}`
@@ -533,10 +484,9 @@ export default function ConfiguracaesAvancadasPage() {
     setIntegrityResult(null)
     try {
       const result = await adminApi.checkDatabaseIntegrity()
-      console.log('Integrity check result:', result)
       setIntegrityResult(result)
     } catch (error: any) {
-      console.error('Error checking integrity:', error)
+      logger.error('admin', error.message || 'Erro ao verificar integridade')
       setIntegrityResult({
         database_status: 'error',
         connection_status: false,
@@ -555,10 +505,9 @@ export default function ConfiguracaesAvancadasPage() {
     setSystemHealthResult(null)
     try {
       const result = await adminApi.checkSystemHealth()
-      console.log('System health check result:', result)
       setSystemHealthResult(result)
     } catch (error: any) {
-      console.error('Error checking system health:', error)
+      logger.error('admin', error.message || 'Erro ao verificar saúde do sistema')
       setSystemHealthResult({
         overall_status: 'error',
         timestamp: new Date().toISOString(),
@@ -575,7 +524,7 @@ export default function ConfiguracaesAvancadasPage() {
     setLogsLoading(true)
     setLogsError(null)
     try {
-      const data = await adminApi.getAdminLogs(logFilters)
+      const data = await adminApi.getAdminLogs(logFilters) as { logs?: unknown[] }
       
       // Sort logs by created_at in descending order (newest first)
       const sortedLogs = (data.logs || []).sort((a: any, b: any) => {
@@ -584,13 +533,9 @@ export default function ConfiguracaesAvancadasPage() {
         return dateB - dateA
       })
       
-      console.log('[fetchSystemLogs] Loaded logs:', sortedLogs.length, 'logs')
-      if (sortedLogs.length > 0) {
-        console.log('[fetchSystemLogs] First log:', sortedLogs[0])
-      }
       setSystemLogs(sortedLogs)
     } catch (err) {
-      console.error('Error fetching logs:', err)
+      logger.error('admin', err instanceof Error ? err.message : 'Erro ao carregar logs')
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar logs'
       
       // Improve error message for connection issues
@@ -631,7 +576,10 @@ export default function ConfiguracaesAvancadasPage() {
     setStatusChangeMessage(null)
 
     try {
-      const response = await adminApi.getExperimentDetails(experimentId)
+      const response = await adminApi.getExperimentDetails(experimentId) as {
+        sample?: { status?: string }
+        [key: string]: unknown
+      }
       setExperimentFullData(response)
 
       const freshStatus = response.sample?.status
@@ -641,7 +589,7 @@ export default function ConfiguracaesAvancadasPage() {
         setSelectedExperiment({ ...experiment, status: freshStatus })
       }
     } catch (error) {
-      console.error('Error fetching experiment details:', error)
+      logger.error('configuracoes-avancadas', error instanceof Error ? error.message : 'Unknown error')
       setExperimentFullData(experiment)
     } finally {
       setExperimentDetailsLoading(false)
@@ -667,8 +615,8 @@ export default function ConfiguracaesAvancadasPage() {
     if (status === 'Approved') {
       return {
         label: t('common.status.approved'),
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-800',
+        bgColor: 'bg-primary-muted',
+        textColor: 'text-primary',
         icon: '✓'
       }
     }
@@ -702,21 +650,21 @@ export default function ConfiguracaesAvancadasPage() {
     
     return {
       label: status,
-      bgColor: 'bg-gray-100',
-      textColor: 'text-gray-800',
+      bgColor: 'bg-slate-100',
+      textColor: 'text-foreground',
       icon: '❓'
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-3">
               <Settings className="h-8 w-8 text-orange-600" />
-              <h1 className="text-3xl font-bold text-gray-900">{t('admin.advanced.title')}</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t('admin.advanced.title')}</h1>
             </div>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-200 rounded-lg">
               <Lock className="h-4 w-4 text-orange-600" />
@@ -725,7 +673,7 @@ export default function ConfiguracaesAvancadasPage() {
               </span>
             </div>
           </div>
-          <p className="text-gray-600">
+          <p className="text-muted">
             {t('admin.advanced.subtitle')}
           </p>
         </div>
@@ -744,14 +692,14 @@ export default function ConfiguracaesAvancadasPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          <div className="flex border-b border-gray-200">
+        <div className="bg-surface rounded-lg shadow-md overflow-hidden mb-8">
+          <div className="flex border-b border-border">
             <button
               onClick={() => setActiveTab('experiments')}
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'experiments'
                   ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-muted hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -764,7 +712,7 @@ export default function ConfiguracaesAvancadasPage() {
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'users'
                   ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-muted hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -777,7 +725,7 @@ export default function ConfiguracaesAvancadasPage() {
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'administradores'
                   ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-muted hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -790,7 +738,7 @@ export default function ConfiguracaesAvancadasPage() {
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'database'
                   ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-muted hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -803,7 +751,7 @@ export default function ConfiguracaesAvancadasPage() {
               className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
                 activeTab === 'system'
                   ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-muted hover:text-foreground'
               }`}
             >
               <div className="flex items-center justify-center gap-2">
@@ -819,8 +767,8 @@ export default function ConfiguracaesAvancadasPage() {
             {activeTab === 'experiments' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">{t('admin.advanced.experimentsTab.title')}</h2>
-                  <p className="text-gray-600 mb-6">
+                  <h2 className="text-xl font-bold text-foreground mb-4">{t('admin.advanced.experimentsTab.title')}</h2>
+                  <p className="text-muted mb-6">
                     {t('admin.advanced.experimentsTab.description')}
                   </p>
 
@@ -828,46 +776,46 @@ export default function ConfiguracaesAvancadasPage() {
                   {!experimentsLoading && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                       {/* Submetido */}
-                      <div className="bg-white rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                      <div className="bg-surface rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">📤</div>
                           <div className="text-2xl font-bold text-blue-600">
                             {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Submitted').length}
                           </div>
-                          <div className="text-xs text-gray-600 text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.submitted')}</div>
+                          <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.submitted')}</div>
                         </div>
                       </div>
 
                       {/* Ajustes Necessários */}
-                      <div className="bg-white rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                      <div className="bg-surface rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow p-4">
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">⚠️</div>
                           <div className="text-2xl font-bold text-orange-600">
                             {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Revisions').length}
                           </div>
-                          <div className="text-xs text-gray-600 text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.adjustment')}</div>
+                          <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.adjustment')}</div>
                         </div>
                       </div>
 
                       {/* Em Revisão */}
-                      <div className="bg-white rounded-lg border border-yellow-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                      <div className="bg-surface rounded-lg border border-yellow-200 shadow-sm hover:shadow-md transition-shadow p-4">
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">🔍</div>
                           <div className="text-2xl font-bold text-yellow-600">
                             {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Review').length}
                           </div>
-                          <div className="text-xs text-gray-600 text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.underReview')}</div>
+                          <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.underReview')}</div>
                         </div>
                       </div>
 
                       {/* Aprovado */}
-                      <div className="bg-white rounded-lg border border-green-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                      <div className="bg-surface rounded-lg border border-primary/30 shadow-sm hover:shadow-md transition-shadow p-4">
                         <div className="flex flex-col items-center">
                           <div className="text-3xl mb-2">✅</div>
-                          <div className="text-2xl font-bold text-green-600">
+                          <div className="text-2xl font-bold text-primary">
                             {[...approvedExperiments, ...inAnalysisExperiments].filter(e => e.status === 'Approved').length}
                           </div>
-                          <div className="text-xs text-gray-600 text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.approved')}</div>
+                          <div className="text-xs text-muted text-center mt-1">{t('admin.advanced.experimentsTab.statusCounters.approved')}</div>
                         </div>
                       </div>
                     </div>
@@ -887,7 +835,7 @@ export default function ConfiguracaesAvancadasPage() {
                   ) : (
                     <div className="space-y-8">
                       {/* Experimentos em Análise */}
-                      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
                         <div className="bg-gradient-to-r from-amber-50 via-amber-50 to-orange-50 px-6 py-4 border-b-2 border-amber-200">
                           <div className="flex items-center justify-between">
                             <h3 className="text-lg font-semibold text-amber-900">{t('admin.advanced.experimentsTab.tables.underAnalysis')}</h3>
@@ -897,22 +845,22 @@ export default function ConfiguracaesAvancadasPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="border-t border-gray-200">
+                        <div className="border-t border-border">
                           {inAnalysisExperiments.length > 0 ? (
                             <div className="overflow-x-auto">
                               <table className="w-full text-xs sm:text-sm">
-                                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                <thead className="bg-background border-b border-border sticky top-0">
                                   <tr>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.index')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.status')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.date')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.researcher')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.material')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.machine')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.sample')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.infill')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.data')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.details')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.index')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.status')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.date')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.researcher')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.material')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.machine')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.sample')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.infill')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.data')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.details')}</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
@@ -922,7 +870,7 @@ export default function ConfiguracaesAvancadasPage() {
                                       className="transition cursor-pointer font-medium hover:bg-blue-50 hover:border-l-4 hover:border-blue-400"
                                       onClick={() => handleViewDetails(experiment.id)}
                                     >
-                                      <td className="px-3 sm:px-4 py-3 font-semibold text-gray-900">
+                                      <td className="px-3 sm:px-4 py-3 font-semibold text-foreground">
                                         {experiment.index_visual || '-'}
                                       </td>
                                       <td className="px-3 sm:px-4 py-3">
@@ -930,31 +878,31 @@ export default function ConfiguracaesAvancadasPage() {
                                           {getStatusBadge(experiment.status).icon} {getStatusBadge(experiment.status).label}
                                         </span>
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap">
+                                      <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">
                                         {experiment.created_at ? (() => {const d = new Date(experiment.created_at); return i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB' ? `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : d.toLocaleDateString('pt-BR')})() : '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.researcher_name || '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.material_brand && experiment.material_model
                                           ? `${experiment.material_brand} ${experiment.material_model}`
                                           : experiment.material_brand || '-'
                                         }
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.machine_brand && experiment.machine_model
                                           ? `${experiment.machine_brand} ${experiment.machine_model}`
                                           : experiment.machine_brand || '-'
                                         }
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.shape_type || '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 font-medium">
+                                      <td className="px-3 sm:px-4 py-3 text-muted font-medium">
                                         {experiment.infill_hu_mean ? experiment.infill_hu_mean.toFixed(2) : '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 text-center h-full">
+                                      <td className="px-3 sm:px-4 py-3 text-muted text-center h-full">
                                         <div className="flex gap-3 justify-center items-center h-full">
                                           {experiment.mechanical_data_count > 0 && (
                                             <span className="text-lg" title="Propriedades Mecânicas">
@@ -972,14 +920,14 @@ export default function ConfiguracaesAvancadasPage() {
                                             </span>
                                           )}
                                           {experiment.mechanical_data_count === 0 && experiment.attenuation_data_count === 0 && !experiment.beam_qualities_exists && (
-                                            <span className="text-gray-400 text-xs">-</span>
+                                            <span className="text-slate-400 text-xs">-</span>
                                           )}
                                         </div>
                                       </td>
                                       <td className="px-3 sm:px-4 py-3">
                                         <button
                                           onClick={() => handleViewDetails(experiment.id)}
-                                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium text-xs"
+                                          className="inline-flex items-center gap-2 px-3 py-2 bg-primary-muted text-primary rounded-lg hover:bg-green-200 transition-colors font-medium text-xs"
                                           title="Ver detalhes completos do experimento"
                                         >
                                           <Eye className="h-4 w-4" />
@@ -993,17 +941,17 @@ export default function ConfiguracaesAvancadasPage() {
                             </div>
                           ) : (
                             <div className="px-6 py-8 text-center">
-                              <p className="text-gray-500">{t('admin.advanced.experimentsTab.empty.underAnalysis')}</p>
+                              <p className="text-muted">{t('admin.advanced.experimentsTab.empty.underAnalysis')}</p>
                             </div>
                           )}
                         </div>
                         {/* Pagination for Analysis Experiments */}
                         {inAnalysisExperiments.length > experimentsPerPage && (
-                          <div className="px-6 py-4 border-t border-gray-200 flex justify-center items-center gap-2">
+                          <div className="px-6 py-4 border-t border-border flex justify-center items-center gap-2">
                             <button
                               onClick={() => setCurrentAnalysisPage(Math.max(1, currentAnalysisPage - 1))}
                               disabled={currentAnalysisPage === 1}
-                              className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Anterior
                             </button>
@@ -1014,7 +962,7 @@ export default function ConfiguracaesAvancadasPage() {
                                 className={`px-3 py-2 rounded text-sm font-medium ${
                                   currentAnalysisPage === page
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                    : 'bg-surface border border-border text-foreground hover:bg-background'
                                 }`}
                               >
                                 {page}
@@ -1023,7 +971,7 @@ export default function ConfiguracaesAvancadasPage() {
                             <button
                               onClick={() => setCurrentAnalysisPage(Math.min(Math.ceil(inAnalysisExperiments.length / experimentsPerPage), currentAnalysisPage + 1))}
                               disabled={currentAnalysisPage === Math.ceil(inAnalysisExperiments.length / experimentsPerPage)}
-                              className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Próximo
                             </button>
@@ -1032,32 +980,32 @@ export default function ConfiguracaesAvancadasPage() {
                       </div>
 
                       {/* Experimentos Aprovados */}
-                      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="bg-gradient-to-r from-green-50 via-green-50 to-teal-50 px-6 py-4 border-b-2 border-green-200">
+                      <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="bg-gradient-to-r from-green-50 via-green-50 to-teal-50 px-6 py-4 border-b-2 border-primary/30">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-green-900">{t('admin.advanced.experimentsTab.tables.approved')}</h3>
-                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm">
-                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <h3 className="text-lg font-semibold text-primary">{t('admin.advanced.experimentsTab.tables.approved')}</h3>
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-muted text-primary font-semibold text-sm">
+                              <span className="w-2 h-2 rounded-full bg-primary-light0 animate-pulse"></span>
                               {approvedExperiments.length} experimentos
                             </span>
                           </div>
                         </div>
-                        <div className="border-t border-gray-200">
+                        <div className="border-t border-border">
                           {approvedExperiments.length > 0 ? (
                             <div className="overflow-x-auto">
                               <table className="w-full text-xs sm:text-sm">
-                                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                <thead className="bg-background border-b border-border sticky top-0">
                                   <tr>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.index')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.status')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.date')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.researcher')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.material')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.machine')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.sample')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.infill')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.data')}</th>
-                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">{t('admin.advanced.experimentsTab.columns.details')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.index')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.status')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.date')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.researcher')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.material')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.machine')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.sample')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.infill')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.data')}</th>
+                                    <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">{t('admin.advanced.experimentsTab.columns.details')}</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
@@ -1067,7 +1015,7 @@ export default function ConfiguracaesAvancadasPage() {
                                       className="transition cursor-pointer font-medium hover:bg-blue-50 hover:border-l-4 hover:border-blue-400"
                                       onClick={() => handleViewDetails(experiment.id)}
                                     >
-                                      <td className="px-3 sm:px-4 py-3 font-semibold text-gray-900">
+                                      <td className="px-3 sm:px-4 py-3 font-semibold text-foreground">
                                         {experiment.index_visual || '-'}
                                       </td>
                                       <td className="px-3 sm:px-4 py-3">
@@ -1075,28 +1023,28 @@ export default function ConfiguracaesAvancadasPage() {
                                           {getStatusBadge(experiment.status).icon} {getStatusBadge(experiment.status).label}
                                         </span>
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap">
+                                      <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">
                                         {experiment.created_at ? (() => {const d = new Date(experiment.created_at); return i18n.language === 'en' || i18n.language === 'en-US' || i18n.language === 'en-GB' ? `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : d.toLocaleDateString('pt-BR')})() : '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.researcher_name || '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.material_brand && experiment.material_model 
                                           ? `${experiment.material_brand} ${experiment.material_model}`
                                           : experiment.material_brand || '-'
                                         }
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.machine_brand && experiment.machine_model
                                           ? `${experiment.machine_brand} ${experiment.machine_model}`
                                           : experiment.machine_brand || '-'
                                         }
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                      <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                         {experiment.shape_type || '-'}
                                       </td>
-                                      <td className="px-3 sm:px-4 py-3 text-gray-600 font-medium">
+                                      <td className="px-3 sm:px-4 py-3 text-muted font-medium">
                                         {experiment.infill_hu_mean ? experiment.infill_hu_mean.toFixed(2) : '-'}
                                       </td>
                                       <td className="px-3 sm:px-4 py-3 text-center h-full">
@@ -1117,14 +1065,14 @@ export default function ConfiguracaesAvancadasPage() {
                                             </span>
                                           )}
                                           {experiment.mechanical_data_count === 0 && experiment.attenuation_data_count === 0 && !experiment.beam_qualities_exists && (
-                                            <span className="text-gray-400 text-xs">-</span>
+                                            <span className="text-slate-400 text-xs">-</span>
                                           )}
                                         </div>
                                       </td>
                                       <td className="px-3 sm:px-4 py-3">
                                         <button
                                           onClick={() => handleViewDetails(experiment.id)}
-                                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium text-xs"
+                                          className="inline-flex items-center gap-2 px-3 py-2 bg-primary-muted text-primary rounded-lg hover:bg-green-200 transition-colors font-medium text-xs"
                                           title="Ver detalhes completos do experimento"
                                         >
                                           <Eye className="h-4 w-4" />
@@ -1138,17 +1086,17 @@ export default function ConfiguracaesAvancadasPage() {
                             </div>
                           ) : (
                             <div className="px-6 py-8 text-center">
-                              <p className="text-gray-500">{t('admin.advanced.experimentsTab.empty.approved')}</p>
+                              <p className="text-muted">{t('admin.advanced.experimentsTab.empty.approved')}</p>
                             </div>
                           )}
                         </div>
                         {/* Pagination for Approved Experiments */}
                         {approvedExperiments.length > experimentsPerPage && (
-                          <div className="px-6 py-4 border-t border-gray-200 flex justify-center items-center gap-2">
+                          <div className="px-6 py-4 border-t border-border flex justify-center items-center gap-2">
                             <button
                               onClick={() => setCurrentApprovedPage(Math.max(1, currentApprovedPage - 1))}
                               disabled={currentApprovedPage === 1}
-                              className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Anterior
                             </button>
@@ -1159,7 +1107,7 @@ export default function ConfiguracaesAvancadasPage() {
                                 className={`px-3 py-2 rounded text-sm font-medium ${
                                   currentApprovedPage === page
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                    : 'bg-surface border border-border text-foreground hover:bg-background'
                                 }`}
                               >
                                 {page}
@@ -1168,7 +1116,7 @@ export default function ConfiguracaesAvancadasPage() {
                             <button
                               onClick={() => setCurrentApprovedPage(Math.min(Math.ceil(approvedExperiments.length / experimentsPerPage), currentApprovedPage + 1))}
                               disabled={currentApprovedPage === Math.ceil(approvedExperiments.length / experimentsPerPage)}
-                              className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Próximo
                             </button>
@@ -1183,27 +1131,27 @@ export default function ConfiguracaesAvancadasPage() {
 
             {/* Gerenciar Status Experimentos */}
             {activeTab === 'experiments' && (
-              <div className="space-y-6 mt-12 pt-8 border-t border-gray-200">
+              <div className="space-y-6 mt-12 pt-8 border-t border-border">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">{t('admin.advanced.experimentsTab.history.title')}</h2>
-                  <p className="text-gray-600 mb-6">
+                  <h2 className="text-xl font-bold text-foreground mb-4">{t('admin.advanced.experimentsTab.history.title')}</h2>
+                  <p className="text-muted mb-6">
                     {t('admin.advanced.experimentsTab.history.description')}
                   </p>
 
                   {/* Filters */}
-                  <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('common.filters')}</h3>
+                  <div className="bg-surface rounded-lg border border-border p-6 mb-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">{t('common.filters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {/* Old Status Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status Anterior</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Status Anterior</label>
                         <select
                           value={statusHistoryFilters.old_status}
                           onChange={(e) => {
                             setStatusHistoryFilters({ ...statusHistoryFilters, old_status: e.target.value })
                             setCurrentStatusHistoryPage(1)
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Todos</option>
                           <option value="__NULL__">Inicial (Nenhum)</option>
@@ -1216,14 +1164,14 @@ export default function ConfiguracaesAvancadasPage() {
 
                       {/* New Status Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Status Novo</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Status Novo</label>
                         <select
                           value={statusHistoryFilters.new_status}
                           onChange={(e) => {
                             setStatusHistoryFilters({ ...statusHistoryFilters, new_status: e.target.value })
                             setCurrentStatusHistoryPage(1)
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Todos</option>
                           <option value="Submitted">Submetido</option>
@@ -1235,7 +1183,7 @@ export default function ConfiguracaesAvancadasPage() {
 
                       {/* Changed By Name Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Alterado Por (Nome)</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Alterado Por (Nome)</label>
                         <input
                           type="text"
                           placeholder="Digite o nome..."
@@ -1244,20 +1192,20 @@ export default function ConfiguracaesAvancadasPage() {
                             setStatusHistoryFilters({ ...statusHistoryFilters, changed_by_name: e.target.value })
                             setCurrentStatusHistoryPage(1)
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
 
                       {/* Changed By Role Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Alterado Por (Papel)</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Alterado Por (Papel)</label>
                         <select
                           value={statusHistoryFilters.changed_by_role}
                           onChange={(e) => {
                             setStatusHistoryFilters({ ...statusHistoryFilters, changed_by_role: e.target.value })
                             setCurrentStatusHistoryPage(1)
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Todos os Papéis</option>
                           <option value="admin">Admin</option>
@@ -1267,7 +1215,7 @@ export default function ConfiguracaesAvancadasPage() {
 
                       {/* Start Date Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Data Início</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Data Início</label>
                         <input
                           type="date"
                           value={statusHistoryFilters.start_date}
@@ -1275,13 +1223,13 @@ export default function ConfiguracaesAvancadasPage() {
                             setStatusHistoryFilters({ ...statusHistoryFilters, start_date: e.target.value })
                             setCurrentStatusHistoryPage(1)
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
 
                       {/* End Date Filter */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Data Fim</label>
+                        <label className="block text-sm font-medium text-foreground mb-2">Data Fim</label>
                         <input
                           type="date"
                           value={statusHistoryFilters.end_date}
@@ -1289,7 +1237,7 @@ export default function ConfiguracaesAvancadasPage() {
                             setStatusHistoryFilters({ ...statusHistoryFilters, end_date: e.target.value })
                             setCurrentStatusHistoryPage(1)
                           }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -1308,7 +1256,7 @@ export default function ConfiguracaesAvancadasPage() {
                           setStatusHistoryFilters({ old_status: '', new_status: '', changed_by_name: '', changed_by_role: '', start_date: '', end_date: '' })
                           setCurrentStatusHistoryPage(1)
                         }}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                        className="px-4 py-2 bg-slate-200 text-foreground rounded-lg hover:bg-slate-300 transition-colors font-medium"
                       >
                         Limpar Filtros
                       </button>
@@ -1328,7 +1276,7 @@ export default function ConfiguracaesAvancadasPage() {
                       <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
                     </div>
                   ) : (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden">
                       <div className="bg-gradient-to-r from-purple-50 via-purple-50 to-pink-50 px-6 py-4 border-b-2 border-purple-200">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold text-purple-900">Histórico de Status</h3>
@@ -1341,21 +1289,21 @@ export default function ConfiguracaesAvancadasPage() {
                       {statusHistoryData.length > 0 ? (
                         <div className="overflow-x-auto">
                           <table className="w-full text-xs sm:text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                            <thead className="bg-background border-b border-border sticky top-0">
                               <tr>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Index</th>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Status Anterior</th>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Novo Status</th>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Alterado Por</th>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Papel</th>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Comentário</th>
-                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700">Data/Hora</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Index</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Status Anterior</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Novo Status</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Alterado Por</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Papel</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Comentário</th>
+                                <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground">Data/Hora</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                               {statusHistoryData.slice((currentStatusHistoryPage - 1) * statusHistoryPerPage, currentStatusHistoryPage * statusHistoryPerPage).map((record, idx) => (
-                                <tr key={idx} className="transition hover:bg-gray-50">
-                                  <td className="px-3 sm:px-4 py-3 font-semibold text-gray-900">
+                                <tr key={idx} className="transition hover:bg-background">
+                                  <td className="px-3 sm:px-4 py-3 font-semibold text-foreground">
                                     {experimentIndexMap[record.sample_id] || '-'}
                                   </td>
                                   <td className="px-3 sm:px-4 py-3">
@@ -1364,7 +1312,7 @@ export default function ConfiguracaesAvancadasPage() {
                                         {getStatusBadge(record.old_status).icon} {getStatusBadge(record.old_status).label}
                                       </span>
                                     ) : (
-                                      <span className="text-gray-400">-</span>
+                                      <span className="text-slate-400">-</span>
                                     )}
                                   </td>
                                   <td className="px-3 sm:px-4 py-3">
@@ -1372,7 +1320,7 @@ export default function ConfiguracaesAvancadasPage() {
                                       {getStatusBadge(record.new_status).icon} {getStatusBadge(record.new_status).label}
                                     </span>
                                   </td>
-                                  <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                                  <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                     {record.changed_by_name || record.changed_by_email || '-'}
                                   </td>
                                   <td className="px-3 sm:px-4 py-3">
@@ -1385,13 +1333,13 @@ export default function ConfiguracaesAvancadasPage() {
                                         {record.changed_by_role === 'admin' ? '🔐 Admin' : '👤 Pesquisador'}
                                       </span>
                                     ) : (
-                                      <span className="text-gray-400">-</span>
+                                      <span className="text-slate-400">-</span>
                                     )}
                                   </td>
-                                  <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs" title={record.comment || ''}>
+                                  <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs" title={record.comment || ''}>
                                     {record.comment ? record.comment.substring(0, 30) + (record.comment.length > 30 ? '...' : '') : '-'}
                                   </td>
-                                  <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap">
+                                  <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap">
                                     {record.created_at ? formatDateTimeByLanguage(record.created_at, i18n.language) : '-'}
                                   </td>
                                 </tr>
@@ -1401,17 +1349,17 @@ export default function ConfiguracaesAvancadasPage() {
                         </div>
                       ) : (
                         <div className="px-6 py-8 text-center">
-                          <p className="text-gray-500">Nenhum registro encontrado</p>
+                          <p className="text-muted">Nenhum registro encontrado</p>
                         </div>
                       )}
 
                       {/* Pagination */}
                       {statusHistoryData.length > statusHistoryPerPage && (
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-center items-center gap-2">
+                        <div className="px-6 py-4 border-t border-border flex justify-center items-center gap-2">
                           <button
                             onClick={() => setCurrentStatusHistoryPage(Math.max(1, currentStatusHistoryPage - 1))}
                             disabled={currentStatusHistoryPage === 1}
-                            className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Anterior
                           </button>
@@ -1422,7 +1370,7 @@ export default function ConfiguracaesAvancadasPage() {
                               className={`px-3 py-2 rounded text-sm font-medium ${
                                 currentStatusHistoryPage === page
                                   ? 'bg-blue-600 text-white'
-                                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                  : 'bg-surface border border-border text-foreground hover:bg-background'
                               }`}
                             >
                               {page}
@@ -1431,7 +1379,7 @@ export default function ConfiguracaesAvancadasPage() {
                           <button
                             onClick={() => setCurrentStatusHistoryPage(Math.min(Math.ceil(statusHistoryData.length / statusHistoryPerPage), currentStatusHistoryPage + 1))}
                             disabled={currentStatusHistoryPage === Math.ceil(statusHistoryData.length / statusHistoryPerPage)}
-                            className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Próximo
                           </button>
@@ -1447,19 +1395,19 @@ export default function ConfiguracaesAvancadasPage() {
             {activeTab === 'users' && (
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">{t('admin.advanced.usersTab.title')}</h2>
-                  <p className="text-gray-600 mb-6">
+                  <h2 className="text-xl font-bold text-foreground mb-2">{t('admin.advanced.usersTab.title')}</h2>
+                  <p className="text-muted mb-6">
                     {t('admin.advanced.usersTab.description')}
                   </p>
 
                   {/* Usuários Regulares */}
                   <div className="mb-8">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 px-6 py-4 border-b-2 border-green-200">
+                    <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="bg-gradient-to-r from-green-50 via-green-50 to-emerald-50 px-6 py-4 border-b-2 border-primary/30">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold text-green-900">{t('admin.advanced.usersTab.regularUsers')}</h3>
-                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                          <h3 className="text-lg font-semibold text-primary">{t('admin.advanced.usersTab.regularUsers')}</h3>
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-muted text-primary font-semibold text-sm">
+                            <span className="w-2 h-2 rounded-full bg-primary-light0 animate-pulse"></span>
                             {regularUsers.length} {regularUsers.length === 1 ? t('admin.advanced.usersTab.userSingular') : t('admin.advanced.usersTab.userPlural')}
                           </span>
                         </div>
@@ -1480,7 +1428,7 @@ export default function ConfiguracaesAvancadasPage() {
 
                   {/* Usuários Irregulares */}
                   <div className="mb-8">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
                       <div className="bg-gradient-to-r from-yellow-50 via-yellow-50 to-amber-50 px-6 py-4 border-b-2 border-yellow-200">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold text-yellow-900">{t('admin.advanced.usersTab.irregularUsers')}</h3>
@@ -1506,12 +1454,12 @@ export default function ConfiguracaesAvancadasPage() {
 
                   {/* Usuários Desativados */}
                   <div className="mb-8">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="bg-gradient-to-r from-gray-50 via-gray-50 to-slate-50 px-6 py-4 border-b-2 border-gray-200">
+                    <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="bg-gradient-to-r from-gray-50 via-gray-50 to-slate-50 px-6 py-4 border-b-2 border-border">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-lg font-semibold text-gray-900">{t('admin.advanced.usersTab.deactivatedUsers')}</h3>
-                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">
-                            <span className="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></span>
+                          <h3 className="text-lg font-semibold text-foreground">{t('admin.advanced.usersTab.deactivatedUsers')}</h3>
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200 text-foreground font-semibold text-sm">
+                            <span className="w-2 h-2 rounded-full bg-background0 animate-pulse"></span>
                             {desativatedUsers.length} {desativatedUsers.length === 1 ? t('admin.advanced.usersTab.userSingular') : t('admin.advanced.usersTab.userPlural')}
                           </span>
                         </div>
@@ -1531,8 +1479,8 @@ export default function ConfiguracaesAvancadasPage() {
                   </div>
 
                   {/* Update Status Form */}
-                  <div className="mt-12 pt-8 border-t border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  <div className="mt-12 pt-8 border-t border-border">
+                    <h3 className="text-lg font-semibold text-foreground mb-6">
                       {t('admin.advanced.usersTab.updateStatusTitle')}
                     </h3>
                     {showUpdateForm ? (
@@ -1566,8 +1514,8 @@ export default function ConfiguracaesAvancadasPage() {
             {activeTab === 'administradores' && (
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">{t('admin.advanced.adminsTab.title')}</h2>
-                  <p className="text-gray-600 mb-6">
+                  <h2 className="text-xl font-bold text-foreground mb-2">{t('admin.advanced.adminsTab.title')}</h2>
+                  <p className="text-muted mb-6">
                     {t('admin.advanced.adminsTab.description')}
                   </p>
 
@@ -1575,11 +1523,11 @@ export default function ConfiguracaesAvancadasPage() {
                   <div className="mb-8">
                     <div className="flex items-center gap-2 mb-4">
                       <Shield className="h-5 w-5 text-orange-600" />
-                      <h3 className="text-lg font-semibold text-gray-800">
+                      <h3 className="text-lg font-semibold text-foreground">
                         Administradores ({admins.length})
                       </h3>
                     </div>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="border border-border rounded-lg overflow-hidden">
                       <AdminsTable
                         admins={admins}
                         isLoading={adminsLoading}
@@ -1589,8 +1537,8 @@ export default function ConfiguracaesAvancadasPage() {
                   </div>
 
                   {/* Update Role Form */}
-                  <div className="mt-12 pt-8 border-t border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  <div className="mt-12 pt-8 border-t border-border">
+                    <h3 className="text-lg font-semibold text-foreground mb-6">
                       {selectedAdmin ? t('admin.advanced.adminsTab.editPermissions') : t('admin.advanced.adminsTab.promoteTitle')}
                     </h3>
                     {showAdminRoleForm ? (
@@ -1622,8 +1570,8 @@ export default function ConfiguracaesAvancadasPage() {
             {activeTab === 'database' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">{t('admin.advanced.databaseTab.title')}</h2>
-                  <p className="text-gray-600 mb-6">
+                  <h2 className="text-xl font-bold text-foreground mb-4">{t('admin.advanced.databaseTab.title')}</h2>
+                  <p className="text-muted mb-6">
                     {t('admin.advanced.databaseTab.description')}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1655,15 +1603,15 @@ export default function ConfiguracaesAvancadasPage() {
                       </button>
                     </div>
 
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h3 className="font-bold text-green-900 mb-2">{t('admin.advanced.databaseTab.backup.title')}</h3>
-                      <p className="text-sm text-green-700 mb-4">
+                    <div className="bg-primary-light border border-primary/30 rounded-lg p-4">
+                      <h3 className="font-bold text-primary mb-2">{t('admin.advanced.databaseTab.backup.title')}</h3>
+                      <p className="text-sm text-primary mb-4">
                         {t('admin.advanced.databaseTab.backup.description')}
                       </p>
                       {exportMessage && (
                         <div className={`mb-4 p-3 rounded text-sm ${
                           exportMessage.type === 'success' 
-                            ? 'bg-green-100 text-green-700' 
+                            ? 'bg-primary-muted text-primary' 
                             : 'bg-red-100 text-red-700'
                         }`}>
                           {exportMessage.text}
@@ -1674,8 +1622,8 @@ export default function ConfiguracaesAvancadasPage() {
                         disabled={isExportingTables}
                         className={`px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${
                           isExportingTables
-                            ? 'bg-green-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700'
+                            ? 'bg-primary/60 cursor-not-allowed'
+                            : 'bg-primary hover:bg-primary-hover'
                         }`}
                       >
                         {isExportingTables ? (
@@ -1706,21 +1654,21 @@ export default function ConfiguracaesAvancadasPage() {
             {activeTab === 'system' && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">{t('admin.advanced.systemTab.title')}</h2>
-                  <p className="text-gray-600 mb-6">
+                  <h2 className="text-xl font-bold text-foreground mb-2">{t('admin.advanced.systemTab.title')}</h2>
+                  <p className="text-muted mb-6">
                     {t('admin.advanced.systemTab.description')}
                   </p>
 
                   {/* Filters Section */}
-                  <div className="bg-gray-100 rounded-lg border border-gray-200 p-6 mb-6">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('admin.advanced.systemTab.filters.title')}</h3>
+                  <div className="bg-slate-100 rounded-lg border border-border p-6 mb-6">
+                    <h3 className="text-sm font-semibold text-foreground mb-4">{t('admin.advanced.systemTab.filters.title')}</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                       {/* Action Category */}
                       <select
                         value={logFilters.action_category}
                         onChange={(e) => setLogFilters({...logFilters, action_category: e.target.value})}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface"
                       >
                         <option value="">{t('admin.advanced.systemTab.filters.allCategories')}</option>
                         <option value="CREATE">{t('admin.advanced.systemTab.filters.create')}</option>
@@ -1735,7 +1683,7 @@ export default function ConfiguracaesAvancadasPage() {
                       <select
                         value={logFilters.severity_level}
                         onChange={(e) => setLogFilters({...logFilters, severity_level: e.target.value})}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface"
                       >
                         <option value="">{t('admin.advanced.systemTab.filters.allSeverities')}</option>
                         <option value="INFO">ℹ️ {t('admin.advanced.systemTab.filters.info')}</option>
@@ -1750,7 +1698,7 @@ export default function ConfiguracaesAvancadasPage() {
                         placeholder={t('admin.advanced.systemTab.filters.entityPlaceholder')}
                         value={logFilters.entity_name}
                         onChange={(e) => setLogFilters({...logFilters, entity_name: e.target.value})}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
 
                       {/* Start Date */}
@@ -1758,7 +1706,7 @@ export default function ConfiguracaesAvancadasPage() {
                         type="date"
                         value={logFilters.start_date}
                         onChange={(e) => setLogFilters({...logFilters, start_date: e.target.value})}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
 
                       {/* End Date */}
@@ -1766,7 +1714,7 @@ export default function ConfiguracaesAvancadasPage() {
                         type="date"
                         value={logFilters.end_date}
                         onChange={(e) => setLogFilters({...logFilters, end_date: e.target.value})}
-                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
@@ -1780,7 +1728,7 @@ export default function ConfiguracaesAvancadasPage() {
                       </button>
                       <button
                         onClick={handleClearLogFilters}
-                        className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
+                        className="px-4 py-2 bg-slate-300 text-foreground rounded-lg hover:bg-slate-400 transition-colors text-sm font-medium"
                       >
                         {t('admin.advanced.systemTab.filters.clear')}
                       </button>
@@ -1803,14 +1751,14 @@ export default function ConfiguracaesAvancadasPage() {
                     <div className="flex justify-center p-8">
                       <div className="flex flex-col items-center gap-3">
                         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                        <p className="text-gray-600">{t('admin.advanced.systemTab.table.loading')}</p>
+                        <p className="text-muted">{t('admin.advanced.systemTab.table.loading')}</p>
                       </div>
                     </div>
                   )}
 
                   {/* Logs Table */}
                   {!logsLoading && systemLogs.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden">
                       <div className="bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 px-6 py-4 border-b-2 border-blue-200">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-semibold text-blue-900">Logs do Sistema</h3>
@@ -1823,14 +1771,14 @@ export default function ConfiguracaesAvancadasPage() {
 
                       <div className="overflow-x-auto">
                         <table className="w-full">
-                          <thead className="bg-gray-100 border-b border-gray-200">
+                          <thead className="bg-slate-100 border-b border-border">
                             <tr>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Data/Hora</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Categoria</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Severidade</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Tipo de Ação</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Descrição</th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Usuário</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Data/Hora</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Categoria</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Severidade</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Tipo de Ação</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Descrição</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">Usuário</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
@@ -1847,12 +1795,12 @@ export default function ConfiguracaesAvancadasPage() {
                                   }
                                 }
                               } catch (e) {
-                                console.warn('[Logs] Error formatting date:', log.created_at || log.timestamp, e)
+                                logger.warn('configuracoes-avancadas', 'Error formatting date')
                               }
 
                               return (
-                              <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-4 py-3 text-sm text-gray-900 font-medium whitespace-nowrap">
+                              <tr key={idx} className="hover:bg-background transition-colors">
+                                <td className="px-4 py-3 text-sm text-foreground font-medium whitespace-nowrap">
                                   {formattedDate}
                                 </td>
                                 <td className="px-4 py-3 text-sm">
@@ -1865,25 +1813,25 @@ export default function ConfiguracaesAvancadasPage() {
                                     log.severity_level === 'INFO' ? 'bg-blue-100 text-blue-800' :
                                     log.severity_level === 'WARNING' ? 'bg-yellow-100 text-yellow-800' :
                                     log.severity_level === 'CRITICAL' ? 'bg-red-100 text-red-800' :
-                                    'bg-gray-100 text-gray-800'
+                                    'bg-slate-100 text-foreground'
                                   }`}>
                                     {log.severity_level || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
-                                  <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-mono">
+                                <td className="px-4 py-3 text-sm text-muted">
+                                  <span className="px-2 py-1 rounded bg-slate-100 text-foreground text-xs font-mono">
                                     {log.action_type || log.entity_name || '-'}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
+                                <td className="px-4 py-3 text-sm text-muted">
                                   {log.description || log.message || '-'}
                                 </td>
-                                <td className="px-4 py-3 text-sm text-gray-600">
+                                <td className="px-4 py-3 text-sm text-muted">
                                   <div className="flex flex-col gap-1">
-                                    <span className="font-medium text-gray-900">
+                                    <span className="font-medium text-foreground">
                                       {log.user_name || log.user_email || log.user_id || '-'}
                                     </span>
-                                    <span className="text-xs text-gray-500 font-mono">
+                                    <span className="text-xs text-muted font-mono">
                                       {log.ip_address || '-'}
                                     </span>
                                   </div>
@@ -1896,11 +1844,11 @@ export default function ConfiguracaesAvancadasPage() {
 
                       {/* Pagination */}
                       {Math.ceil(systemLogs.length / logsPerPage) > 1 && (
-                        <div className="px-6 py-4 border-t border-gray-200 flex justify-center items-center gap-2">
+                        <div className="px-6 py-4 border-t border-border flex justify-center items-center gap-2">
                           <button
                             onClick={() => setCurrentLogPage(Math.max(1, currentLogPage - 1))}
                             disabled={currentLogPage === 1}
-                            className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Anterior
                           </button>
@@ -1911,7 +1859,7 @@ export default function ConfiguracaesAvancadasPage() {
                               className={`px-3 py-2 rounded text-sm font-medium ${
                                 currentLogPage === page
                                   ? 'bg-blue-600 text-white'
-                                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                  : 'bg-surface border border-border text-foreground hover:bg-background'
                               }`}
                             >
                               {page}
@@ -1920,7 +1868,7 @@ export default function ConfiguracaesAvancadasPage() {
                           <button
                             onClick={() => setCurrentLogPage(Math.min(Math.ceil(systemLogs.length / logsPerPage), currentLogPage + 1))}
                             disabled={currentLogPage === Math.ceil(systemLogs.length / logsPerPage)}
-                            className="px-3 py-2 rounded text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded text-sm font-medium bg-surface border border-border text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Próximo
                           </button>
@@ -1931,8 +1879,8 @@ export default function ConfiguracaesAvancadasPage() {
 
                   {/* Empty State */}
                   {!logsLoading && systemLogs.length === 0 && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-12 text-center">
-                      <p className="text-gray-600">{t('admin.advanced.systemTab.table.noLogs')}</p>
+                    <div className="bg-surface rounded-lg shadow-sm border border-border p-12 text-center">
+                      <p className="text-muted">{t('admin.advanced.systemTab.table.noLogs')}</p>
                     </div>
                   )}
                 </div>
@@ -1944,24 +1892,24 @@ export default function ConfiguracaesAvancadasPage() {
         {/* Database Integrity Modal */}
         {showIntegrityModal && integrityResult && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className={`px-6 py-4 border-b ${
-                integrityResult.overall_health === 'healthy' ? 'bg-green-50 border-green-200' :
+                integrityResult.overall_health === 'healthy' ? 'bg-primary-light border-primary/30' :
                 integrityResult.overall_health === 'warning' ? 'bg-yellow-50 border-yellow-200' :
                 'bg-red-50 border-red-200'
               }`}>
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className={`text-xl font-bold ${
-                      integrityResult.overall_health === 'healthy' ? 'text-green-900' :
+                      integrityResult.overall_health === 'healthy' ? 'text-primary' :
                       integrityResult.overall_health === 'warning' ? 'text-yellow-900' :
                       'text-red-900'
                     }`}>
                       {t('admin.advanced.databaseTab.integrity.modalTitle')}
                     </h2>
                     <p className={`text-sm mt-1 ${
-                      integrityResult.overall_health === 'healthy' ? 'text-green-700' :
+                      integrityResult.overall_health === 'healthy' ? 'text-primary' :
                       integrityResult.overall_health === 'warning' ? 'text-yellow-700' :
                       'text-red-700'
                     }`}>
@@ -1970,7 +1918,7 @@ export default function ConfiguracaesAvancadasPage() {
                   </div>
                   <button
                     onClick={() => setShowIntegrityModal(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    className="text-muted hover:text-foreground text-2xl leading-none"
                   >
                     ✕
                   </button>
@@ -1981,18 +1929,18 @@ export default function ConfiguracaesAvancadasPage() {
               <div className="px-6 py-4 space-y-4">
                 {/* Status Summary */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-gray-50 rounded">
-                    <p className="text-xs text-gray-600">{t('admin.advanced.databaseTab.integrity.connectionStatus')}</p>
+                  <div className="p-3 bg-background rounded">
+                    <p className="text-xs text-muted">{t('admin.advanced.databaseTab.integrity.connectionStatus')}</p>
                     <p className={`text-sm font-semibold ${
-                      integrityResult.connection_status ? 'text-green-600' : 'text-red-600'
+                      integrityResult.connection_status ? 'text-primary' : 'text-red-600'
                     }`}>
                       {integrityResult.connection_status ? t('admin.advanced.databaseTab.integrity.connected') : t('admin.advanced.databaseTab.integrity.disconnected')}
                     </p>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded">
-                    <p className="text-xs text-gray-600">{t('admin.advanced.databaseTab.integrity.generalHealth')}</p>
+                  <div className="p-3 bg-background rounded">
+                    <p className="text-xs text-muted">{t('admin.advanced.databaseTab.integrity.generalHealth')}</p>
                     <p className={`text-sm font-semibold ${
-                      integrityResult.overall_health === 'healthy' ? 'text-green-600' :
+                      integrityResult.overall_health === 'healthy' ? 'text-primary' :
                       integrityResult.overall_health === 'warning' ? 'text-yellow-600' :
                       'text-red-600'
                     }`}>
@@ -2006,19 +1954,19 @@ export default function ConfiguracaesAvancadasPage() {
                 {/* Tables Status - Grid Layout */}
                 {integrityResult.tables && integrityResult.tables.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">{t('admin.advanced.databaseTab.integrity.tablesStatus', { count: integrityResult.tables.length })}</h3>
+                    <h3 className="font-semibold text-foreground mb-3">{t('admin.advanced.databaseTab.integrity.tablesStatus', { count: integrityResult.tables.length })}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                       {integrityResult.tables.map((table: any, idx: number) => (
                         <div key={idx} className={`p-3 border rounded-lg transition-colors ${
-                          table.status === 'healthy' ? 'bg-green-50 border-green-200 hover:bg-green-100' :
+                          table.status === 'healthy' ? 'bg-primary-light border-primary/30 hover:bg-primary-muted' :
                           table.status === 'warning' ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' :
                           'bg-red-50 border-red-200 hover:bg-red-100'
                         }`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 text-sm truncate">{table.table_name}</p>
+                              <p className="font-medium text-foreground text-sm truncate">{table.table_name}</p>
                               <p className={`text-xs mt-1 font-semibold ${
-                                table.status === 'healthy' ? 'text-green-700' :
+                                table.status === 'healthy' ? 'text-primary' :
                                 table.status === 'warning' ? 'text-yellow-700' :
                                 'text-red-700'
                               }`}>
@@ -2026,7 +1974,7 @@ export default function ConfiguracaesAvancadasPage() {
                               </p>
                             </div>
                             <span className={`text-xs font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
-                              table.status === 'healthy' ? 'bg-green-200 text-green-900' :
+                              table.status === 'healthy' ? 'bg-green-200 text-primary' :
                               table.status === 'warning' ? 'bg-yellow-200 text-yellow-900' :
                               'bg-red-200 text-red-900'
                             }`}>
@@ -2042,16 +1990,16 @@ export default function ConfiguracaesAvancadasPage() {
                 )}
 
                 {/* Timestamp */}
-                <div className="text-xs text-gray-500 pt-3 border-t">
+                <div className="text-xs text-muted pt-3 border-t">
                   {t('admin.advanced.databaseTab.integrity.verifiedAt', { date: new Date(integrityResult.timestamp).toLocaleString('pt-BR') })}
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-3 border-t bg-gray-50 flex justify-end gap-2">
+              <div className="px-6 py-3 border-t bg-background flex justify-end gap-2">
                 <button
                   onClick={() => setShowIntegrityModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-slate-200 text-foreground rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium"
                 >
                   {t('common.close')}
                 </button>
@@ -2074,24 +2022,24 @@ export default function ConfiguracaesAvancadasPage() {
         {/* System Health Modal */}
         {showHealthModal && systemHealthResult && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className={`px-6 py-4 border-b ${
-                systemHealthResult.overall_status === 'healthy' ? 'bg-green-50 border-green-200' :
+                systemHealthResult.overall_status === 'healthy' ? 'bg-primary-light border-primary/30' :
                 systemHealthResult.overall_status === 'warning' ? 'bg-yellow-50 border-yellow-200' :
                 'bg-red-50 border-red-200'
               }`}>
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className={`text-xl font-bold ${
-                      systemHealthResult.overall_status === 'healthy' ? 'text-green-900' :
+                      systemHealthResult.overall_status === 'healthy' ? 'text-primary' :
                       systemHealthResult.overall_status === 'warning' ? 'text-yellow-900' :
                       'text-red-900'
                     }`}>
                       {t('admin.advanced.systemTab.systemHealth.modalTitle')}
                     </h2>
                     <p className={`text-sm mt-1 ${
-                      systemHealthResult.overall_status === 'healthy' ? 'text-green-700' :
+                      systemHealthResult.overall_status === 'healthy' ? 'text-primary' :
                       systemHealthResult.overall_status === 'warning' ? 'text-yellow-700' :
                       'text-red-700'
                     }`}>
@@ -2100,7 +2048,7 @@ export default function ConfiguracaesAvancadasPage() {
                   </div>
                   <button
                     onClick={() => setShowHealthModal(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    className="text-muted hover:text-foreground text-2xl leading-none"
                   >
                     ✕
                   </button>
@@ -2112,32 +2060,32 @@ export default function ConfiguracaesAvancadasPage() {
                 {/* Components Status - Grid Layout */}
                 {systemHealthResult.components && systemHealthResult.components.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">Componentes do Sistema ({systemHealthResult.components.length})</h3>
+                    <h3 className="font-semibold text-foreground mb-3">Componentes do Sistema ({systemHealthResult.components.length})</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {systemHealthResult.components.map((component: any, idx: number) => (
                         <div key={idx} className={`p-3 border rounded-lg transition-colors ${
-                          component.status === 'healthy' ? 'bg-green-50 border-green-200 hover:bg-green-100' :
+                          component.status === 'healthy' ? 'bg-primary-light border-primary/30 hover:bg-primary-muted' :
                           component.status === 'warning' ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' :
                           'bg-red-50 border-red-200 hover:bg-red-100'
                         }`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 text-sm">{component.component}</p>
+                              <p className="font-medium text-foreground text-sm">{component.component}</p>
                               <p className={`text-xs mt-1 font-semibold ${
-                                component.status === 'healthy' ? 'text-green-700' :
+                                component.status === 'healthy' ? 'text-primary' :
                                 component.status === 'warning' ? 'text-yellow-700' :
                                 'text-red-700'
                               }`}>
                                 {component.message}
                               </p>
                               {component.response_time_ms && (
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-muted mt-1">
                                   Latência: {component.response_time_ms.toFixed(1)}ms
                                 </p>
                               )}
                             </div>
                             <span className={`text-xs font-bold px-2 py-1 rounded whitespace-nowrap ${
-                              component.status === 'healthy' ? 'bg-green-200 text-green-900' :
+                              component.status === 'healthy' ? 'bg-green-200 text-primary' :
                               component.status === 'warning' ? 'bg-yellow-200 text-yellow-900' :
                               'bg-red-200 text-red-900'
                             }`}>
@@ -2168,16 +2116,16 @@ export default function ConfiguracaesAvancadasPage() {
                 )}
 
                 {/* Timestamp */}
-                <div className="text-xs text-gray-500 pt-3 border-t">
+                <div className="text-xs text-muted pt-3 border-t">
                   Verificado em: {new Date(systemHealthResult.timestamp).toLocaleString('pt-BR')}
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-3 border-t bg-gray-50 flex justify-end gap-2">
+              <div className="px-6 py-3 border-t bg-background flex justify-end gap-2">
                 <button
                   onClick={() => setShowHealthModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-slate-200 text-foreground rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium"
                 >
                   Fechar
                 </button>
@@ -2200,7 +2148,7 @@ export default function ConfiguracaesAvancadasPage() {
         {/* Experiment Details Modal */}
         {showExperimentDetailsModal && selectedExperiment && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="px-6 py-4 border-b bg-gradient-to-r from-blue-50 via-blue-50 to-cyan-50 border-blue-200 sticky top-0">
                 <div className="flex items-start justify-between">
@@ -2214,7 +2162,7 @@ export default function ConfiguracaesAvancadasPage() {
                   </div>
                   <button
                     onClick={() => setShowExperimentDetailsModal(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    className="text-muted hover:text-foreground text-2xl leading-none"
                   >
                     ✕
                   </button>
@@ -2236,23 +2184,23 @@ export default function ConfiguracaesAvancadasPage() {
                   <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
                     <h3 className="text-lg font-bold text-blue-900 mb-4">{t('admin.advanced.experimentsTab.detailsModal.basicInfo')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-3 bg-white rounded border border-blue-100">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Index</p>
-                        <p className="text-sm font-semibold text-gray-900 mt-1">{selectedExperiment.index_visual || '-'}</p>
+                      <div className="p-3 bg-surface rounded border border-blue-100">
+                        <p className="text-xs text-muted uppercase font-semibold">Index</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{selectedExperiment.index_visual || '-'}</p>
                       </div>
-                      <div className="p-3 bg-white rounded border border-blue-100">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Status</p>
+                      <div className="p-3 bg-surface rounded border border-blue-100">
+                        <p className="text-xs text-muted uppercase font-semibold">Status</p>
                         <p className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mt-1 ${getStatusBadge(selectedExperiment.status).bgColor} ${getStatusBadge(selectedExperiment.status).textColor}`}>
                           {getStatusBadge(selectedExperiment.status).icon} {getStatusBadge(selectedExperiment.status).label}
                         </p>
                       </div>
-                      <div className="p-3 bg-white rounded border border-blue-100">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Pesquisador</p>
-                        <p className="text-sm font-semibold text-gray-900 mt-1">{experimentFullData.researcher?.name || '-'}</p>
+                      <div className="p-3 bg-surface rounded border border-blue-100">
+                        <p className="text-xs text-muted uppercase font-semibold">Pesquisador</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{experimentFullData.researcher?.name || '-'}</p>
                       </div>
-                      <div className="p-3 bg-white rounded border border-blue-100">
-                        <p className="text-xs text-gray-600 uppercase font-semibold">Data de Criação</p>
-                        <p className="text-sm font-semibold text-gray-900 mt-1">{formatDateTime(selectedExperiment.created_at)}</p>
+                      <div className="p-3 bg-surface rounded border border-blue-100">
+                        <p className="text-xs text-muted uppercase font-semibold">Data de Criação</p>
+                        <p className="text-sm font-semibold text-foreground mt-1">{formatDateTime(selectedExperiment.created_at)}</p>
                       </div>
                     </div>
                   </div>
@@ -2268,7 +2216,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className={`${style.headerBg} -m-4 mb-4 p-4 rounded-t-lg`}>
                           <div className="flex items-center justify-between">
                             <h3 className={`text-lg font-bold ${style.textColor}`}>⚙️ Máquinas e Material</h3>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${style.headerBg} text-gray-700`}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${style.headerBg} text-foreground`}>
                               {style.icon} {style.status}
                             </span>
                           </div>
@@ -2278,24 +2226,24 @@ export default function ConfiguracaesAvancadasPage() {
                           <div className="space-y-4">
                             {/* Material */}
                             {experimentFullData.material && (
-                              <div className="border rounded p-3 bg-white border-green-100">
-                                <p className="text-xs font-bold text-green-700 uppercase mb-3">🎨 Material</p>
+                              <div className="border rounded p-3 bg-surface border-green-100">
+                                <p className="text-xs font-bold text-primary uppercase mb-3">🎨 Material</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Marca</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.material.brand || '-'}</p>
+                                    <p className="text-muted font-semibold">Marca</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.material.brand || '-'}</p>
                                   </div>
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Modelo</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.material.model || '-'}</p>
+                                    <p className="text-muted font-semibold">Modelo</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.material.model || '-'}</p>
                                   </div>
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Cor</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.material.color || '-'}</p>
+                                    <p className="text-muted font-semibold">Cor</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.material.color || '-'}</p>
                                   </div>
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Compósito</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.material.is_composite ? '✅ Sim' : '❌ Não'}</p>
+                                    <p className="text-muted font-semibold">Compósito</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.material.is_composite ? '✅ Sim' : '❌ Não'}</p>
                                   </div>
                                 </div>
                               </div>
@@ -2303,20 +2251,20 @@ export default function ConfiguracaesAvancadasPage() {
 
                             {/* Máquina */}
                             {experimentFullData.machine && (
-                              <div className="border rounded p-3 bg-white border-green-100">
-                                <p className="text-xs font-bold text-green-700 uppercase mb-3">⚙️ Máquina</p>
+                              <div className="border rounded p-3 bg-surface border-green-100">
+                                <p className="text-xs font-bold text-primary uppercase mb-3">⚙️ Máquina</p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Marca</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.machine.brand || '-'}</p>
+                                    <p className="text-muted font-semibold">Marca</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.machine.brand || '-'}</p>
                                   </div>
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Modelo</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.machine.model || '-'}</p>
+                                    <p className="text-muted font-semibold">Modelo</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.machine.model || '-'}</p>
                                   </div>
                                   <div className="md:col-span-2">
-                                    <p className="text-gray-600 font-semibold">Tipo de Tecnologia</p>
-                                    <p className="text-gray-900 mt-1">{experimentFullData.machine.technology_type || '-'}</p>
+                                    <p className="text-muted font-semibold">Tipo de Tecnologia</p>
+                                    <p className="text-foreground mt-1">{experimentFullData.machine.technology_type || '-'}</p>
                                   </div>
                                 </div>
                               </div>
@@ -2338,7 +2286,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className={`${style.headerBg} -m-4 mb-4 p-4 rounded-t-lg`}>
                           <div className="flex items-center justify-between">
                             <h3 className={`text-lg font-bold ${style.textColor}`}>🧪 Amostra</h3>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold text-gray-700`}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold text-foreground`}>
                               {style.icon} {style.status}
                             </span>
                           </div>
@@ -2346,29 +2294,29 @@ export default function ConfiguracaesAvancadasPage() {
 
                         {isComplete && experimentFullData.sample ? (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div className="p-3 bg-white rounded border border-green-100">
-                              <p className="text-xs text-gray-600 font-semibold">Tipo de Forma</p>
-                              <p className="text-sm font-bold text-gray-900 mt-1">{getShapeEmoji(experimentFullData.sample.shape_type)} {experimentFullData.sample.shape_type || '-'}</p>
+                            <div className="p-3 bg-surface rounded border border-green-100">
+                              <p className="text-xs text-muted font-semibold">Tipo de Forma</p>
+                              <p className="text-sm font-bold text-foreground mt-1">{getShapeEmoji(experimentFullData.sample.shape_type)} {experimentFullData.sample.shape_type || '-'}</p>
                             </div>
-                            <div className="p-3 bg-white rounded border border-green-100">
-                              <p className="text-xs text-gray-600 font-semibold">Dimensão A</p>
-                              <p className="text-sm font-bold text-gray-900 mt-1">{experimentFullData.sample.dimension_a || '-'}</p>
+                            <div className="p-3 bg-surface rounded border border-green-100">
+                              <p className="text-xs text-muted font-semibold">Dimensão A</p>
+                              <p className="text-sm font-bold text-foreground mt-1">{experimentFullData.sample.dimension_a || '-'}</p>
                             </div>
-                            <div className="p-3 bg-white rounded border border-green-100">
-                              <p className="text-xs text-gray-600 font-semibold">Dimensão B</p>
-                              <p className="text-sm font-bold text-gray-900 mt-1">{experimentFullData.sample.dimension_b || '-'}</p>
+                            <div className="p-3 bg-surface rounded border border-green-100">
+                              <p className="text-xs text-muted font-semibold">Dimensão B</p>
+                              <p className="text-sm font-bold text-foreground mt-1">{experimentFullData.sample.dimension_b || '-'}</p>
                             </div>
-                            <div className="p-3 bg-white rounded border border-green-100">
-                              <p className="text-xs text-gray-600 font-semibold">Índice Visual</p>
-                              <p className="text-sm font-bold text-gray-900 mt-1">{experimentFullData.sample.index_visual || '-'}</p>
+                            <div className="p-3 bg-surface rounded border border-green-100">
+                              <p className="text-xs text-muted font-semibold">Índice Visual</p>
+                              <p className="text-sm font-bold text-foreground mt-1">{experimentFullData.sample.index_visual || '-'}</p>
                             </div>
-                            <div className="p-3 bg-white rounded border border-green-100">
-                              <p className="text-xs text-gray-600 font-semibold">Regressão A</p>
-                              <p className="text-sm font-bold text-gray-900 mt-1">{experimentFullData.sample.regression_a || '-'}</p>
+                            <div className="p-3 bg-surface rounded border border-green-100">
+                              <p className="text-xs text-muted font-semibold">Regressão A</p>
+                              <p className="text-sm font-bold text-foreground mt-1">{experimentFullData.sample.regression_a || '-'}</p>
                             </div>
-                            <div className="p-3 bg-white rounded border border-green-100">
-                              <p className="text-xs text-gray-600 font-semibold">Regressão B</p>
-                              <p className="text-sm font-bold text-gray-900 mt-1">{experimentFullData.sample.regression_b || '-'}</p>
+                            <div className="p-3 bg-surface rounded border border-green-100">
+                              <p className="text-xs text-muted font-semibold">Regressão B</p>
+                              <p className="text-sm font-bold text-foreground mt-1">{experimentFullData.sample.regression_b || '-'}</p>
                             </div>
                           </div>
                         ) : (
@@ -2387,7 +2335,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className={`${style.headerBg} -m-4 mb-4 p-4 rounded-t-lg`}>
                           <div className="flex items-center justify-between">
                             <h3 className={`text-lg font-bold ${style.textColor}`}>📈 Medições de Preenchimento (Infill)</h3>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold text-gray-700`}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold text-foreground`}>
                               {style.icon} {style.status}
                             </span>
                           </div>
@@ -2402,20 +2350,20 @@ export default function ConfiguracaesAvancadasPage() {
                                 return aPercentage - bPercentage
                               })
                               .map((im: any, idx: number) => (
-                              <div key={idx} className="p-3 bg-white rounded border border-green-100">
+                              <div key={idx} className="p-3 bg-surface rounded border border-green-100">
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Preenchimento</p>
-                                    <p className="text-gray-900 font-bold mt-1">{im.infill_pct}%</p>
+                                    <p className="text-muted font-semibold">Preenchimento</p>
+                                    <p className="text-foreground font-bold mt-1">{im.infill_pct}%</p>
                                   </div>
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Hu Média</p>
-                                    <p className="text-gray-900 font-bold mt-1">{im.hu_mean || '-'}</p>
+                                    <p className="text-muted font-semibold">Hu Média</p>
+                                    <p className="text-foreground font-bold mt-1">{im.hu_mean || '-'}</p>
                                   </div>
                                   {im.notes && (
                                     <div>
-                                      <p className="text-gray-600 font-semibold">Notas</p>
-                                      <p className="text-gray-900 font-bold mt-1">{im.notes}</p>
+                                      <p className="text-muted font-semibold">Notas</p>
+                                      <p className="text-foreground font-bold mt-1">{im.notes}</p>
                                     </div>
                                   )}
                                 </div>
@@ -2438,7 +2386,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className={`${style.headerBg} -m-4 mb-4 p-4 rounded-t-lg`}>
                           <div className="flex items-center justify-between">
                             <h3 className={`text-lg font-bold ${style.textColor}`}>📊 Qualidades de Feixe (Beam Quality)</h3>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold text-gray-700`}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold text-foreground`}>
                               {style.icon} {style.status}
                             </span>
                           </div>
@@ -2447,13 +2395,13 @@ export default function ConfiguracaesAvancadasPage() {
                         {isComplete && experimentFullData.beam_qualities && experimentFullData.beam_qualities.length > 0 ? (
                           <div className="space-y-3">
                             {experimentFullData.beam_qualities.map((bq: any, idx: number) => (
-                              <div key={idx} className="p-3 bg-white rounded border border-green-100">
+                              <div key={idx} className="p-3 bg-surface rounded border border-green-100">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                   {Object.entries(bq).map(([key, value]: [string, any]) => 
                                     key !== 'id' && key !== 'sample_id' && key !== 'created_at' && value !== null && (
                                       <div key={key}>
-                                        <p className="text-gray-600 font-semibold capitalize">{key.replace(/_/g, ' ')}</p>
-                                        <p className="text-gray-900 font-bold mt-1">{String(value)}</p>
+                                        <p className="text-muted font-semibold capitalize">{key.replace(/_/g, ' ')}</p>
+                                        <p className="text-foreground font-bold mt-1">{String(value)}</p>
                                       </div>
                                     )
                                   )}
@@ -2477,7 +2425,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className={`${style.headerBg} -m-4 mb-4 p-4 rounded-t-lg`}>
                           <div className="flex items-center justify-between">
                             <h3 className={`text-lg font-bold ${style.textColor}`}>📏 Atenuação Linear</h3>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold text-gray-700`}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold text-foreground`}>
                               {style.icon} {style.status}
                             </span>
                           </div>
@@ -2486,15 +2434,15 @@ export default function ConfiguracaesAvancadasPage() {
                         {isComplete && experimentFullData.linear_attenuation && experimentFullData.linear_attenuation.length > 0 ? (
                           <div className="space-y-3">
                             {experimentFullData.linear_attenuation.map((la: any, idx: number) => (
-                              <div key={idx} className="p-3 bg-white rounded border border-green-100">
+                              <div key={idx} className="p-3 bg-surface rounded border border-green-100">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Espessura</p>
-                                    <p className="text-gray-900 font-bold mt-1">{la.thickness || '-'}</p>
+                                    <p className="text-muted font-semibold">Espessura</p>
+                                    <p className="text-foreground font-bold mt-1">{la.thickness || '-'}</p>
                                   </div>
                                   <div>
-                                    <p className="text-gray-600 font-semibold">Lambert-Beer</p>
-                                    <p className="text-gray-900 font-bold mt-1">{la.value_lambert_beer || '-'}</p>
+                                    <p className="text-muted font-semibold">Lambert-Beer</p>
+                                    <p className="text-foreground font-bold mt-1">{la.value_lambert_beer || '-'}</p>
                                   </div>
                                 </div>
                               </div>
@@ -2516,7 +2464,7 @@ export default function ConfiguracaesAvancadasPage() {
                         <div className={`${style.headerBg} -m-4 mb-4 p-4 rounded-t-lg`}>
                           <div className="flex items-center justify-between">
                             <h3 className={`text-lg font-bold ${style.textColor}`}>💪 Propriedades Mecânicas</h3>
-                            <span className={`px-2 py-1 rounded text-xs font-semibold text-gray-700`}>
+                            <span className={`px-2 py-1 rounded text-xs font-semibold text-foreground`}>
                               {style.icon} {style.status}
                             </span>
                           </div>
@@ -2525,42 +2473,42 @@ export default function ConfiguracaesAvancadasPage() {
                         {isComplete && experimentFullData.mechanical_properties && experimentFullData.mechanical_properties.length > 0 ? (
                           <div className="space-y-3">
                             {experimentFullData.mechanical_properties.map((mp: any, idx: number) => (
-                              <div key={idx} className="p-3 bg-white rounded border border-green-100">
+                              <div key={idx} className="p-3 bg-surface rounded border border-green-100">
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                                   {mp.test_condition && (
-                                    <div className="md:col-span-3 p-2 bg-green-50 rounded">
-                                      <p className="text-xs text-green-700 font-bold">Condição de Teste</p>
-                                      <p className="text-green-900 font-bold">{mp.test_condition}</p>
+                                    <div className="md:col-span-3 p-2 bg-primary-light rounded">
+                                      <p className="text-xs text-primary font-bold">Condição de Teste</p>
+                                      <p className="text-primary font-bold">{mp.test_condition}</p>
                                     </div>
                                   )}
                                   {mp.tensile_modulus_mpa !== null && (
                                     <div>
-                                      <p className="text-gray-600 font-semibold">Módulo de Tração</p>
-                                      <p className="text-gray-900 font-bold mt-1">{mp.tensile_modulus_mpa} MPa</p>
+                                      <p className="text-muted font-semibold">Módulo de Tração</p>
+                                      <p className="text-foreground font-bold mt-1">{mp.tensile_modulus_mpa} MPa</p>
                                     </div>
                                   )}
                                   {mp.tensile_strength_mpa !== null && (
                                     <div>
-                                      <p className="text-gray-600 font-semibold">Resistência à Tração</p>
-                                      <p className="text-gray-900 font-bold mt-1">{mp.tensile_strength_mpa} MPa</p>
+                                      <p className="text-muted font-semibold">Resistência à Tração</p>
+                                      <p className="text-foreground font-bold mt-1">{mp.tensile_strength_mpa} MPa</p>
                                     </div>
                                   )}
                                   {mp.break_deformation_percent !== null && (
                                     <div>
-                                      <p className="text-gray-600 font-semibold">Deformação</p>
-                                      <p className="text-gray-900 font-bold mt-1">{mp.break_deformation_percent}%</p>
+                                      <p className="text-muted font-semibold">Deformação</p>
+                                      <p className="text-foreground font-bold mt-1">{mp.break_deformation_percent}%</p>
                                     </div>
                                   )}
                                   {mp.flexural_modulus_mpa !== null && (
                                     <div>
-                                      <p className="text-gray-600 font-semibold">Módulo de Flexão</p>
-                                      <p className="text-gray-900 font-bold mt-1">{mp.flexural_modulus_mpa} MPa</p>
+                                      <p className="text-muted font-semibold">Módulo de Flexão</p>
+                                      <p className="text-foreground font-bold mt-1">{mp.flexural_modulus_mpa} MPa</p>
                                     </div>
                                   )}
                                   {mp.flexural_strength_mpa !== null && (
                                     <div>
-                                      <p className="text-gray-600 font-semibold">Resistência à Flexão</p>
-                                      <p className="text-gray-900 font-bold mt-1">{mp.flexural_strength_mpa} MPa</p>
+                                      <p className="text-muted font-semibold">Resistência à Flexão</p>
+                                      <p className="text-foreground font-bold mt-1">{mp.flexural_strength_mpa} MPa</p>
                                     </div>
                                   )}
                                 </div>
@@ -2581,14 +2529,14 @@ export default function ConfiguracaesAvancadasPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Nome */}
-                        <div className="md:col-span-2 p-3 bg-white rounded border border-emerald-100">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">Nome Completo</p>
-                          <p className="text-sm font-bold text-gray-900 mt-1">{experimentFullData.researcher.name || '-'}</p>
+                        <div className="md:col-span-2 p-3 bg-surface rounded border border-emerald-100">
+                          <p className="text-xs text-muted uppercase font-semibold">Nome Completo</p>
+                          <p className="text-sm font-bold text-foreground mt-1">{experimentFullData.researcher.name || '-'}</p>
                         </div>
 
                         {/* Email */}
-                        <div className="p-3 bg-white rounded border border-emerald-100">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">Email</p>
+                        <div className="p-3 bg-surface rounded border border-emerald-100">
+                          <p className="text-xs text-muted uppercase font-semibold">Email</p>
                           <a 
                             href={`mailto:${experimentFullData.researcher.email}`}
                             className="text-sm font-semibold text-emerald-600 hover:text-emerald-800 hover:underline mt-1 break-all"
@@ -2598,15 +2546,15 @@ export default function ConfiguracaesAvancadasPage() {
                         </div>
 
                         {/* Instituição */}
-                        <div className="p-3 bg-white rounded border border-emerald-100">
-                          <p className="text-xs text-gray-600 uppercase font-semibold">Instituição</p>
-                          <p className="text-sm font-semibold text-gray-900 mt-1">{experimentFullData.researcher.institution || '-'}</p>
+                        <div className="p-3 bg-surface rounded border border-emerald-100">
+                          <p className="text-xs text-muted uppercase font-semibold">Instituição</p>
+                          <p className="text-sm font-semibold text-foreground mt-1">{experimentFullData.researcher.institution || '-'}</p>
                         </div>
 
                         {/* Telefone */}
                         {experimentFullData.researcher.phone_number && (
-                          <div className="p-3 bg-white rounded border border-emerald-100">
-                            <p className="text-xs text-gray-600 uppercase font-semibold">Telefone</p>
+                          <div className="p-3 bg-surface rounded border border-emerald-100">
+                            <p className="text-xs text-muted uppercase font-semibold">Telefone</p>
                             <a 
                               href={`tel:${experimentFullData.researcher.phone_number}`}
                               className="text-sm font-semibold text-emerald-600 hover:text-emerald-800 hover:underline mt-1"
@@ -2618,8 +2566,8 @@ export default function ConfiguracaesAvancadasPage() {
 
                         {/* Instagram */}
                         {experimentFullData.researcher.instagram && (
-                          <div className="p-3 bg-white rounded border border-emerald-100">
-                            <p className="text-xs text-gray-600 uppercase font-semibold">Instagram</p>
+                          <div className="p-3 bg-surface rounded border border-emerald-100">
+                            <p className="text-xs text-muted uppercase font-semibold">Instagram</p>
                             <a 
                               href={`https://instagram.com/${experimentFullData.researcher.instagram.replace('@', '')}`}
                               target="_blank"
@@ -2634,17 +2582,17 @@ export default function ConfiguracaesAvancadasPage() {
 
                         {/* País */}
                         {experimentFullData.researcher.country && (
-                          <div className="p-3 bg-white rounded border border-emerald-100">
-                            <p className="text-xs text-gray-600 uppercase font-semibold">País</p>
-                            <p className="text-sm font-semibold text-gray-900 mt-1">{experimentFullData.researcher.country}</p>
+                          <div className="p-3 bg-surface rounded border border-emerald-100">
+                            <p className="text-xs text-muted uppercase font-semibold">País</p>
+                            <p className="text-sm font-semibold text-foreground mt-1">{experimentFullData.researcher.country}</p>
                           </div>
                         )}
 
                         {/* Idioma */}
                         {experimentFullData.researcher.language && (
-                          <div className="p-3 bg-white rounded border border-emerald-100">
-                            <p className="text-xs text-gray-600 uppercase font-semibold">Idioma</p>
-                            <p className="text-sm font-semibold text-gray-900 mt-1">{experimentFullData.researcher.language}</p>
+                          <div className="p-3 bg-surface rounded border border-emerald-100">
+                            <p className="text-xs text-muted uppercase font-semibold">Idioma</p>
+                            <p className="text-sm font-semibold text-foreground mt-1">{experimentFullData.researcher.language}</p>
                           </div>
                         )}
                       </div>
@@ -2657,7 +2605,7 @@ export default function ConfiguracaesAvancadasPage() {
               {statusChangeMessage && (
                 <div className={`p-4 rounded-lg font-medium text-sm animate-pulse ${
                   statusChangeMessage.type === 'success'
-                    ? 'bg-green-100 border-l-4 border-green-500 text-green-800 shadow-lg'
+                    ? 'bg-primary-muted border-l-4 border-primary text-primary shadow-lg'
                     : 'bg-red-100 border-l-4 border-red-500 text-red-800 shadow-lg'
                 }`}>
                   <div className="flex items-center gap-2">
@@ -2678,11 +2626,11 @@ export default function ConfiguracaesAvancadasPage() {
 
               {/* Status Change Buttons */}
               <div className="border-t pt-6 pb-8">
-                <p className="text-sm font-semibold text-gray-700 mb-4">🎯 Editar Status do Experimento:</p>
+                <p className="text-sm font-semibold text-foreground mb-4">🎯 Editar Status do Experimento:</p>
                 
                 {/* Comment Field */}
                 <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     💬 Comentário (Opcional)
                   </label>
                   <textarea
@@ -2693,11 +2641,11 @@ export default function ConfiguracaesAvancadasPage() {
                     rows={3}
                     disabled={statusChangeLoading || experimentDetailsLoading}
                   />
-                  <p className="text-xs text-gray-500 mt-2">O comentário será registrado no histórico de mudanças de status</p>
+                  <p className="text-xs text-muted mt-2">O comentário será registrado no histórico de mudanças de status</p>
                 </div>
 
                 {experimentDetailsLoading ? (
-                  <p className="text-sm text-gray-500 italic">Carregando status atualizado do servidor...</p>
+                  <p className="text-sm text-muted italic">Carregando status atualizado do servidor...</p>
                 ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {getAvailableStatusActions(selectedExperiment.status || 'Submitted').includes('Review') && (
@@ -2730,7 +2678,7 @@ export default function ConfiguracaesAvancadasPage() {
                     <button
                       onClick={() => handleUpdateExperimentStatus('Approved')}
                       disabled={statusChangeLoading || experimentDetailsLoading}
-                      className="group relative px-6 py-4 bg-gradient-to-br from-green-100 to-green-50 border-2 border-green-300 text-green-900 rounded-lg hover:from-green-200 hover:to-green-100 hover:border-green-400 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-sm transition-all shadow-md hover:shadow-lg"
+                      className="group relative px-6 py-4 bg-gradient-to-br from-green-100 to-green-50 border-2 border-green-300 text-primary rounded-lg hover:from-green-200 hover:to-green-100 hover:border-green-400 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-sm transition-all shadow-md hover:shadow-lg"
                     >
                       <div className="flex items-center justify-center gap-2">
                         <span className="text-xl">{getStatusBadge('Approved').icon}</span>
@@ -2750,7 +2698,7 @@ export default function ConfiguracaesAvancadasPage() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3 sticky bottom-0">
+              <div className="px-6 py-4 border-t bg-background flex justify-end gap-3 sticky bottom-0">
                 <button
                   onClick={() => {
                     setShowExperimentDetailsModal(false)
@@ -2768,7 +2716,7 @@ export default function ConfiguracaesAvancadasPage() {
 
         {showUserDetailsModal && selectedUser && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="px-6 py-4 border-b bg-blue-50 border-blue-200">
                 <div className="flex items-start justify-between">
@@ -2782,7 +2730,7 @@ export default function ConfiguracaesAvancadasPage() {
                   </div>
                   <button
                     onClick={() => setShowUserDetailsModal(false)}
-                    className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                    className="text-muted hover:text-foreground text-2xl leading-none"
                   >
                     ✕
                   </button>
@@ -2793,30 +2741,30 @@ export default function ConfiguracaesAvancadasPage() {
               <div className="px-6 py-4 space-y-6">
                 {/* Informações Básicas */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">
                     Informações Básicas
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-gray-50 rounded">
-                      <p className="text-xs text-gray-600">Nome Completo</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">{selectedUser.name}</p>
+                    <div className="p-3 bg-background rounded">
+                      <p className="text-xs text-muted">Nome Completo</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{selectedUser.name}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded">
-                      <p className="text-xs text-gray-600">E-mail</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">{selectedUser.email}</p>
+                    <div className="p-3 bg-background rounded">
+                      <p className="text-xs text-muted">E-mail</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{selectedUser.email}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded">
-                      <p className="text-xs text-gray-600">Tipo de Usuário</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">
+                    <div className="p-3 bg-background rounded">
+                      <p className="text-xs text-muted">Tipo de Usuário</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">
                         {selectedUser.user_type === 'admin' ? '💼 Administrador' : '🔎 Pesquisador'}
                       </p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded">
-                      <p className="text-xs text-gray-600">Status</p>
+                    <div className="p-3 bg-background rounded">
+                      <p className="text-xs text-muted">Status</p>
                       <p className={`text-sm font-semibold mt-1 ${
-                        selectedUser.status === 'regular' ? 'text-green-700' :
+                        selectedUser.status === 'regular' ? 'text-primary' :
                         selectedUser.status === 'irregular' ? 'text-yellow-700' :
-                        'text-gray-700'
+                        'text-foreground'
                       }`}>
                         {selectedUser.status === 'regular' ? '✅ Regular' :
                          selectedUser.status === 'irregular' ? '⚠️ Irregular' :
@@ -2828,24 +2776,24 @@ export default function ConfiguracaesAvancadasPage() {
 
                 {/* Informações Institucionais */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">
                     Informações Institucionais
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-gray-50 rounded">
-                      <p className="text-xs text-gray-600">Instituição</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">{selectedUser.institution || '-'}</p>
+                    <div className="p-3 bg-background rounded">
+                      <p className="text-xs text-muted">Instituição</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{selectedUser.institution || '-'}</p>
                     </div>
-                    <div className="p-3 bg-gray-50 rounded">
-                      <p className="text-xs text-gray-600">País</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">{selectedUser.country || '-'}</p>
+                    <div className="p-3 bg-background rounded">
+                      <p className="text-xs text-muted">País</p>
+                      <p className="text-sm font-semibold text-foreground mt-1">{selectedUser.country || '-'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Atividades */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">
+                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-4">
                     Atividades
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -2855,9 +2803,9 @@ export default function ConfiguracaesAvancadasPage() {
                         {selectedUser.experimentos_criados_total}
                       </p>
                     </div>
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                      <p className="text-xs text-gray-600 uppercase tracking-wide font-semibold">Membro desde</p>
-                      <p className="text-sm font-semibold text-gray-900 mt-2">
+                    <div className="p-4 bg-background border border-border rounded">
+                      <p className="text-xs text-muted uppercase tracking-wide font-semibold">Membro desde</p>
+                      <p className="text-sm font-semibold text-foreground mt-2">
                         {formatDateTime(selectedUser.created_at)}
                       </p>
                     </div>
@@ -2866,7 +2814,7 @@ export default function ConfiguracaesAvancadasPage() {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-3 border-t bg-gray-50 flex justify-end">
+              <div className="px-6 py-3 border-t bg-background flex justify-end">
                 <button
                   onClick={() => setShowUserDetailsModal(false)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"

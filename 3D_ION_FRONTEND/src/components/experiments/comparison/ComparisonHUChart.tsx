@@ -35,8 +35,8 @@ export function ComparisonHUChart({ data }: ComparisonHUChartProps) {
   
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-sm">{t('experiments.charts.comparativeHu.noData')}</p>
+      <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+        <p className="text-muted text-sm">{t('experiments.charts.comparativeHu.noData')}</p>
       </div>
     )
   }
@@ -71,15 +71,15 @@ export function ComparisonHUChart({ data }: ComparisonHUChartProps) {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-sm">{t('experiments.charts.comparativeHu.noData')}</p>
+      <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+        <p className="text-muted text-sm">{t('experiments.charts.comparativeHu.noData')}</p>
       </div>
     )
   }
 
   return (
-    <div className="w-full bg-white rounded-lg p-4">
-      <h4 className="text-sm font-bold text-gray-700 mb-4">{t('experiments.charts.comparativeHu.title')}</h4>
+    <div className="w-full bg-surface rounded-lg p-4">
+      <h4 className="text-sm font-bold text-foreground mb-4">{t('experiments.charts.comparativeHu.title')}</h4>
       <ResponsiveContainer width="100%" height={350}>
         <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -118,7 +118,7 @@ export function ComparisonHUChart({ data }: ComparisonHUChartProps) {
           ))}
         </BarChart>
       </ResponsiveContainer>
-      <div className="mt-4 text-xs text-gray-500">
+      <div className="mt-4 text-xs text-muted">
         <p>{t('experiments.charts.comparativeHu.description')}</p>
       </div>
     </div>

@@ -308,7 +308,7 @@ def _get_or_create_seed_machine(supabase: Client, researcher_id: str) -> str:
             "brand": "Creality",
             "model": "Ender 3",
             "technology_type": "FDM",
-            "other_specs": "Seed machine for ION3D chart validation",
+            "other_specs": "Seed machine for AMRAD chart validation",
         },
     )
     return machine["id"]

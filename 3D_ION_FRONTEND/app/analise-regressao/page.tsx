@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { InfillHURegressionChart } from '@/components/experiments/charts/InfillHURegressionChart'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { fetchWithAgent } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 
 function getAuthToken(): string | null {
   try {
@@ -101,7 +102,7 @@ export default function AnalysisPage() {
         const data = await analysisGet<AvailableFilters>('/analysis/filters')
         setAvailableFilters(data)
       } catch (err) {
-        console.error('Error loading filters:', err)
+        logger.error('analise-regressao', err instanceof Error ? err.message : 'Unknown error')
         setError('Erro ao carregar filtros disponíveis')
       }
     }
@@ -126,7 +127,7 @@ export default function AnalysisPage() {
 
       setAnalysisData(data)
     } catch (err) {
-      console.error('Error loading analysis:', err)
+      logger.error('analise-regressao', err instanceof Error ? err.message : 'Unknown error')
       setError('Erro ao carregar dados de análise')
     } finally {
       setLoading(false)
@@ -177,52 +178,52 @@ export default function AnalysisPage() {
       element.click()
       document.body.removeChild(element)
     } catch (err) {
-      console.error(`Error exporting ${format}:`, err)
+      logger.error('analise-regressao', err instanceof Error ? err.message : 'Unknown error')
       setError(`Erro ao exportar dados em formato ${format.toUpperCase()}`)
     }
   }
 
   if (!availableFilters) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-          <p className="text-gray-600 text-sm">Carregando análise de regressão...</p>
+          <p className="text-muted text-sm">Carregando análise de regressão...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             📊 Análise de Regressão Linear
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted">
             Infill (%) vs Hounsfield Units (HU)
           </p>
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-surface rounded-lg shadow-sm border border-border p-6 mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
+            <Filter className="w-5 h-5 text-muted" />
+            <h2 className="text-lg font-semibold text-foreground">Filtros</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
             {/* Material Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Material
               </label>
               <select
                 value={selectedMaterial}
                 onChange={(e) => setSelectedMaterial(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm text-foreground bg-surface hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
                 <option value="">Todos os materiais</option>
                 {availableFilters?.materials?.map((material) => (
@@ -235,13 +236,13 @@ export default function AnalysisPage() {
 
             {/* Pattern Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Padrão de Preenchimento
               </label>
               <select
                 value={selectedPattern}
                 onChange={(e) => setSelectedPattern(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm text-foreground bg-surface hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
                 <option value="">Todos os padrões</option>
                 {availableFilters?.patterns?.map((pattern) => (
@@ -254,13 +255,13 @@ export default function AnalysisPage() {
 
             {/* Machine Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Máquina
               </label>
               <select
                 value={selectedMachine}
                 onChange={(e) => setSelectedMachine(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm text-foreground bg-surface hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               >
                 <option value="">Todas as máquinas</option>
                 {availableFilters?.machines?.map((machine) => (
@@ -276,7 +277,7 @@ export default function AnalysisPage() {
               <button
                 onClick={loadAnalysis}
                 disabled={loading}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 {loading ? 'Carregando...' : 'Atualizar'}
@@ -285,47 +286,47 @@ export default function AnalysisPage() {
           </div>
 
           {/* Display Options */}
-          <div className="border-t border-gray-200 pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">Opções de Visualização</p>
+          <div className="border-t border-border pt-4">
+            <p className="text-sm font-medium text-foreground mb-3">Opções de Visualização</p>
             <div className="flex flex-wrap gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showEquation}
                   onChange={(e) => setShowEquation(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  className="w-4 h-4 rounded border-border text-blue-600"
                 />
-                <span className="text-sm text-gray-700">Mostrar Equação</span>
+                <span className="text-sm text-foreground">Mostrar Equação</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showR2}
                   onChange={(e) => setShowR2(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  className="w-4 h-4 rounded border-border text-blue-600"
                 />
-                <span className="text-sm text-gray-700">Mostrar R²</span>
+                <span className="text-sm text-foreground">Mostrar R²</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={showRegressionLine}
                   onChange={(e) => setShowRegressionLine(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  className="w-4 h-4 rounded border-border text-blue-600"
                 />
-                <span className="text-sm text-gray-700">Mostrar Linha de Regressão</span>
+                <span className="text-sm text-foreground">Mostrar Linha de Regressão</span>
               </label>
             </div>
           </div>
 
           {/* Export Buttons */}
-          <div className="border-t border-gray-200 mt-4 pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">Exportar Dados</p>
+          <div className="border-t border-border mt-4 pt-4">
+            <p className="text-sm font-medium text-foreground mb-3">Exportar Dados</p>
             <div className="flex gap-2">
               <button
                 onClick={() => handleExport('csv')}
                 disabled={!analysisData || analysisData.metadata.total_points === 0}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
+                className="px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-slate-400 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Exportar CSV
@@ -333,7 +334,7 @@ export default function AnalysisPage() {
               <button
                 onClick={() => handleExport('json')}
                 disabled={!analysisData || analysisData.metadata.total_points === 0}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
+                className="px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-slate-400 text-white rounded-lg text-sm font-medium transition flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Exportar JSON
@@ -368,9 +369,9 @@ export default function AnalysisPage() {
 
         {/* Empty State */}
         {!loading && analysisData && analysisData.groups.length === 0 && !error && (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <p className="text-gray-600">Nenhum dado encontrado para os filtros selecionados</p>
-            <p className="text-gray-400 text-sm mt-1">Tente ajustar os filtros e tentar novamente</p>
+          <div className="text-center py-12 bg-surface rounded-lg border border-border">
+            <p className="text-muted">Nenhum dado encontrado para os filtros selecionados</p>
+            <p className="text-slate-400 text-sm mt-1">Tente ajustar os filtros e tentar novamente</p>
           </div>
         )}
       </div>

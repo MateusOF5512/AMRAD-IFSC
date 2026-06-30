@@ -112,7 +112,7 @@ export function UpdateStatusForm({ onStatusUpdate, onDismiss, prefilledEmail }: 
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-md p-6 space-y-4 border-2 border-orange-300">
+      <div className="bg-surface rounded-lg shadow-md p-6 space-y-4 border-2 border-orange-300">
         {/* Info Box - Requisitos */}
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-orange-800">
@@ -131,18 +131,18 @@ export function UpdateStatusForm({ onStatusUpdate, onDismiss, prefilledEmail }: 
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex gap-3">
-            <CheckCircle className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+          <div className="bg-primary-light border border-primary/30 rounded-lg p-4 flex gap-3">
+            <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-green-800">Sucesso</p>
-              <p className="text-sm text-green-700">{success}</p>
+              <p className="font-semibold text-primary">Sucesso</p>
+              <p className="text-sm text-primary">{success}</p>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
               E-mail do Usuário <span className="text-red-500">*</span>
             </label>
             <input
@@ -152,12 +152,12 @@ export function UpdateStatusForm({ onStatusUpdate, onDismiss, prefilledEmail }: 
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
               placeholder="exemplo@instituicao.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none disabled:bg-background disabled:cursor-not-allowed"
             />
           </div>
 
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="status" className="block text-sm font-medium text-foreground mb-2">
               Novo Status <span className="text-red-500">*</span>
             </label>
             <select
@@ -165,7 +165,7 @@ export function UpdateStatusForm({ onStatusUpdate, onDismiss, prefilledEmail }: 
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value as UserStatus)}
               disabled={isLoading}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none disabled:bg-background disabled:cursor-not-allowed"
             >
               {statusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -178,7 +178,7 @@ export function UpdateStatusForm({ onStatusUpdate, onDismiss, prefilledEmail }: 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-400 transition-colors font-medium flex items-center justify-center gap-2"
+            className="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-slate-400 transition-colors font-medium flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

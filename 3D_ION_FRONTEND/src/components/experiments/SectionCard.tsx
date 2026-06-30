@@ -1,4 +1,7 @@
-import React, { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Alert } from '@/components/ui/Alert'
 import { ChevronDown, ChevronUp, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 interface SectionCardProps {
@@ -47,39 +50,43 @@ export default function SectionCard({
 
   const statusConfig = {
     pending: {
-      bg: 'bg-gray-50',
-      border: 'border-gray-200',
-      header: 'bg-gray-100',
+      bg: 'bg-slate-50',
+      border: 'border-border',
+      header: 'bg-slate-100',
       icon: null,
       label: 'Pendente',
+      badge: 'default' as const,
     },
     'in-progress': {
       bg: 'bg-blue-50',
       border: 'border-blue-200',
       header: 'bg-blue-100',
-      icon: <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />,
+      icon: <div className="w-2 h-2 bg-info rounded-full animate-pulse" />,
       label: 'Em Progresso',
+      badge: 'info' as const,
     },
     completed: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      header: 'bg-green-100',
-      icon: <CheckCircle2 className="w-4 h-4 text-green-600" />,
+      bg: 'bg-primary-light',
+      border: 'border-primary/30',
+      header: 'bg-primary-muted',
+      icon: <CheckCircle2 className="w-4 h-4 text-primary" />,
       label: 'Concluído',
+      badge: 'success' as const,
     },
     error: {
       bg: 'bg-red-50',
       border: 'border-red-200',
       header: 'bg-red-100',
-      icon: <AlertCircle className="w-4 h-4 text-red-600" />,
+      icon: <AlertCircle className="w-4 h-4 text-danger" />,
       label: 'Erro',
+      badge: 'danger' as const,
     },
   }
 
   const config = statusConfig[status]
 
   return (
-    <div className={`rounded-lg border-2 ${config.border} ${config.bg} overflow-hidden`}>
+    <div className={`rounded-xl border ${config.border} ${config.bg} overflow-hidden shadow-sm`}>
       {/* Header - Always Clickable */}
       <div
         onClick={() => onToggleExpand?.(!isExpanded)}
@@ -88,19 +95,19 @@ export default function SectionCard({
         <div className="flex items-center gap-3 flex-1">
           {config.icon && <div className="flex-shrink-0">{config.icon}</div>}
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 text-lg">{title}</h3>
-            {description && <p className="text-sm text-gray-600 mt-1">{description}</p>}
+            <h3 className="font-semibold text-foreground text-lg">{title}</h3>
+            {description && <p className="text-sm text-muted mt-1">{description}</p>}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium px-2 py-1 bg-white bg-opacity-60 rounded">
-            {config.label} {`(${filledFields.length}/${requiredFields.length})`}
-          </span>
+          <Badge variant={config.badge}>
+            {config.label} ({filledFields.length}/{requiredFields.length})
+          </Badge>
           <div className="flex-shrink-0">
             {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-gray-600" />
+              <ChevronUp className="w-5 h-5 text-muted" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-600" />
+              <ChevronDown className="w-5 h-5 text-muted" />
             )}
           </div>
         </div>
@@ -111,17 +118,13 @@ export default function SectionCard({
         <div className="px-6 py-6 space-y-6 border-t-2 border-opacity-20 border-current">
           {/* Validation Errors */}
           {showValidationErrors && !isValid && (
-            <div className="bg-red-100 border border-red-300 rounded-lg p-4 flex gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-red-800">
-                <p className="font-semibold mb-2">Campos obrigatórios faltando:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  {missingFields.map((field) => (
-                    <li key={field}>{field}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            <Alert variant="danger" title="Campos obrigatórios faltando:">
+              <ul className="list-disc list-inside space-y-1">
+                {missingFields.map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
+            </Alert>
           )}
 
           {/* Form Content */}
@@ -129,27 +132,22 @@ export default function SectionCard({
 
           {/* Footer Actions */}
           {!hideButtons && (
-            <div className="flex gap-3 pt-6 border-t border-gray-200">
+            <div className="flex gap-3 pt-6 border-t border-border">
               {status === 'completed' && onEdit && (
-                <button
-                  onClick={onEdit}
-                  className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  ✏️ Editar
-                </button>
+                <Button variant="outline" onClick={onEdit}>
+                  Editar
+                </Button>
               )}
               {status !== 'completed' && (
-                <button
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={onComplete}
                   disabled={!isValid}
-                  className={`flex-1 px-8 py-4 text-lg font-semibold rounded-3xl transition-colors ${
-                    isValid
-                      ? 'text-white bg-green-600 hover:bg-green-700'
-                      : 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                  }`}
+                  className="flex-1"
                 >
                   {submitButtonLabel}
-                </button>
+                </Button>
               )}
             </div>
           )}

@@ -1,6 +1,6 @@
-# ION3D Platform - Backend API
+# AMRAD - Backend API
 
-FastAPI backend for ION3D scientific experiment management platform.
+FastAPI backend for AMRAD scientific experiment management platform.
 
 ## Architecture
 

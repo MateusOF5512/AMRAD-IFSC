@@ -203,7 +203,7 @@ def print_summary(results):
 
 
 def main():
-    print(f"\n{BOLD}🔧 ION3D Backend Connectivity Test{RESET}\n")
+    print(f"\n{BOLD}🔧 AMRAD Backend Connectivity Test{RESET}\n")
     
     results = {}
     

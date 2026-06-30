@@ -1,16 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
-import { loadEnvConfig } from "@next/env";
-
-const monorepoRoot = path.resolve(__dirname, "..");
-loadEnvConfig(monorepoRoot);
-
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_URL) {
-  process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.SUPABASE_URL;
-}
-if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && process.env.SUPABASE_ANON_KEY) {
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-}
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -22,6 +10,12 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   compress: true,
+
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
+      ? { exclude: ['error', 'warn'] }
+      : false,
+  },
 
   async headers() {
     return [
@@ -36,7 +30,7 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
-    minimumCacheTTL: 31536000, // Cache images for 1 year
+    minimumCacheTTL: 31536000,
   },
 };
 

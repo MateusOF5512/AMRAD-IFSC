@@ -11,6 +11,7 @@ import {
   type ExperimentAttenuationBundle,
 } from '@/lib/utils/attenuationChartData'
 import { normalizeInfillPercentForChart } from '@/lib/utils/infillPercent'
+import { getNormalizedApiUrl } from '@/lib/api'
 
 interface ExperimentWithDetails {
   experiment_id: string
@@ -66,7 +67,7 @@ export function ExperimentComparison({ selectedIds, experiments }: ExperimentCom
     setComparisonData(null)
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+      const apiUrl = getNormalizedApiUrl()
 
       const dataPromises = selectedIds.map(async (id) => {
         try {
@@ -191,11 +192,11 @@ export function ExperimentComparison({ selectedIds, experiments }: ExperimentCom
   if (comparisonData === null) {
     return (
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
           📊 {t('experimentComparison.title')}
         </h3>
-        <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 p-8 text-center mb-6">
-          <p className="text-gray-600 mb-4">
+        <div className="bg-surface rounded-lg border-2 border-dashed border-border p-8 text-center mb-6">
+          <p className="text-muted mb-4">
             {selectedIds.length === 0
               ? t('experimentComparison.selectMinimum')
               : selectedIds.length === 1
@@ -207,8 +208,8 @@ export function ExperimentComparison({ selectedIds, experiments }: ExperimentCom
             disabled={!canGenerate || isGenerating}
             className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
               canGenerate && !isGenerating
-                ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-primary hover:bg-primary-hover text-white cursor-pointer'
+                : 'bg-slate-300 text-muted cursor-not-allowed'
             }`}
           >
             {isGenerating && <Loader2 className="h-5 w-5 animate-spin" />}
@@ -236,7 +237,7 @@ export function ExperimentComparison({ selectedIds, experiments }: ExperimentCom
       <div className="space-y-8">
         {hasAttenuationCharts && (
           <section className="space-y-6">
-            <h4 className="text-md font-semibold text-gray-800 border-b pb-2">
+            <h4 className="text-md font-semibold text-foreground border-b pb-2">
               {t('experimentComparison.attenuationSectionTitle')}
             </h4>
             <TransmissionCurveChart bundles={attenuationBundles} />
@@ -248,8 +249,8 @@ export function ExperimentComparison({ selectedIds, experiments }: ExperimentCom
           <ComparisonRegressionChart experiments={regressionChartData} />
         ) : (
           !hasAttenuationCharts && (
-            <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-gray-500 text-sm">
+            <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+              <p className="text-muted text-sm">
                 {t('experimentComparison.errors.noRegressionData')}
               </p>
             </div>
@@ -269,7 +270,7 @@ function ComparisonHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-6">
-      <h3 className="text-lg font-semibold text-gray-900">📊 {t('experimentComparison.title')}</h3>
+      <h3 className="text-lg font-semibold text-foreground">📊 {t('experimentComparison.title')}</h3>
       <button
         onClick={onReset}
         className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"

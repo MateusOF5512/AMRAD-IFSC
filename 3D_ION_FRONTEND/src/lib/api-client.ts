@@ -3,12 +3,15 @@
  * Em desenvolvimento com HTTPS self-signed, usa agente Node apenas no servidor.
  */
 
+import { logger } from './logger'
+import { getPublicEnv } from './public-env'
+
 interface FetchOptions extends RequestInit {
   timeout?: number
 }
 
 function isDevHttps(url: string): boolean {
-  const base = process.env.NEXT_PUBLIC_API_URL || ''
+  const base = getPublicEnv().apiUrl
   return (
     process.env.NODE_ENV === 'development' &&
     url.startsWith('https://') &&
@@ -22,14 +25,14 @@ function isDevHttps(url: string): boolean {
  * Mensagem amigável para erros de rede comuns no wizard/formulários.
  */
 export function formatFetchError(error: unknown, apiUrl?: string): string {
-  const base = apiUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+  const base = apiUrl || getPublicEnv().apiUrl
 
   if (error instanceof TypeError) {
     const msg = error.message.toLowerCase()
     if (msg.includes('failed to fetch') || msg.includes('network')) {
       return (
         `Não foi possível conectar ao servidor da API (${base}). ` +
-        'Confirme que o backend está rodando e que NEXT_PUBLIC_API_URL está correto no .env.local.'
+        'Confirme que o backend está rodando e que NEXT_PUBLIC_API_URL está correto no .env da raiz do projeto.'
       )
     }
   }
@@ -59,8 +62,8 @@ export async function fetchWithAgent(
 
     return fetch(url, options)
   } catch (error) {
-    console.error('Fetch error:', error, 'URL:', url)
-    throw new Error(formatFetchError(error, url))
+    logger.error('fetch', formatFetchError(error))
+    throw new Error(formatFetchError(error))
   }
 }
 

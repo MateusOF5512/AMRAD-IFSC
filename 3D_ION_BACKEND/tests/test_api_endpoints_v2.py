@@ -40,7 +40,7 @@ class TestAPIEndpoints:
         if not self.test_email or not self.test_password:
             print("\n[ERROR] TEST_EMAIL or TEST_PASSWORD not found in .env")
             print("        Add these to .env:")
-            print("        TEST_EMAIL=test.researcher@3dion.local")
+            print("        TEST_EMAIL=test.researcher@amrad.local")
             print("        TEST_PASSWORD=TestPassword123!")
     
     def login_with_supabase(self):
@@ -249,7 +249,7 @@ class TestAPIEndpoints:
 def run_all_tests():
     """Run complete test suite"""
     print("\n" + "="*60)
-    print("ION3D API TEST SUITE - Supabase Authentication")
+    print("AMRAD API TEST SUITE - Supabase Authentication")
     print("="*60)
     
     tester = TestAPIEndpoints()

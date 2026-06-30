@@ -21,7 +21,7 @@ tests/
 
 ## Requisitos
 
-Certifique-se de que o arquivo `.env` existe no diretório `3D_ION_BACKEND/` com as variáveis:
+Certifique-se de que o arquivo `.env` existe no diretório `AMRAD_BACKEND/` com as variáveis:
 
 ```env
 SUPABASE_URL=https://your-project.supabase.co
@@ -34,7 +34,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ### Opção 1: Executar Todos os Testes (Recomendado)
 
 ```bash
-cd 3D_ION_BACKEND
+cd AMRAD_BACKEND
 python tests/run_all_tests.py
 ```
 
@@ -222,11 +222,11 @@ Execute em terminais separados:
 
 ```bash
 # Terminal 1 - Backend
-cd 3D_ION_BACKEND
+cd AMRAD_BACKEND
 python -m app.main
 
 # Terminal 2 - Frontend
-cd 3D_ION_FRONTEND
+cd AMRAD_FRONTEND
 npm run dev
 ```
 

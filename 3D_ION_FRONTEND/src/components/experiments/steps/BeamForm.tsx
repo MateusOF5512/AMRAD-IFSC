@@ -139,7 +139,7 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
         )}
 
         {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-border">
         {(['rqr', 'rqt', 'rqrm'] as const).map((tab) => (
           <button
             key={tab}
@@ -147,8 +147,8 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeTab === tab
-                ? 'border-green-600 text-green-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+                ? 'border-green-600 text-primary'
+                : 'border-transparent text-muted hover:text-foreground'
             }`}
           >
             {tab === 'rqr' && 'Série RQR'}
@@ -161,11 +161,11 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
       {/* RQR Tab */}
       {activeTab === 'rqr' && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-600 mb-4">RQR 2 a 10 (Norma IEC 61267)</p>
+          <p className="text-sm text-muted mb-4">RQR 2 a 10 (Norma IEC 61267)</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
               <div key={num}>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   RQR {num}
                 </label>
                 <input
@@ -175,7 +175,7 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
                   onChange={(e) =>
                     setRqr({ ...rqr, [`rqr_${num}`]: e.target.value })
                   }
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-2 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent"
                   placeholder="0.0000"
                 />
               </div>
@@ -187,11 +187,11 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
       {/* RQT Tab */}
       {activeTab === 'rqt' && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-600 mb-4">RQT 8 a 10 (Norma IEC 61267)</p>
+          <p className="text-sm text-muted mb-4">RQT 8 a 10 (Norma IEC 61267)</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[8, 9, 10].map((num) => (
               <div key={num}>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   RQT {num}
                 </label>
                 <input
@@ -201,7 +201,7 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
                   onChange={(e) =>
                     setRqt({ ...rqt, [`rqt_${num}`]: e.target.value })
                   }
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-2 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent"
                   placeholder="0.0000"
                 />
               </div>
@@ -213,11 +213,11 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
       {/* RQR-M Tab */}
       {activeTab === 'rqrm' && (
         <div className="space-y-3">
-          <p className="text-sm text-gray-600 mb-4">RQR-M 1 a 4 (Norma IEC 61267 - Mamografia)</p>
+          <p className="text-sm text-muted mb-4">RQR-M 1 a 4 (Norma IEC 61267 - Mamografia)</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((num) => (
               <div key={num}>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-foreground mb-1">
                   RQR-M {num}
                 </label>
                 <input
@@ -227,7 +227,7 @@ const BeamForm = forwardRef<{ submit: () => Promise<void> }, BeamFormProps>(
                   onChange={(e) =>
                     setRqrm({ ...rqrm, [`rqr_m${num}`]: e.target.value })
                   }
-                  className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-2 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent"
                   placeholder="0.0000"
                 />
               </div>

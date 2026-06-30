@@ -145,14 +145,14 @@ const MechanicalForm = forwardRef<{ submit: () => Promise<void> }, MechanicalFor
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-medium text-foreground mb-3">
             Condição do Experimento <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-3">
             {(['Before Irradiation', 'After Irradiation'] as const).map((condition) => (
               <label
                 key={condition}
-                className="flex items-center gap-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                className="flex items-center gap-2 p-3 border border-border rounded-lg cursor-pointer hover:bg-background"
                 style={{
                   borderColor: formData.test_condition === condition ? '#16a34a' : undefined,
                   backgroundColor: formData.test_condition === condition ? '#dcfce7' : undefined,
@@ -168,7 +168,7 @@ const MechanicalForm = forwardRef<{ submit: () => Promise<void> }, MechanicalFor
                       test_condition: e.target.value as FormState['test_condition'],
                     })
                   }
-                  className="w-4 h-4 text-green-600"
+                  className="w-4 h-4 text-primary"
                 />
                 <span className="text-sm font-medium">
                   {condition === 'Before Irradiation' ? 'Antes' : 'Depois'} da Irradiação
@@ -178,10 +178,10 @@ const MechanicalForm = forwardRef<{ submit: () => Promise<void> }, MechanicalFor
           </div>
         </div>
 
-        <div className="border-t border-gray-200" />
+        <div className="border-t border-border" />
 
         <div>
-          <h3 className="font-semibold text-gray-900 mb-4">Tração e Ruptura</h3>
+          <h3 className="font-semibold text-foreground mb-4">Tração e Ruptura</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <ScientificNumberInput
               label="Módulo Tração"
@@ -205,7 +205,7 @@ const MechanicalForm = forwardRef<{ submit: () => Promise<void> }, MechanicalFor
         </div>
 
         <div>
-          <h3 className="font-semibold text-gray-900 mb-4">Flexão e Dureza</h3>
+          <h3 className="font-semibold text-foreground mb-4">Flexão e Dureza</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <ScientificNumberInput
               label="Módulo Flexão"
@@ -224,7 +224,7 @@ const MechanicalForm = forwardRef<{ submit: () => Promise<void> }, MechanicalFor
         </div>
 
         <div>
-          <h3 className="font-semibold text-gray-900 mb-4">Impacto</h3>
+          <h3 className="font-semibold text-foreground mb-4">Impacto</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <ScientificNumberInput
               label="Impacto Charpy"
@@ -240,7 +240,7 @@ const MechanicalForm = forwardRef<{ submit: () => Promise<void> }, MechanicalFor
           </div>
         </div>
 
-        {isLoading && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
+        {isLoading && <p className="text-sm text-muted">{t('common.loading')}</p>}
       </form>
     )
   }
@@ -255,14 +255,14 @@ function HardnessField({
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-foreground mb-1">
         Dureza (Shore A / Rockwell)
       </label>
       <input
         type="text"
         value={formData.hardness_rockwell}
         onChange={(e) => setFormData({ ...formData, hardness_rockwell: e.target.value })}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+        className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/40"
         placeholder="Ex: 75 Shore A"
       />
     </div>

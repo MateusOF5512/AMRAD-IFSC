@@ -6,9 +6,12 @@ import { useAuthStore } from '@/store/authStore'
 import { SettingsSidebar } from '@/components/settings/SettingsSidebar'
 import { PersonalDataForm } from '@/components/settings/PersonalDataForm'
 import { SystemSettings } from '@/components/settings/SystemSettings'
-import { AlertCircle } from 'lucide-react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Card } from '@/components/ui/Card'
+import { Alert } from '@/components/ui/Alert'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { useTranslation } from 'react-i18next'
+import { logger } from '@/lib/logger'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -34,7 +37,6 @@ export default function SettingsPage() {
       return
     }
 
-    console.log('Starting to fetch user profile...')
     // Fetch user profile directly from backend API
     const fetchUserProfile = async () => {
       try {
@@ -42,7 +44,7 @@ export default function SettingsPage() {
         const apiUrl = getNormalizedApiUrl()
         
         if (!token) {
-          console.warn('No token available, falling back to localStorage')
+          logger.warn('settings', 'No token available, falling back to localStorage')
           loadFromLocalStorage()
           return
         }
@@ -60,7 +62,6 @@ export default function SettingsPage() {
         }
 
         const responseData = await response.json()
-        console.log('User profile from API:', responseData)
         
         if (responseData.data) {
           const profileData = responseData.data
@@ -76,11 +77,10 @@ export default function SettingsPage() {
             email_notifications: profileData.email_notifications ?? (localStorage.getItem('email_notifications') === 'true'),
             user_type: profileData.user_type || 'pesquisador'
           }
-          console.log('Loaded userData from API with country:', userDataObj.country, 'language:', userDataObj.language)
           setUserData(userDataObj)
         }
       } catch (err) {
-        console.error('Error fetching profile from API:', err)
+        logger.error('settings', err instanceof Error ? err.message : 'Unknown error')
         loadFromLocalStorage()
       } finally {
         setLoading(false)
@@ -92,7 +92,6 @@ export default function SettingsPage() {
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser)
-          console.log('Loaded user from localStorage:', parsedUser)
           
           const userDataObj = {
             id: parsedUser.user_id || parsedUser.id || '',
@@ -106,10 +105,9 @@ export default function SettingsPage() {
             email_notifications: localStorage.getItem('email_notifications') === 'true',
             user_type: parsedUser.user_type || 'pesquisador'
           }
-          console.log('Setting userData from localStorage:', userDataObj)
           setUserData(userDataObj)
         } catch (err) {
-          console.error('Error parsing user data:', err)
+          logger.error('settings', err instanceof Error ? err.message : 'Unknown error')
           setUserData({
             id: user.user_id || '',
             name: user.name || '',
@@ -154,7 +152,7 @@ export default function SettingsPage() {
             const parsedUser = JSON.parse(storedUser)
             token = parsedUser.access_token || parsedUser.token
           } catch (err) {
-            console.error('Error parsing stored user:', err)
+            logger.error('settings', err instanceof Error ? err.message : 'Unknown error')
           }
         }
       }
@@ -164,9 +162,6 @@ export default function SettingsPage() {
       if (!token) {
         throw new Error('Token não encontrado. Por favor, faça login novamente.')
       }
-
-      console.log('Updating profile with data:', data)
-      console.log('Using API URL:', `${apiUrl}/users/update`)
 
       const response = await fetch(`${apiUrl}/users/update`, {
         method: 'PUT',
@@ -187,8 +182,6 @@ export default function SettingsPage() {
         })
       })
 
-      console.log('API Response Status:', response.status)
-
       if (!response.ok) {
         let errorMessage = 'Erro ao atualizar dados'
         try {
@@ -197,7 +190,7 @@ export default function SettingsPage() {
         } catch (e) {
           // Se não conseguir fazer parse do JSON, tenta ler como texto
           const errorText = await response.text()
-          console.error('Error response text:', errorText)
+          logger.error('settings', 'Error response from profile update API')
           if (errorText.includes('<!DOCTYPE')) {
             errorMessage = 'Erro do servidor: Verifique a conexão com a API'
           }
@@ -206,7 +199,6 @@ export default function SettingsPage() {
       }
 
       const responseData = await response.json()
-      console.log('Profile updated successfully:', responseData)
       setUserData(responseData.data)
       
       // Update AuthStore with new user data to trigger LanguageProvider sync
@@ -223,19 +215,18 @@ export default function SettingsPage() {
         user_type: user?.user_type || 'pesquisador'
       }
       setUser(updatedUser)
-      console.log('AuthStore updated with new language:', updatedUser.language)
     } catch (err: any) {
-      console.error('Error in handlePersonalDataSubmit:', err)
+      logger.error('settings', err instanceof Error ? err.message : 'Unknown error')
       throw new Error(err.message || t('settings.personalData.errors.updateError'))
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          <p className="mt-4 text-gray-600">{t('settings.loading')}</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted">{t('settings.loading')}</p>
         </div>
       </div>
     )
@@ -243,25 +234,20 @@ export default function SettingsPage() {
 
   if (!userData) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <div className="flex items-center gap-3 text-red-700">
-            <AlertCircle className="h-5 w-5" />
-            <p>{t('settings.loadError')}</p>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <Alert variant="danger" className="max-w-md">
+          {t('settings.loadError')}
+        </Alert>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          {t('settings.title')}
-        </h1>
+        <PageHeader title={t('settings.title')} />
 
-        <div className="flex flex-col md:flex-row gap-8 bg-white rounded-lg shadow">
+        <Card className="flex flex-col md:flex-row overflow-hidden">
           {/* Sidebar */}
           <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -269,7 +255,7 @@ export default function SettingsPage() {
           <div className="flex-1 p-6 md:p-8">
             {activeTab === 'personal' && userData && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('settings.personalData.title')}</h2>
+                <h2 className="text-2xl font-semibold text-foreground mb-6">{t('settings.personalData.title')}</h2>
                 <PersonalDataForm
                   initialData={{
                     name: userData?.name || '',
@@ -287,7 +273,7 @@ export default function SettingsPage() {
 
             {activeTab === 'system' && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('settings.sidebar.system')}</h2>
+                <h2 className="text-2xl font-semibold text-foreground mb-6">{t('settings.sidebar.system')}</h2>
                 <SystemSettings
                   initialData={{
                     email_notifications: userData.email_notifications ?? true
@@ -296,7 +282,7 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )

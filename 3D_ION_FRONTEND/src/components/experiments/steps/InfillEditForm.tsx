@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { CheckCircle2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import FormFieldLabel from '../FormFieldLabel'
 import { getNormalizedApiUrl } from '@/lib/api'
+import { logger } from '@/lib/logger'
 
 const API_BASE_URL = getNormalizedApiUrl()
 
@@ -44,10 +45,6 @@ interface InfillEditFormProps {
 function normalizeRow(m: any): InfillRow {
   const dimA = m.dimension_a != null ? Number(m.dimension_a) : null
   const dimB = m.dimension_b != null ? Number(m.dimension_b) : null
-  
-  if (dimA !== null || dimB !== null) {
-    console.log(`[normalizeRow] ID ${m.id}: dimension_a=${dimA}, dimension_b=${dimB} (raw: a=${m.dimension_a}, b=${m.dimension_b})`)
-  }
   
   // Converter visual_homogeneity (boolean ou numeric) para has_homogeneity_issues (boolean)
   let hasHomogeneityIssues = false
@@ -103,32 +100,12 @@ export default function InfillEditForm({
 }: InfillEditFormProps) {
   const { t } = useTranslation()
   
-  // DEBUG: Log initial measurements
-  console.log('[InfillEditForm] initialMeasurements (before dedup):', {
-    length: initialMeasurements?.length,
-    data: initialMeasurements,
-    sample_dimension_a_b: initialMeasurements?.[0] ? { dimension_a: initialMeasurements[0].dimension_a, dimension_b: initialMeasurements[0].dimension_b } : 'N/A'
-  })
-  
   // Remove duplicates baseado em id - proteção contra carga duplicada
   const dedupedMeasurements = deduplicateRows(initialMeasurements)
   
-  console.log('[InfillEditForm] dedupedMeasurements (after dedup):', {
-    length: dedupedMeasurements?.length,
-    sample_dimension_a_b: dedupedMeasurements?.[0] ? { dimension_a: dedupedMeasurements[0].dimension_a, dimension_b: dedupedMeasurements[0].dimension_b } : 'N/A',
-    first_row: dedupedMeasurements?.[0]
-  })
-  
   // Estado inicializado SINCRONAMENTE — nunca fica em branco ao montar
   const [rows, setRows] = useState<InfillRow[]>(
-    () => {
-      const normalized = dedupedMeasurements.map(normalizeRow)
-      console.log('[InfillEditForm useState] Normalized rows:', {
-        count: normalized.length,
-        dimensionA_values: normalized.map(r => ({ id: r.id, pattern: r.pattern_type, dimension_a: r.dimension_a, dimension_b: r.dimension_b }))
-      })
-      return normalized
-    }
+    () => dedupedMeasurements.map(normalizeRow)
   )
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -146,24 +123,15 @@ export default function InfillEditForm({
   // Sync patternRegression with loaded dimension_a/dimension_b values from NORMALIZED rows
   // This ensures A/B values from database are always reflected in the regression panel
   useEffect(() => {
-    console.log('[useEffect Init] Running with rows:', {
-      count: rows.length,
-      first_row_sample: rows[0] ? { id: rows[0].id, pattern: rows[0].pattern_type, dim_a: rows[0].dimension_a, dim_b: rows[0].dimension_b } : null
-    })
-    
     if (rows.length === 0) {
-      console.log('[useEffect Init] No rows, resetting patternRegression')
       setPatternRegression({})
       return
     }
     
     const init: Record<string, { a: number | null, b: number | null, manualA: boolean, manualB: boolean }> = {}
     
-    // Group rows by pattern and initialize A/B from first row of each pattern
     const patterns = new Set<string>()
     rows.forEach(r => patterns.add(r.pattern_type))
-    
-    console.log('[useEffect Init] Found patterns:', Array.from(patterns))
     
     for (const pattern of patterns) {
       const patternRows = rows.filter(r => r.pattern_type === pattern)
@@ -178,14 +146,11 @@ export default function InfillEditForm({
           manualA: dimA !== null,
           manualB: dimB !== null,
         }
-        
-        console.log(`[useEffect Init] Pattern "${pattern}": got a=${dimA}, b=${dimB} from row id=${firstRow.id}`)
       }
     }
     
-    console.log('[useEffect Init] Final patternRegression state:', init)
     setPatternRegression(init)
-  }, [rows])  // Re-initialize whenever rows changes
+  }, [rows])
 
   // Atualizar campo de uma linha pelo id
   const updateRow = useCallback((id: string, field: keyof InfillRow, value: any) => {
@@ -316,15 +281,11 @@ export default function InfillEditForm({
         {}
       )
 
-      console.log('[handleSave] Pattern Manual Flags:', patternManualFlags)
-
       // Validar pattern_type no frontend antes de enviar
       const invalidRows = payload.filter(m => !m.pattern_type || !m.pattern_type.trim())
       if (invalidRows.length > 0) {
         throw new Error(`${invalidRows.length} medição(ões) sem pattern_type definido`)
       }
-
-      console.log('[handleSave] Payload to be sent:', payload)
 
       const res = await fetch(`${API_BASE_URL}/experiments/${experimentId}/update-infills`, {
         method: 'PUT',
@@ -340,15 +301,14 @@ export default function InfillEditForm({
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        console.error('[handleSave] Error response:', { status: res.status, detail: err.detail, error: err })
+        logger.error('InfillEditForm', 'Failed to save infill measurements')
         throw new Error(err.detail || `Erro ao salvar (${res.status})`)
       }
 
-      console.log('[handleSave] ✅ Save successful!')
       onSaved()
     } catch (e) {
       const errorMsg = e instanceof Error ? e.message : 'Erro desconhecido'
-      console.error('[handleSave] Exception:', errorMsg)
+      logger.error('InfillEditForm', e instanceof Error ? e.message : 'Unknown error')
       setSaveError(errorMsg)
     } finally {
       setIsSaving(false)
@@ -385,7 +345,7 @@ export default function InfillEditForm({
                   <p className="text-sm text-teal-100 mt-1">4 medições: 40% • 60% • 80% • 100%</p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-block px-4 py-2 rounded-full bg-white/20 text-white font-semibold">
+                  <span className="inline-block px-4 py-2 rounded-full bg-surface/20 text-white font-semibold">
                     {filled}/{patternRows.length} preenchido(s)
                   </span>
                 </div>
@@ -402,7 +362,7 @@ export default function InfillEditForm({
                   <div
                     key={row.id}
                     className={`overflow-hidden rounded-lg border-2 transition-all ${
-                      isFilled ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-white'
+                      isFilled ? 'border-green-400 bg-primary-light' : 'border-border bg-surface'
                     }`}
                   >
                     {/* Header do card - acessível para click */}
@@ -410,30 +370,30 @@ export default function InfillEditForm({
                       type="button"
                       onClick={() => setExpandedId(isExpanded ? null : row.id)}
                       className={`w-full flex items-center justify-between px-5 py-4 transition-all hover:shadow-md ${
-                        isFilled ? 'bg-gradient-to-r from-green-100 to-green-50 border-b-2 border-green-200' : 'bg-gradient-to-r from-gray-50 to-white border-b border-gray-200'
+                        isFilled ? 'bg-gradient-to-r from-green-100 to-green-50 border-b-2 border-primary/30' : 'bg-gradient-to-r from-gray-50 to-white border-b border-border'
                       }`}
                     >
                       <div className="flex flex-1 items-center gap-4 text-left">
                         <div className="font-bold text-lg text-teal-600 min-w-[3rem]">{row.infill_pct}%</div>
                         <div className="flex-1">
-                          <p className="font-semibold text-gray-900">Infill Medição</p>
-                          <p className="text-sm text-gray-600 mt-0.5">
+                          <p className="font-semibold text-foreground">Infill Medição</p>
+                          <p className="text-sm text-muted mt-0.5">
                             HU: {row.hu_mean > 0 ? row.hu_mean : 'vazio'}
                             {row.sd_value != null ? ` | SD: ${row.sd_value}` : ''}
                           </p>
                         </div>
-                        {isFilled && <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />}
+                        {isFilled && <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" />}
                       </div>
                       {isExpanded ? (
                         <ChevronUp className="h-5 w-5 text-teal-600 font-bold" />
                       ) : (
-                        <ChevronDown className="h-5 w-5 text-gray-600" />
+                        <ChevronDown className="h-5 w-5 text-muted" />
                       )}
                     </button>
 
                     {/* Conteúdo expandido */}
                     {isExpanded && (
-                      <div className="space-y-5 border-t border-gray-200 bg-white px-4 py-3">
+                      <div className="space-y-5 border-t border-border bg-surface px-4 py-3">
                         {/* HU Mean */}
                         <div>
                           <FormFieldLabel label="HU Mean" required />
@@ -444,8 +404,8 @@ export default function InfillEditForm({
                             onChange={e => updateRow(row.id, 'hu_mean',
                               e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
                             )}
-                            className={`mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 ${
-                              row.hu_mean > 0 ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                            className={`mt-1 w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                              row.hu_mean > 0 ? 'border-green-300 bg-primary-light' : 'border-border'
                             }`}
                             placeholder="0.00"
                           />
@@ -462,7 +422,7 @@ export default function InfillEditForm({
                               onChange={e => updateRow(row.id, 'sd_value',
                                 e.target.value === '' ? null : parseFloat(e.target.value)
                               )}
-                              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="mt-1 w-full rounded-lg border border-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="0.00"
                             />
                           </div>
@@ -470,7 +430,7 @@ export default function InfillEditForm({
                           <div>
                             <FormFieldLabel label={t('experimentWizard.infill.visualHomogeneity')} />
                             <div className="mt-2 flex items-center gap-3">
-                              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 transition-all hover:bg-gray-50">
+                              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 transition-all hover:bg-background">
                                 <input
                                   type="checkbox"
                                   checked={row.has_homogeneity_issues}
@@ -491,12 +451,12 @@ export default function InfillEditForm({
                           <button
                             type="button"
                             onClick={() => updateImageUrls(row.id, [...row.image_urls, ''])}
-                            className="mb-2 mt-1 w-full rounded-lg border-2 border-dashed border-green-400 bg-green-50 py-2 text-sm font-semibold text-green-700 hover:bg-green-100"
+                            className="mb-2 mt-1 w-full rounded-lg border-2 border-dashed border-green-400 bg-primary-light py-2 text-sm font-semibold text-primary hover:bg-primary-muted"
                           >
                             + Adicionar imagem
                           </button>
                           {row.image_urls.length === 0 && (
-                            <p className="text-xs italic text-gray-400">Nenhuma imagem.</p>
+                            <p className="text-xs italic text-slate-400">Nenhuma imagem.</p>
                           )}
                           <div className="space-y-2">
                             {row.image_urls.map((url, i) => (
@@ -509,7 +469,7 @@ export default function InfillEditForm({
                                     updated[i] = e.target.value
                                     updateImageUrls(row.id, updated)
                                   }}
-                                  className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                  className="flex-1 rounded-lg border border-border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                                   placeholder={`https://... (imagem ${i + 1})`}
                                 />
                                 <button
@@ -528,7 +488,7 @@ export default function InfillEditForm({
                           <textarea
                             value={row.notes || ''}
                             onChange={e => updateRow(row.id, 'notes', e.target.value || null)}
-                            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                            className="mt-1 w-full rounded-lg border border-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
                             rows={3}
                             placeholder="Observações, condições de teste..."
                           />
@@ -546,14 +506,11 @@ export default function InfillEditForm({
               const validCount = patternRows.filter(i => i.hu_mean !== 0 && i.infill_pct > 0).length
               const hasRegression = reg.a !== null && reg.b !== null
               
-              // Debug logging
-              console.log(`[Regression Render] Pattern="${pattern}": reg=${JSON.stringify(reg)}, hasRegression=${hasRegression}, validCount=${validCount}`)
-              
               return (
                 <div className={`mt-2 p-4 rounded-lg border-2 ${
                   hasRegression
                     ? 'border-teal-300 bg-teal-50'
-                    : 'border-dashed border-gray-300 bg-gray-50'
+                    : 'border-dashed border-border bg-background'
                 }`}>
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-sm font-bold text-teal-900">📊 Regressão Linear — {pattern}</span>
@@ -565,7 +522,7 @@ export default function InfillEditForm({
                       </span>
                     )}
                     {hasRegression && (
-                      <span className="text-xs text-teal-600 font-mono bg-white border border-teal-200 px-2 py-0.5 rounded-full">
+                      <span className="text-xs text-teal-600 font-mono bg-surface border border-teal-200 px-2 py-0.5 rounded-full">
                         HU = {Number(reg.a).toFixed(4)} × % + ({Number(reg.b).toFixed(4)})
                       </span>
                     )}
@@ -574,10 +531,10 @@ export default function InfillEditForm({
                     {/* Termo A */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-semibold text-gray-700">Termo A (Angular)</label>
+                        <label className="text-xs font-semibold text-foreground">Termo A (Angular)</label>
                         <div className="flex items-center gap-1">
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                            reg.manualA ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                            reg.manualA ? 'bg-orange-100 text-orange-700' : 'bg-primary-muted text-primary'
                           }`}>
                             {reg.manualA ? '✏️ Manual' : '⚡ Auto'}
                           </span>
@@ -585,7 +542,7 @@ export default function InfillEditForm({
                             <button
                               type="button"
                               onClick={() => resetPatternField(pattern, 'a')}
-                              className="text-xs text-gray-400 hover:text-red-500 ml-1 font-bold"
+                              className="text-xs text-slate-400 hover:text-red-500 ml-1 font-bold"
                               title="Voltar ao automático"
                             >✕</button>
                           )}
@@ -599,7 +556,7 @@ export default function InfillEditForm({
                         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-teal-400 ${
                           reg.a !== null
                             ? (reg.manualA ? 'border-orange-300 bg-orange-50' : 'border-teal-300 bg-teal-50')
-                            : 'border-dashed border-gray-300 bg-white'
+                            : 'border-dashed border-border bg-surface'
                         }`}
                         placeholder="Aguardando 2ª medição..."
                       />
@@ -607,10 +564,10 @@ export default function InfillEditForm({
                     {/* Termo B */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-semibold text-gray-700">Termo B (Linear)</label>
+                        <label className="text-xs font-semibold text-foreground">Termo B (Linear)</label>
                         <div className="flex items-center gap-1">
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                            reg.manualB ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                            reg.manualB ? 'bg-orange-100 text-orange-700' : 'bg-primary-muted text-primary'
                           }`}>
                             {reg.manualB ? '✏️ Manual' : '⚡ Auto'}
                           </span>
@@ -618,7 +575,7 @@ export default function InfillEditForm({
                             <button
                               type="button"
                               onClick={() => resetPatternField(pattern, 'b')}
-                              className="text-xs text-gray-400 hover:text-red-500 ml-1 font-bold"
+                              className="text-xs text-slate-400 hover:text-red-500 ml-1 font-bold"
                               title="Voltar ao automático"
                             >✕</button>
                           )}
@@ -632,7 +589,7 @@ export default function InfillEditForm({
                         className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-teal-400 ${
                           reg.b !== null
                             ? (reg.manualB ? 'border-orange-300 bg-orange-50' : 'border-teal-300 bg-teal-50')
-                            : 'border-dashed border-gray-300 bg-white'
+                            : 'border-dashed border-border bg-surface'
                         }`}
                         placeholder="Aguardando 2ª medição..."
                       />
@@ -658,7 +615,7 @@ export default function InfillEditForm({
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-2 font-semibold text-white hover:bg-green-700 disabled:opacity-60"
+          className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 font-semibold text-white hover:bg-primary-hover disabled:opacity-60"
         >
           {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : '✅'}
           {isSaving ? 'Salvando…' : 'Salvar Infill'}
@@ -667,7 +624,7 @@ export default function InfillEditForm({
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="rounded-lg bg-gray-200 px-5 py-2 font-semibold text-gray-800 hover:bg-gray-300 disabled:opacity-60"
+          className="rounded-lg bg-slate-200 px-5 py-2 font-semibold text-foreground hover:bg-slate-300 disabled:opacity-60"
         >
           Cancelar
         </button>

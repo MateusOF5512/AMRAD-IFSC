@@ -5,6 +5,7 @@ import { MaterialCreate, MachineCreate, Material, Machine, materialsApi, machine
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import FormFieldLabel from '../FormFieldLabel'
+import { logger } from '@/lib/logger'
 
 interface MaterialMachineFormProps {
   initialData?: {
@@ -68,13 +69,13 @@ const SelectableInput = ({
         onFocus={() => setShowDropdown(true)}
         onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-          value ? 'border-green-300 bg-green-50' : 'border-gray-300'
+        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-colors ${
+          value ? 'border-green-300 bg-primary-light' : 'border-border'
         }`}
       />
       
       {showDropdown && (filteredOptions.length > 0 || options.length > 0) && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+        <div className="absolute z-10 w-full mt-1 bg-surface border border-border rounded-lg shadow-lg max-h-40 overflow-y-auto">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((opt) => (
               <button
@@ -84,13 +85,13 @@ const SelectableInput = ({
                   onChange(opt)
                   setShowDropdown(false)
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-green-100 transition-colors text-sm"
+                className="w-full text-left px-3 py-2 hover:bg-primary-muted transition-colors text-sm"
               >
                 {opt}
               </button>
             ))
           ) : (
-            <div className="px-3 py-2 text-gray-500 text-sm">
+            <div className="px-3 py-2 text-muted text-sm">
               {t('experimentWizardNew.forms.materialMachine.noSuggestions')}
             </div>
           )}
@@ -138,7 +139,7 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
         setApprovedMaterials(materials)
         setApprovedMachines(machines)
       } catch (err) {
-        console.error('Erro ao carregar materiais e máquinas aprovados:', err)
+        logger.error('MaterialMachineForm', err instanceof Error ? err.message : 'Unknown error')
         setApprovedMaterials([])
         setApprovedMachines([])
       } finally {
@@ -222,11 +223,11 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Material Section */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="font-semibold text-foreground flex items-center gap-2">
           <span>⚛️</span>
           <span>{t('experimentWizardNew.forms.materialMachine.materialSection')}</span>
           {material.brand && material.model && material.color && (
-            <CheckCircle2 className="w-5 h-5 text-green-600 ml-auto" />
+            <CheckCircle2 className="w-5 h-5 text-primary ml-auto" />
           )}
         </h3>
 
@@ -285,9 +286,9 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
                     type="checkbox"
                     checked={material.is_composite}
                     onChange={(e) => setMaterial({ ...material, is_composite: e.target.checked })}
-                    className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
+                    className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary/40"
                   />
-                  <span className="text-sm font-medium text-gray-700">{t('experimentWizardNew.forms.materialMachine.isComposite')}</span>
+                  <span className="text-sm font-medium text-foreground">{t('experimentWizardNew.forms.materialMachine.isComposite')}</span>
                 </label>
               </div>
             </div>
@@ -300,8 +301,8 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
             <textarea
               value={material.composite_details || ''}
               onChange={(e) => setMaterial({ ...material, composite_details: e.target.value })}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                material.composite_details ? 'border-green-300 bg-green-50' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-colors ${
+                material.composite_details ? 'border-green-300 bg-primary-light' : 'border-border'
               }`}
               placeholder={t('experimentWizardNew.forms.materialMachine.placeholders.compositeDetails')}
               rows={3}
@@ -311,15 +312,15 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
       </div>
 
       {/* Divider */}
-      <div className="border-t border-gray-200" />
+      <div className="border-t border-border" />
 
       {/* Machine Section */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="font-semibold text-foreground flex items-center gap-2">
           <span>🖨️</span>
           <span>{t('experimentWizardNew.forms.materialMachine.machineSection')}</span>
           {machine.brand && machine.model && machine.technology_type && (
-            <CheckCircle2 className="w-5 h-5 text-green-600 ml-auto" />
+            <CheckCircle2 className="w-5 h-5 text-primary ml-auto" />
           )}
         </h3>
 
@@ -363,8 +364,8 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
                 <select
                   value={machine.technology_type}
                   onChange={(e) => setMachine({ ...machine, technology_type: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    machine.technology_type ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-colors ${
+                    machine.technology_type ? 'border-green-300 bg-primary-light' : 'border-border'
                   }`}
                 >
                   {TECH_OPTIONS.map((tech) => (
@@ -381,8 +382,8 @@ const MaterialMachineForm = forwardRef<MaterialMachineFormHandle, MaterialMachin
                 <textarea
                   value={machine.other_specs || ''}
                   onChange={(e) => setMachine({ ...machine, other_specs: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                    machine.other_specs ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-colors ${
+                    machine.other_specs ? 'border-green-300 bg-primary-light' : 'border-border'
                   }`}
                   placeholder={t('experimentWizardNew.forms.materialMachine.placeholders.otherSpecs')}
                   rows={3}

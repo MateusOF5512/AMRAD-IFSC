@@ -63,21 +63,21 @@ export function PasswordConfirmModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+      <div className="bg-surface rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="bg-green-100 p-2 rounded-full">
-            <Lock className="h-5 w-5 text-green-600" />
+          <div className="bg-primary-muted p-2 rounded-full">
+            <Lock className="h-5 w-5 text-primary" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">{t('settings.passwordConfirm.title')}</h2>
+          <h2 className="text-xl font-bold text-foreground">{t('settings.passwordConfirm.title')}</h2>
         </div>
 
-        <p className="text-gray-600 text-sm mb-6">
+        <p className="text-muted text-sm mb-6">
           {t('settings.passwordConfirm.description')}
         </p>
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="confirm-password" className="block text-sm font-medium text-foreground mb-2">
               {t('settings.passwordConfirm.label')}
             </label>
             <div className="relative">
@@ -89,14 +89,14 @@ export function PasswordConfirmModal({
                 onKeyDown={handleKeyDown}
                 disabled={isLoading || loading}
                 placeholder={t('settings.passwordConfirm.placeholder')}
-                className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 pr-10 border border-border rounded-lg focus:ring-primary/40 focus:border-primary outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                 autoFocus
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading || loading}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-foreground disabled:cursor-not-allowed"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -124,7 +124,7 @@ export function PasswordConfirmModal({
               type="button"
               onClick={handleCancel}
               disabled={isLoading || loading}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed font-medium"
+              className="flex-1 px-4 py-2 border border-border rounded-lg text-foreground hover:bg-background disabled:bg-slate-100 disabled:cursor-not-allowed font-medium"
             >
               {t('common.cancel')}
             </button>
@@ -132,7 +132,7 @@ export function PasswordConfirmModal({
               type="button"
               onClick={handleSubmit}
               disabled={isLoading || loading}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-slate-400 disabled:cursor-not-allowed font-medium"
             >
               {loading ? t('settings.passwordConfirm.confirming') : t('common.confirm')}
             </button>

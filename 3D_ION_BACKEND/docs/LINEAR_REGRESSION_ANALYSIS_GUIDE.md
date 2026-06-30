@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-This document describes the complete implementation of the Linear Regression Analysis feature for Infill (%) vs Hounsfield Units (HU) in the 3D_ION platform.
+This document describes the complete implementation of the Linear Regression Analysis feature for Infill (%) vs Hounsfield Units (HU) in the AMRAD platform.
 
 ### What's Implemented
 
@@ -27,7 +27,7 @@ This document describes the complete implementation of the Linear Regression Ana
 ### Backend Implementation
 
 ```
-3D_ION_BACKEND/
+AMRAD_BACKEND/
 ├── app/
 │   ├── services/
 │   │   └── infill_hu_regression_service.py     # ✨ NEW: Service for regression analysis
@@ -41,7 +41,7 @@ This document describes the complete implementation of the Linear Regression Ana
 ### Frontend Implementation
 
 ```
-3D_ION_FRONTEND/
+AMRAD_FRONTEND/
 ├── app/
 │   └── analise-regressao/
 │       └── page.tsx                           # ✨ NEW: Full analysis page
@@ -336,7 +336,7 @@ headers = {
 ### Run Backend Tests
 
 ```bash
-cd 3D_ION_BACKEND
+cd AMRAD_BACKEND
 
 # Install test dependencies
 pip install pytest pytest-asyncio httpx

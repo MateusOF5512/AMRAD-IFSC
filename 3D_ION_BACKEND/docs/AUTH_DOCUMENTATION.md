@@ -172,7 +172,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 Execute os testes de autenticação:
 
 ```bash
-cd 3D_ION_BACKEND
+cd AMRAD_BACKEND
 python tests/test_auth_endpoints.py
 ```
 

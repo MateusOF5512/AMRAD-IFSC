@@ -1,4 +1,4 @@
--- ION3D Platform: Add email_notifications column to researchers table
+-- AMRAD: Add email_notifications column to researchers table
 -- Execute this in Supabase SQL Editor
 
 -- Add email_notifications column to researchers table

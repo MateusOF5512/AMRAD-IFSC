@@ -98,18 +98,6 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
     setError(null)
   }
 
-  // DEBUG: Log props at mounting
-  useEffect(() => {
-    console.log('[PredefinedInfillsForm] Recebeu props:', {
-      selectedInfillsLength: selectedInfills?.length,
-      selectedInfills,
-      initialMeasurementsLength: initialMeasurements?.length,
-      initialMeasurements,
-      initialRegressionA,
-      initialRegressionB
-    })
-  }, [selectedInfills, initialMeasurements])
-
   // Estado de regressão por padrão: { a, b, manualA, manualB }
   const [patternRegression, setPatternRegression] = useState<Record<string, {
     a: number | null
@@ -120,116 +108,42 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
 
   // Inicializar dados quando infills selecionados mudam
   useEffect(() => {
-    console.log('[PredefinedInfillsForm] useEffect: Atualizando infillData', {
-      selectedInfillsLength: selectedInfills.length,
-      initialMeasurementsLength: initialMeasurements?.length,
-      selectedInfills: selectedInfills.map(s => `${s.pattern_type} ${s.infill_pct}%`),
-      initialMeasurements: initialMeasurements?.map(m => ({
+    // Se selectedInfills está vazio mas temos initialMeasurements (modo edição)
+    if (selectedInfills.length === 0 && initialMeasurements && initialMeasurements.length > 0) {
+      const newData = initialMeasurements.map((m: any) => ({
         id: m.id,
         pattern_type: m.pattern_type,
         infill_pct: m.infill_pct,
-        hu_mean: m.hu_mean
+        hu_mean: m.hu_mean ?? 0,
+        notes: m.notes ?? null,
+        sd_value: m.sd_value ?? null,
+        has_homogeneity_issues: normalizeHomogeneityIssues(m),
+        image_urls: m.image_urls ?? (m.image_url ? [m.image_url] : []),
+        dimension_a: m.dimension_a ?? null,
+        dimension_b: m.dimension_b ?? null,
       }))
-    })
-    
-    // 🔑 CASO ESPECIAL: Se selectedInfills está vazio mas temos initialMeasurements (modo edição)
-    // Usar os dados do banco DIRETAMENTE como source of truth
-    if (selectedInfills.length === 0 && initialMeasurements && initialMeasurements.length > 0) {
-      console.log('[PredefinedInfillsForm] ✨ MODO EDIÇÃO: usando initialMeasurements diretamente')
-      const newData = initialMeasurements.map((m: any) => {
-        console.log('[PredefinedInfillsForm] 📥 Processando medição do banco:', {
-          pattern_type: m.pattern_type,
-          infill_pct: m.infill_pct,
-          hu_mean_bruto: m.hu_mean,
-          hu_mean_tipo: typeof m.hu_mean,
-          hu_mean_valor_final: m.hu_mean ?? 0,
-          has_homogeneity_issues: normalizeHomogeneityIssues(m)
-        })
-        return {
-          id: m.id,
-          pattern_type: m.pattern_type,
-          infill_pct: m.infill_pct,
-          hu_mean: m.hu_mean ?? 0,
-          notes: m.notes ?? null,
-          sd_value: m.sd_value ?? null,
-          has_homogeneity_issues: normalizeHomogeneityIssues(m),
-          image_urls: m.image_urls ?? (m.image_url ? [m.image_url] : []),
-          dimension_a: m.dimension_a ?? null,
-          dimension_b: m.dimension_b ?? null,
-        }
-      })
-      console.log('[PredefinedInfillsForm] ✅ Dados carregados do banco (FINAL):', {
-        length: newData.length,
-        items: newData.map(item => ({
-          pattern_type: item.pattern_type,
-          infill_pct: item.infill_pct,
-          hu_mean: item.hu_mean,
-          hu_mean_tipoFinal: typeof item.hu_mean,
-          hasId: item.id ? `✅ ${item.id.substring(0,8)}...` : '❌'
-        }))
-      })
       setInfillData(newData)
       setExpandedIndex(null)
       return
     }
     
-    // CASO NORMAL: selectedInfills tem dados, fazer match com initialMeasurements
-    const newData = selectedInfills.map((sel, idx) => {
-      console.log(`[PredefinedInfillsForm] Processando selectedInfill ${idx}:`, {
-        padraoAtual: `${sel.pattern_type} ${sel.infill_pct}%`,
-        procurando: `pattern_type=${sel.pattern_type} AND infill_pct=${sel.infill_pct}`
-      })
-      
-      // Procura dado existente que bata com o padrão e porcentagem
-      const existing = initialMeasurements?.find(m => {
-        const matches = m.pattern_type === sel.pattern_type && Number(m.infill_pct) === sel.infill_pct
-        if (!matches) {
-          console.log(`[PredefinedInfillsForm]   ❌ Não é match:`, {
-            fromBank: {pattern_type: m.pattern_type, infill_pct: Number(m.infill_pct), hu_mean: m.hu_mean},
-            selected: {pattern_type: sel.pattern_type, infill_pct: sel.infill_pct},
-            patternMatch: m.pattern_type === sel.pattern_type,
-            pctMatch: Number(m.infill_pct) === sel.infill_pct
-          })
-        }
-        return matches
-      })
-      
-      if (existing) {
-        console.log(`[PredefinedInfillsForm]   ✅ MATCH ENCONTRADO:`, {
-          padraoSelecionado: `${sel.pattern_type} ${sel.infill_pct}%`,
-          existingId: existing.id,
-          hu_mean: existing.hu_mean,
-          sd_value: existing.sd_value,
-          notes: existing.notes
-        })
-      } else {
-        console.log(`[PredefinedInfillsForm]   ⚠️ Nenhum match encontrado para ${sel.pattern_type} ${sel.infill_pct}%`)
-      }
+    const newData = selectedInfills.map((sel) => {
+      const existing = initialMeasurements?.find(m =>
+        m.pattern_type === sel.pattern_type && Number(m.infill_pct) === sel.infill_pct
+      )
       
       return {
-        id: existing?.id ?? undefined,           // preservar UUID para UPDATE no banco
+        id: existing?.id ?? undefined,
         pattern_type: sel.pattern_type,
         infill_pct: sel.infill_pct,
         hu_mean: existing?.hu_mean ?? 0,
         notes: existing?.notes ?? null,
         sd_value: existing?.sd_value ?? null,
         has_homogeneity_issues: normalizeHomogeneityIssues(existing),
-        // Converte image_url (string do banco) → image_urls (array da UI)
         image_urls: existing?.image_urls ?? (existing?.image_url ? [existing.image_url] : []),
         dimension_a: existing?.dimension_a ?? null,
         dimension_b: existing?.dimension_b ?? null,
       }
-    })
-    
-    console.log('[PredefinedInfillsForm] newData após mapping FINAL:', {
-      length: newData.length,
-      items: newData.map(item => ({
-        id: item.id,
-        pattern_type: item.pattern_type,
-        infill_pct: item.infill_pct,
-        hu_mean: item.hu_mean,
-        hasData: !!item.id
-      }))
     })
     
     setInfillData(newData)
@@ -258,32 +172,12 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
   // Emitir dados: espalha A e B do painel de resumo para todos os cards do mesmo padrão
   useEffect(() => {
     const merged = infillData
-      .filter(item => item.pattern_type && item.pattern_type.trim() !== '')  // ✨ FILTRAR NULLS
-      .map(item => {
-        const result = {
-          ...item,
-          dimension_a: patternRegression[item.pattern_type]?.a ?? null,
-          dimension_b: patternRegression[item.pattern_type]?.b ?? null,
-        }
-        console.log('[PredefinedInfillsForm] 📤 Item sendo emitido:', {
-          pattern_type: result.pattern_type,
-          infill_pct: result.infill_pct,
-          hu_mean: result.hu_mean,
-          hu_mean_tipo: typeof result.hu_mean,
-          id: result.id ? `✅` : '❌'
-        })
-        return result
-      })
-    console.log('[PredefinedInfillsForm] 🚀 useEffect emissão: Enviando dados via onDataChange:', {
-      length: merged.length,
-      comDados: merged.map(item => ({
-        id: item.id,
-        pattern_type: item.pattern_type,
-        infill_pct: item.infill_pct,
-        hu_mean: item.hu_mean,
-        hasId: !!item.id ? '✅' : '❌'
+      .filter(item => item.pattern_type && item.pattern_type.trim() !== '')
+      .map(item => ({
+        ...item,
+        dimension_a: patternRegression[item.pattern_type]?.a ?? null,
+        dimension_b: patternRegression[item.pattern_type]?.b ?? null,
       }))
-    })
     onDataChange(merged)
   }, [infillData, patternRegression])
 
@@ -341,7 +235,6 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
   const updatePatternField = (pattern: string, field: 'a' | 'b', value: string) => {
     const parsed = value === '' ? null : parseFloat(value)
     const isManual = value !== ''
-    console.log(`[updatePatternField] Pattern="${pattern}", field="${field}", value="${value}", isManual=${isManual}, parsed=${parsed}`)
     setPatternRegression(prev => {
       const updated = {
         ...prev,
@@ -351,7 +244,6 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
           ...(field === 'a' ? { manualA: isManual } : { manualB: isManual }),
         },
       }
-      console.log(`[updatePatternField] Updated state for "${pattern}":`, updated[pattern])
       return updated
     })
   }
@@ -375,7 +267,6 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
   useEffect(() => {
     if (infillData.length === 0) return
     const patterns = [...new Set(infillData.map(d => d.pattern_type))]
-    console.log('[useEffect] Recalculating regression for patterns:', patterns)
     setPatternRegression(prev => {
       const updated = { ...prev }
       patterns.forEach(pattern => {
@@ -387,20 +278,12 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
         const newA = current.manualA ? current.a : (regression?.a ?? null)
         const newB = current.manualB ? current.b : (regression?.b ?? null)
         
-        if (current.manualA && regression && regression.a !== null && newA !== current.a) {
-          console.warn(`[useEffect] ⚠️ Pattern "${pattern}" tem manualA=true mas A seria ${regression.a}. Preservando manual: ${current.a}`)
-        }
-        if (current.manualB && regression && regression.b !== null && newB !== current.b) {
-          console.warn(`[useEffect] ⚠️ Pattern "${pattern}" tem manualB=true mas B seria ${regression.b}. Preservando manual: ${current.b}`)
-        }
-        
         updated[pattern] = {
           a: newA,
           b: newB,
-          manualA: current.manualA,  // ✨ CRÍTICO: nunca mude o flag de manual!
-          manualB: current.manualB,  // ✨ CRÍTICO: nunca mude o flag de manual!
+          manualA: current.manualA,
+          manualB: current.manualB,
         }
-        console.log(`[useEffect] Pattern "${pattern}": a=${newA}(manual=${current.manualA}), b=${newB}(manual=${current.manualB})`)
       })
       return updated
     })
@@ -476,15 +359,15 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
               {/* Header do Grupo de Padrão */}
               <div className={`px-4 py-3 rounded-lg border-l-4 ${
                 patternIsComplete
-                  ? 'border-l-green-500 bg-green-50'
+                  ? 'border-l-green-500 bg-primary-light'
                   : 'border-l-blue-500 bg-blue-50'
               }`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-lg text-gray-900">📋 {pattern}</h3>
-                    <p className="text-xs text-gray-600 mt-1">💡 Preencha HU Mean para gerar automaticamente A e B</p>
+                    <h3 className="font-bold text-lg text-foreground">📋 {pattern}</h3>
+                    <p className="text-xs text-muted mt-1">💡 Preencha HU Mean para gerar automaticamente A e B</p>
                   </div>
-                  <span className="text-sm font-semibold text-gray-600">
+                  <span className="text-sm font-semibold text-muted">
                     {patternCompletion}/{patternInfills.length} preenchido(s)
                   </span>
                 </div>
@@ -503,42 +386,42 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                       key={`${infill.pattern_type}-${infill.infill_pct}`}
                       className={`border-2 rounded-lg overflow-hidden transition-all ${
                         isMinimallyFilled
-                          ? 'border-green-300 bg-green-50'
-                          : 'border-gray-300 bg-gray-50'
+                          ? 'border-green-300 bg-primary-light'
+                          : 'border-border bg-background'
                       }`}
                     >
                       {/* Header do Card */}
                       <button
                         onClick={() => setExpandedIndex(expandedIndex === globalIdx ? null : globalIdx)}
                         className={`w-full px-6 py-4 flex items-center justify-between hover:bg-opacity-80 transition-colors ${
-                          isMinimallyFilled ? 'bg-green-100' : 'bg-gray-100'
+                          isMinimallyFilled ? 'bg-primary-muted' : 'bg-slate-100'
                         }`}
                       >
                         <div className="flex items-center gap-4 flex-1 text-left">
                           <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 mb-1">
+                            <h4 className="font-bold text-foreground mb-1">
                               {infill.infill_pct}% Infill
                             </h4>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted">
                               HU Mean: {infill.hu_mean > 0 ? infill.hu_mean : '—'}{infill.notes ? ` · Notas` : ''}
                             </p>
                           </div>
 
                           {isMinimallyFilled && (
-                            <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
+                            <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
                           )}
                         </div>
 
                         {isExpanded ? (
-                          <ChevronUp className="w-5 h-5 text-gray-600" />
+                          <ChevronUp className="w-5 h-5 text-muted" />
                         ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-600" />
+                          <ChevronDown className="w-5 h-5 text-muted" />
                         )}
                       </button>
 
               {/* Conteúdo Expandido */}
                       {isExpanded && (
-                        <div className="px-6 py-4 border-t border-gray-200 bg-white space-y-6">
+                        <div className="px-6 py-4 border-t border-border bg-surface space-y-6">
                           {/* Linha 1: HU Mean */}
                           <div className="grid grid-cols-1 gap-4">
                             <div>
@@ -548,8 +431,8 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                                 step="0.01"
                                 value={infill.hu_mean ?? ''}
                                 onChange={(e) => updateField(globalIdx, 'hu_mean', e.target.value)}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                                  infill.hu_mean > 0 ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/40 focus:border-transparent ${
+                                  infill.hu_mean > 0 ? 'border-green-300 bg-primary-light' : 'border-border'
                                 }`}
                                 placeholder="0.00"
                               />
@@ -565,7 +448,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                                 step="0.01"
                                 value={infill.sd_value || ''}
                                 onChange={(e) => updateField(globalIdx, 'sd_value', e.target.value ? parseFloat(e.target.value) : null)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="0.00"
                               />
                             </div>
@@ -578,9 +461,9 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                                     type="checkbox"
                                     checked={infill.has_homogeneity_issues ?? false}
                                     onChange={(e) => updateField(globalIdx, 'has_homogeneity_issues', e.target.checked)}
-                                    className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                    className="w-5 h-5 rounded border-border text-primary focus:ring-2 focus:ring-primary/40 cursor-pointer"
                                   />
-                                  <span className="text-sm font-medium text-gray-700">
+                                  <span className="text-sm font-medium text-foreground">
                                     {infill.has_homogeneity_issues ? '✅ Sim (houve buracos)' : '❌ Não (sem buracos)'}
                                   </span>
                                 </label>
@@ -594,12 +477,12 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                             <button
                               type="button"
                               onClick={() => updateImageUrls(globalIdx, [...infill.image_urls, ''])}
-                              className="w-full mt-1 mb-3 flex items-center justify-center gap-1 text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 border-2 border-dashed border-green-400 px-3 py-2 rounded-lg transition-colors"
+                              className="w-full mt-1 mb-3 flex items-center justify-center gap-1 text-sm font-semibold text-primary bg-primary-light hover:bg-primary-muted border-2 border-dashed border-green-400 px-3 py-2 rounded-lg transition-colors"
                             >
                               + Adicionar imagem
                             </button>
                             {infill.image_urls.length === 0 && (
-                              <p className="text-xs text-gray-400 italic">Nenhuma imagem adicionada.</p>
+                              <p className="text-xs text-slate-400 italic">Nenhuma imagem adicionada.</p>
                             )}
                             <div className="space-y-2">
                               {infill.image_urls.map((url, imgIdx) => (
@@ -612,7 +495,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                                       updated[imgIdx] = e.target.value
                                       updateImageUrls(globalIdx, updated)
                                     }}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent"
                                     placeholder={`https://... (imagem ${imgIdx + 1})`}
                                   />
                                   <button
@@ -635,7 +518,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                             <textarea
                               value={infill.notes || ''}
                               onChange={(e) => updateField(globalIdx, 'notes', e.target.value || null)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               rows={3}
                               placeholder="Observações de teste, condições especiais, etc..."
                             />
@@ -652,37 +535,37 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                   className={`border-2 rounded-lg overflow-hidden transition-all ${
                     showAddNewInfill === pattern
                       ? 'border-blue-300 bg-blue-50'
-                      : 'border-gray-300 bg-gray-50'
+                      : 'border-border bg-background'
                   }`}
                 >
                   {/* Header do Card */}
                   <button
                     onClick={() => setShowAddNewInfill(showAddNewInfill === pattern ? null : pattern)}
                     className={`w-full px-6 py-4 flex items-center justify-between hover:bg-opacity-80 transition-colors ${
-                      showAddNewInfill === pattern ? 'bg-blue-100' : 'bg-gray-100'
+                      showAddNewInfill === pattern ? 'bg-blue-100' : 'bg-slate-100'
                     }`}
                   >
                     <div className="flex items-center gap-4 flex-1 text-left">
                       <div className="flex-1">
-                        <h4 className="font-bold text-gray-900 mb-1">
+                        <h4 className="font-bold text-foreground mb-1">
                           ➕ Adicionar Novo Infill Customizado
                         </h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted">
                           Preencha os dados para criar um infill personalizado
                         </p>
                       </div>
                     </div>
 
                     {showAddNewInfill === pattern ? (
-                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                      <ChevronUp className="w-5 h-5 text-muted" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                      <ChevronDown className="w-5 h-5 text-muted" />
                     )}
                   </button>
 
                   {/* Conteúdo Expandido */}
                   {showAddNewInfill === pattern && (
-                    <div className="px-6 py-4 border-t border-gray-200 bg-white space-y-6">
+                    <div className="px-6 py-4 border-t border-border bg-surface space-y-6">
                       {/* Linha 1: Porcentagem, HU Mean */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -694,7 +577,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                             max="100"
                             value={newInfillForm.infill_pct}
                             onChange={(e) => setNewInfillForm({ ...newInfillForm, infill_pct: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Ex: 50"
                           />
                         </div>
@@ -705,7 +588,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                             step="0.01"
                             value={newInfillForm.hu_mean}
                             onChange={(e) => setNewInfillForm({ ...newInfillForm, hu_mean: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="0.00"
                           />
                         </div>
@@ -720,7 +603,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                             step="0.01"
                             value={newInfillForm.sd_value || ''}
                             onChange={(e) => setNewInfillForm({ ...newInfillForm, sd_value: e.target.value ? parseFloat(e.target.value) : null })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="0.00"
                           />
                         </div>
@@ -733,9 +616,9 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                                 type="checkbox"
                                 checked={newInfillForm.has_homogeneity_issues ?? false}
                                 onChange={(e) => setNewInfillForm({ ...newInfillForm, has_homogeneity_issues: e.target.checked })}
-                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                                className="w-5 h-5 rounded border-border text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
                               />
-                              <span className="text-sm font-medium text-gray-700">
+                              <span className="text-sm font-medium text-foreground">
                                 {newInfillForm.has_homogeneity_issues ? '✅ Sim (houve buracos)' : '❌ Não (sem buracos)'}
                               </span>
                             </label>
@@ -754,7 +637,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                           + Adicionar imagem
                         </button>
                         {newInfillForm.image_urls.length === 0 && (
-                          <p className="text-xs text-gray-400 italic">Nenhuma imagem adicionada.</p>
+                          <p className="text-xs text-slate-400 italic">Nenhuma imagem adicionada.</p>
                         )}
                         <div className="space-y-2">
                           {newInfillForm.image_urls.map((url, imgIdx) => (
@@ -767,7 +650,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                                   updated[imgIdx] = e.target.value
                                   setNewInfillForm({ ...newInfillForm, image_urls: updated })
                                 }}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder={`https://... (imagem ${imgIdx + 1})`}
                               />
                               <button
@@ -790,7 +673,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                         <textarea
                           value={newInfillForm.notes}
                           onChange={(e) => setNewInfillForm({ ...newInfillForm, notes: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           rows={3}
                           placeholder="Observações de teste, condições especiais, etc..."
                         />
@@ -812,7 +695,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                           setNewInfillForm({ infill_pct: '', hu_mean: '', notes: '', sd_value: null, has_homogeneity_issues: false, image_urls: [] })
                             setError(null)
                           }}
-                          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-400"
+                          className="px-4 py-2 bg-slate-300 text-foreground rounded-lg text-sm font-medium hover:bg-slate-400"
                         >
                           ✕ Cancelar
                         </button>
@@ -828,13 +711,11 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                 const validCount = patternInfills.filter(i => i.hu_mean !== 0 && i.infill_pct > 0).length
                 const hasRegression = reg.a !== null && reg.b !== null
                 
-                console.log(`[Regression Render] Pattern="${pattern}": a=${reg.a}, b=${reg.b}, manualA=${reg.manualA}, manualB=${reg.manualB}, hasRegression=${hasRegression}`)
-                
                 return (
                   <div className={`mt-2 p-4 rounded-lg border-2 ${
                     hasRegression
                       ? 'border-indigo-300 bg-indigo-50'
-                      : 'border-dashed border-gray-300 bg-gray-50'
+                      : 'border-dashed border-border bg-background'
                   }`}>
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-sm font-bold text-indigo-900">📊 Regressão Linear — {pattern}</span>
@@ -846,7 +727,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                         </span>
                       )}
                       {hasRegression && (
-                        <span className="text-xs text-indigo-600 font-mono bg-white border border-indigo-200 px-2 py-0.5 rounded-full">
+                        <span className="text-xs text-indigo-600 font-mono bg-surface border border-indigo-200 px-2 py-0.5 rounded-full">
                           HU = {Number(reg.a).toFixed(4)} × % + ({Number(reg.b).toFixed(4)})
                         </span>
                       )}
@@ -855,10 +736,10 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                       {/* Termo A */}
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs font-semibold text-gray-700">Termo A (Angular)</label>
+                          <label className="text-xs font-semibold text-foreground">Termo A (Angular)</label>
                           <div className="flex items-center gap-1">
                             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                              reg.manualA ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                              reg.manualA ? 'bg-orange-100 text-orange-700' : 'bg-primary-muted text-primary'
                             }`}>
                               {reg.manualA ? '✏️ Manual' : '⚡ Auto'}
                             </span>
@@ -866,7 +747,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                               <button
                                 type="button"
                                 onClick={() => resetPatternField(pattern, 'a')}
-                                className="text-xs text-gray-400 hover:text-red-500 ml-1 font-bold"
+                                className="text-xs text-slate-400 hover:text-red-500 ml-1 font-bold"
                                 title="Voltar ao automático"
                               >✕</button>
                             )}
@@ -880,7 +761,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                           className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 ${
                             reg.a !== null
                               ? (reg.manualA ? 'border-orange-300 bg-orange-50' : 'border-indigo-300 bg-indigo-50')
-                              : 'border-dashed border-gray-300 bg-white'
+                              : 'border-dashed border-border bg-surface'
                           }`}
                           placeholder="Aguardando 2ª medição..."
                         />
@@ -888,10 +769,10 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                       {/* Termo B */}
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <label className="text-xs font-semibold text-gray-700">Termo B (Linear)</label>
+                          <label className="text-xs font-semibold text-foreground">Termo B (Linear)</label>
                           <div className="flex items-center gap-1">
                             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                              reg.manualB ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+                              reg.manualB ? 'bg-orange-100 text-orange-700' : 'bg-primary-muted text-primary'
                             }`}>
                               {reg.manualB ? '✏️ Manual' : '⚡ Auto'}
                             </span>
@@ -899,7 +780,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                               <button
                                 type="button"
                                 onClick={() => resetPatternField(pattern, 'b')}
-                                className="text-xs text-gray-400 hover:text-red-500 ml-1 font-bold"
+                                className="text-xs text-slate-400 hover:text-red-500 ml-1 font-bold"
                                 title="Voltar ao automático"
                               >✕</button>
                             )}
@@ -913,7 +794,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
                           className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 ${
                             reg.b !== null
                               ? (reg.manualB ? 'border-orange-300 bg-orange-50' : 'border-indigo-300 bg-indigo-50')
-                              : 'border-dashed border-gray-300 bg-white'
+                              : 'border-dashed border-border bg-surface'
                           }`}
                           placeholder="Aguardando 2ª medição..."
                         />
@@ -934,7 +815,7 @@ export default memo(function PredefinedInfillsForm({ selectedInfills, onDataChan
             ✓ Resumo: {infillData.filter(i => i.hu_mean > 0).length}/{infillData.length} infill(s) com HU Mean preenchido
           </p>
           {isFormValid ? (
-            <p className="text-green-700 font-medium">✅ Pronto para salvar!</p>
+            <p className="text-primary font-medium">✅ Pronto para salvar!</p>
           ) : (
             <p className="text-amber-700">⚠️ Preencha HU Mean para todos os infills</p>
           )}

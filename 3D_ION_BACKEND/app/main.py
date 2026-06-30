@@ -13,7 +13,7 @@ from app.routers import materials, machines, samples, experiments, auth, users, 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="REST API for ION3D Platform - Scientific experiment management system",
+    description="REST API for AMRAD - Scientific experiment management system",
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
     openapi_url="/openapi.json" if settings.DEBUG else None,

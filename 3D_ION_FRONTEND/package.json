@@ -1,14 +1,17 @@
 {
-  "name": "3d-ion-next",
+  "name": "amrad-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "sync-env": "node scripts/sync-env.mjs",
+    "dev": "npm run sync-env && next dev",
+    "build": "npm run sync-env && next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
     "i18next": "^25.8.16",
     "lucide-react": "^0.468.0",
     "next": "16.1.6",

@@ -11,6 +11,7 @@ import BeamForm from './steps/BeamForm'
 import { useExperimentEdit } from '@/lib/hooks/useExperimentEdit'
 import SectionSummaryCard from './SectionSummaryCard'
 import FinalizationConfirmationModal from './FinalizationConfirmationModal'
+import { logger } from '@/lib/logger'
 
 type Section = 'material-machine' | 'sample' | 'infill' | 'mechanical' | 'attenuation' | 'beam'
 
@@ -80,12 +81,6 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
   // Initialize com dados do experimento - ONLY ONCE, nunca novamente
   useEffect(() => {
     if (initialData && !dataInitialized) {
-      // DEBUG: Log infill data to check for duplicates
-      console.log('[ExperimentEditWizard] initialData.infill_data:', {
-        length: initialData.infill_data?.length,
-        data: initialData.infill_data
-      })
-      
       if (initialData.material) setMaterialLocal(initialData.material)
       if (initialData.machine) setMachineLocal(initialData.machine)
       if (initialData.sample) setSampleLocal(initialData.sample)
@@ -132,7 +127,7 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
         }, 800)
       }
     } catch (err) {
-      console.error('Erro ao salvar alterações:', err)
+      logger.error('ExperimentEditWizard', err instanceof Error ? err.message : 'Unknown error')
       throw err
     }
   }
@@ -252,13 +247,13 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
       <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">📝 Editar Experimento</h1>
-          <p className="text-lg text-gray-600 mt-2">Atualize os dados do seu experimento</p>
+          <h1 className="text-4xl font-bold text-foreground">📝 Editar Experimento</h1>
+          <p className="text-lg text-muted mt-2">Atualize os dados do seu experimento</p>
         </div>
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="mb-6 rounded-lg bg-green-50 border border-green-200 p-4 text-green-800">
+          <div className="mb-6 rounded-lg bg-primary-light border border-primary/30 p-4 text-primary">
             ✅ {success}
           </div>
         )}
@@ -286,13 +281,13 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
               <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                 <button
                   onClick={() => setEditingSection(null)}
-                  className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                 >
                   ✕ Fechar
                 </button>
                 <button
                   onClick={() => materialMachineFormRef.current?.submit()}
-                  className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   ✅ Salvar
                 </button>
@@ -327,13 +322,13 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
               <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                 <button
                   onClick={() => setEditingSection(null)}
-                  className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                 >
                   ✕ Fechar
                 </button>
                 <button
                   onClick={() => sampleFormRef.current?.submit()}
-                  className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   ✅ Salvar
                 </button>
@@ -419,13 +414,13 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
               <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                 <button
                   onClick={() => setEditingSection(null)}
-                  className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                 >
                   ✕ Fechar
                 </button>
                 <button
                   onClick={() => mechanicalFormRef.current?.submit()}
-                  className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   ✅ Salvar
                 </button>
@@ -460,13 +455,13 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
               <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                 <button
                   onClick={() => setEditingSection(null)}
-                  className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                 >
                   ✕ Fechar
                 </button>
                 <button
                   onClick={() => attenuationFormRef.current?.submit()}
-                  className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   ✅ Salvar
                 </button>
@@ -498,13 +493,13 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
               <div className="flex gap-3 mt-8 pt-6 border-t border-blue-200">
                 <button
                   onClick={() => setEditingSection(null)}
-                  className="flex-1 px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 px-6 py-2 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
                 >
                   ✕ Fechar
                 </button>
                 <button
                   onClick={() => beamFormRef.current?.submit()}
-                  className="flex-1 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-6 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   ✅ Salvar
                 </button>
@@ -538,14 +533,14 @@ export default function ExperimentEditWizard({ initialData, experimentId, onEdit
           <div className="flex justify-end gap-3 pt-8 border-t mt-8">
             <button
               onClick={() => window.location.href = '/meus-experimentos'}
-              className="px-8 py-3 bg-gray-300 text-gray-900 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+              className="px-8 py-3 bg-slate-300 text-foreground font-semibold rounded-lg hover:bg-slate-400 transition-colors"
             >
               Voltar
             </button>
             <button
               onClick={() => setShowFinalizationModal(true)}
               disabled={isLoading}
-              className="px-8 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              className="px-8 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
             >
               ✅ Finalizar Alterações
             </button>

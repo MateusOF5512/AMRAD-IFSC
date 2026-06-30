@@ -36,8 +36,8 @@ export function AttenuationVsEnergyChart({ bundles }: AttenuationVsEnergyChartPr
 
   if (groups.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-        <p className="text-gray-500 text-sm text-center px-4">
+      <div className="flex items-center justify-center h-64 bg-background rounded-lg border border-dashed border-border">
+        <p className="text-muted text-sm text-center px-4">
           {t('experiments.charts.attenuationVsEnergy.empty')}
         </p>
       </div>
@@ -45,8 +45,8 @@ export function AttenuationVsEnergyChart({ bundles }: AttenuationVsEnergyChartPr
   }
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 border border-gray-100 shadow-sm space-y-6">
-      <h4 className="text-sm font-bold text-gray-700">
+    <div className="w-full bg-surface rounded-lg p-4 border border-border shadow-sm space-y-6">
+      <h4 className="text-sm font-bold text-foreground">
         {t('experiments.charts.attenuationVsEnergy.title')}
       </h4>
       {groups.map((group, gi) => {
@@ -57,7 +57,7 @@ export function AttenuationVsEnergyChart({ bundles }: AttenuationVsEnergyChartPr
         }))
         return (
           <div key={gi}>
-            <p className="text-xs font-medium text-gray-600 mb-2">{group.materialLabel}</p>
+            <p className="text-xs font-medium text-muted mb-2">{group.materialLabel}</p>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -95,7 +95,7 @@ export function AttenuationVsEnergyChart({ bundles }: AttenuationVsEnergyChartPr
         )
       })}
       <ComparisonExperimentsLegend items={experimentLegendItems} />
-      <p className="text-xs text-gray-500">{t('experiments.charts.attenuationVsEnergy.description')}</p>
+      <p className="text-xs text-muted">{t('experiments.charts.attenuationVsEnergy.description')}</p>
     </div>
   )
 }

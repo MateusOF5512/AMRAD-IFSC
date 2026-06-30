@@ -31,7 +31,7 @@ def run_complete_test_suite():
     """Run the complete test suite"""
     start_time = time.time()
     
-    print_header("ION3D PLATFORM - COMPLETE TEST SUITE")
+    print_header("AMRAD PLATFORM - COMPLETE TEST SUITE")
     print(f"Started at: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     
     # Dictionary to store all results

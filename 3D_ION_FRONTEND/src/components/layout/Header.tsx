@@ -6,6 +6,10 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Menu, X, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useTranslation } from 'react-i18next'
+import { signOutFromSupabase } from '@/lib/supabase-auth'
+import { cn } from '@/lib/cn'
+import { Button } from '@/components/ui/Button'
+import { BrandLogo } from '@/components/layout/BrandLogo'
 
 export function Header() {
   const router = useRouter()
@@ -17,8 +21,7 @@ export function Header() {
 
   useEffect(() => {
     setMounted(true)
-    
-    // Initial load from localStorage
+
     const userData = localStorage.getItem('user')
     if (userData) {
       try {
@@ -28,7 +31,6 @@ export function Header() {
       }
     }
 
-    // Listen for storage changes
     const handleStorageChange = () => {
       const updatedUserData = localStorage.getItem('user')
       if (updatedUserData) {
@@ -54,14 +56,13 @@ export function Header() {
   }, [setUser, signOut])
 
   const handleLogout = async () => {
+    await signOutFromSupabase()
     signOut()
     window.dispatchEvent(new Event('userLoggedOut'))
-    // Small delay to ensure state updates before navigation
     await new Promise(resolve => setTimeout(resolve, 100))
     router.push('/login')
   }
 
-  // Handle click outside menu to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const menu = document.getElementById('mobile-menu')
@@ -81,52 +82,49 @@ export function Header() {
 
   const isActive = (href: string) => pathname === href
 
+  const navLinkClass = (href: string, admin = false) =>
+    cn(
+      'transition-colors pb-1 text-sm font-medium',
+      isActive(href)
+        ? admin
+          ? 'text-admin border-b-2 border-admin'
+          : 'text-primary border-b-2 border-primary'
+        : 'text-foreground hover:text-primary'
+    )
+
+  const mobileLinkClass = (href: string, admin = false) =>
+    cn(
+      'block px-4 py-2 rounded-lg text-sm font-medium',
+      isActive(href)
+        ? admin
+          ? 'bg-admin-light text-admin'
+          : 'bg-primary-light text-primary'
+        : 'text-foreground hover:bg-slate-100'
+    )
+
   return (
-    <header className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-surface shadow-sm border-b border-border sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
-          {/* Logo */}
           <Link href="/" className="flex items-center justify-center hover:opacity-80 transition-opacity">
-            <img src="/logo_ion3d.png" alt="ION3D Logo" className="h-12 w-auto" />
+            <BrandLogo priority />
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {/* Public links - always visible */}
-            <Link
-              href="/experimentos"
-              className={`${
-                isActive('/experimentos')
-                  ? 'text-green-600 font-semibold border-b-2 border-green-600'
-                  : 'text-gray-700 hover:text-green-600'
-              } transition-colors pb-1`}
-            >
+            <Link href="/experimentos" className={navLinkClass('/experimentos')}>
               {t('nav.allExperiments')}
             </Link>
 
-            {/* Authenticated links */}
             {user && (
               <>
-                <Link
-                  href="/meus-experimentos"
-                  className={`${
-                    isActive('/meus-experimentos')
-                      ? 'text-green-600 font-semibold border-b-2 border-green-600'
-                      : 'text-gray-700 hover:text-green-600'
-                  } transition-colors pb-1`}
-                >
+                <Link href="/meus-experimentos" className={navLinkClass('/meus-experimentos')}>
                   {t('nav.myExperiments')}
                 </Link>
 
-                {/* Admin only links */}
                 {user.user_type === 'admin' && (
                   <Link
                     href="/admin/configuracoes-avancadas"
-                    className={`${
-                      isActive('/admin/configuracoes-avancadas')
-                        ? 'text-orange-600 font-semibold border-b-2 border-orange-600'
-                        : 'text-gray-700 hover:text-orange-600'
-                    } transition-colors pb-1`}
+                    className={navLinkClass('/admin/configuracoes-avancadas', true)}
                   >
                     {t('nav.advancedSettings')}
                   </Link>
@@ -134,72 +132,49 @@ export function Header() {
               </>
             )}
 
-            {/* Auth buttons */}
-            <div className="flex items-center gap-4 border-l border-gray-300 pl-4">
+            <div className="flex items-center gap-3 border-l border-border pl-4">
               {user ? (
                 <>
                   <Link
                     href="/settings"
-                    className="text-sm text-gray-600 hover:text-green-600 font-medium transition-colors"
+                    className="text-sm text-muted hover:text-primary font-medium transition-colors"
                   >
                     {user.name || user.email}
                   </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <LogOut className="h-5 w-5" />
+                  <Button variant="ghost" size="sm" onClick={handleLogout} className="text-danger hover:bg-red-50">
+                    <LogOut className="h-4 w-4" />
                     {t('nav.logout')}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    className="px-4 py-2 text-green-600 font-medium hover:bg-green-50 rounded-lg transition-colors"
-                  >
-                    {t('nav.login')}
+                  <Link href="/login">
+                    <Button variant="ghost" size="sm" className="text-primary">
+                      {t('nav.login')}
+                    </Button>
                   </Link>
-                  <Link
-                    href="/register"
-                    className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    {t('nav.register')}
+                  <Link href="/register">
+                    <Button variant="primary" size="sm">
+                      {t('nav.register')}
+                    </Button>
                   </Link>
                 </>
               )}
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             id="menu-button"
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            className="md:hidden p-2 rounded-lg hover:bg-slate-100"
           >
-            {isOpen ? (
-              <X className="h-6 w-6 text-gray-700" />
-            ) : (
-              <Menu className="h-6 w-6 text-gray-700" />
-            )}
+            {isOpen ? <X className="h-6 w-6 text-foreground" /> : <Menu className="h-6 w-6 text-foreground" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {isOpen && (
-          <div
-            id="mobile-menu"
-            className="md:hidden mt-4 pt-4 border-t border-gray-200 space-y-3"
-          >
-            <Link
-              href="/experimentos"
-              className={`block px-4 py-2 rounded-lg ${
-                isActive('/experimentos')
-                  ? 'bg-green-100 text-green-600 font-semibold'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
+          <div id="mobile-menu" className="md:hidden mt-4 pt-4 border-t border-border space-y-2">
+            <Link href="/experimentos" className={mobileLinkClass('/experimentos')} onClick={() => setIsOpen(false)}>
               {t('nav.allExperiments')}
             </Link>
 
@@ -207,69 +182,57 @@ export function Header() {
               <>
                 <Link
                   href="/meus-experimentos"
-                  className={`block px-4 py-2 rounded-lg ${
-                    isActive('/meus-experimentos')
-                      ? 'bg-green-100 text-green-600 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={mobileLinkClass('/meus-experimentos')}
                   onClick={() => setIsOpen(false)}
                 >
                   {t('nav.myExperiments')}
                 </Link>
 
-                {/* Admin only mobile link */}
                 {user.user_type === 'admin' && (
                   <Link
                     href="/admin/configuracoes-avancadas"
-                    className={`block px-4 py-2 rounded-lg ${
-                      isActive('/admin/configuracoes-avancadas')
-                        ? 'bg-orange-100 text-orange-600 font-semibold'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
+                    className={mobileLinkClass('/admin/configuracoes-avancadas', true)}
                     onClick={() => setIsOpen(false)}
                   >
-                    ⚙️ {t('nav.advancedSettings')}
+                    {t('nav.advancedSettings')}
                   </Link>
                 )}
               </>
             )}
 
-            <div className="pt-4 border-t border-gray-200 space-y-2">
+            <div className="pt-4 border-t border-border space-y-2">
               {user ? (
                 <>
                   <Link
                     href="/settings"
-                    className="block px-4 py-2 text-sm text-gray-600 hover:bg-green-50 rounded-lg transition-colors"
+                    className="block px-4 py-2 text-sm text-muted hover:bg-primary-light rounded-lg"
                     onClick={() => setIsOpen(false)}
                   >
                     {user.name || user.email}
                   </Link>
-                  <button
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-danger hover:bg-red-50"
                     onClick={() => {
                       handleLogout()
                       setIsOpen(false)
                     }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-4 w-4" />
                     {t('nav.logout')}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    className="block px-4 py-2 text-center text-green-600 font-medium hover:bg-green-50 rounded-lg transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {t('nav.login')}
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="w-full">
+                      {t('nav.login')}
+                    </Button>
                   </Link>
-                  <Link
-                    href="/register"
-                    className="block px-4 py-2 bg-green-600 text-white font-medium text-center rounded-lg hover:bg-green-700 transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {t('nav.register')}
+                  <Link href="/register" onClick={() => setIsOpen(false)}>
+                    <Button variant="primary" className="w-full">
+                      {t('nav.register')}
+                    </Button>
                   </Link>
                 </>
               )}

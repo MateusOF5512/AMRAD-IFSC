@@ -1,3 +1,3 @@
 """
-Tests package for ION3D Platform Backend
+Tests package for AMRAD Backend
 """

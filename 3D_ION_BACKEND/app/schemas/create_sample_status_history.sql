@@ -1,4 +1,4 @@
--- ION3D Platform: Sample Status History Table
+-- AMRAD: Sample Status History Table
 -- Purpose: Comprehensive tracking of all sample status transitions
 -- Execute this in Supabase SQL Editor
 
@@ -72,8 +72,9 @@ CREATE POLICY "Researchers view own sample history"
   FOR SELECT
   USING (
     sample_id IN (
-      SELECT id FROM public.samples 
-      WHERE researcher_id = auth.uid()
+      SELECT s.id FROM public.samples s
+      JOIN public.researchers r ON s.researcher_id = r.id
+      WHERE r.auth_id = auth.uid()
     )
   );
 
@@ -82,11 +83,10 @@ CREATE POLICY "Admins view all history"
   ON public.sample_status_history
   FOR SELECT
   USING (
-    (SELECT user_type FROM public.researchers WHERE id = auth.uid()) = 'admin'
+    EXISTS (
+      SELECT 1 FROM public.researchers
+      WHERE auth_id = auth.uid() AND user_type = 'admin'
+    )
   );
 
--- Policy: Only backend (service role) can insert
--- This ensures history entries are only created through our API
--- Note: With service role key, we bypass RLS, so this is for documentation
-
-PRINT 'Sample status history table created successfully!';
+-- INSERT: no policy for authenticated — backend service_role only

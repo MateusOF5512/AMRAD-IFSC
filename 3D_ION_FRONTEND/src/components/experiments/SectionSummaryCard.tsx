@@ -36,7 +36,7 @@ export default function SectionSummaryCard({
         hasWarning
           ? 'bg-amber-50 border-amber-200'
           : isComplete
-            ? 'bg-green-50 border-green-200'
+            ? 'bg-primary-light border-primary/30'
             : 'bg-blue-50 border-blue-200'
       }`}
     >
@@ -45,14 +45,14 @@ export default function SectionSummaryCard({
         <div className="flex items-center gap-2">
           <span className="text-xl">{sectionIcon}</span>
           <div>
-            <h4 className="font-semibold text-gray-900">{sectionTitle}</h4>
+            <h4 className="font-semibold text-foreground">{sectionTitle}</h4>
             {hasWarning ? (
               <p className="text-xs text-amber-700 flex items-center gap-1 mt-1">
                 <AlertCircle className="w-3 h-3" />
                 {warningMessage || 'Informação incompleta'}
               </p>
             ) : (
-              <p className="text-xs text-green-700 flex items-center gap-1 mt-1">
+              <p className="text-xs text-primary flex items-center gap-1 mt-1">
                 <CheckCircle2 className="w-3 h-3" />
                 Seção completada
               </p>
@@ -62,7 +62,7 @@ export default function SectionSummaryCard({
         {onEdit && (
           <button
             onClick={onEdit}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-lg transition-colors"
+            className="p-2 text-muted hover:text-foreground hover:bg-surface rounded-lg transition-colors"
             title="Editar seção"
           >
             <Edit2 className="w-4 h-4" />
@@ -77,14 +77,14 @@ export default function SectionSummaryCard({
             key={idx}
             className={`p-3 rounded-lg ${
               hasWarning
-                ? 'bg-white bg-opacity-70'
-                : 'bg-white bg-opacity-50'
+                ? 'bg-surface bg-opacity-70'
+                : 'bg-surface bg-opacity-50'
             }`}
           >
-            <p className="text-xs text-gray-600 font-medium">{item.label}</p>
-            <p className="text-sm font-semibold text-gray-900 mt-1">{item.value}</p>
+            <p className="text-xs text-muted font-medium">{item.label}</p>
+            <p className="text-sm font-semibold text-foreground mt-1">{item.value}</p>
             {item.optional && (
-              <p className="text-xs text-gray-500 mt-1">(opcional)</p>
+              <p className="text-xs text-muted mt-1">(opcional)</p>
             )}
           </div>
         ))}

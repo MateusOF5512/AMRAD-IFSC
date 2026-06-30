@@ -15,7 +15,7 @@ Use variáveis de ambiente do `.env` na raiz do projeto. **Nunca** commite token
 ## Teste rápido da API
 
 ```cmd
-cd C:\Users\mateu\2_PESSOAL\3D_ION\3D_ION_BACKEND
+cd C:\Users\mateu\2_PESSOAL\AMRAD\AMRAD_BACKEND
 venv\Scripts\activate.bat
 python tests\integration\test_http_request.py
 ```

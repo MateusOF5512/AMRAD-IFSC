@@ -1,7 +1,7 @@
 # User Settings Implementation Guide
 
 ## Overview
-This guide explains the new user settings page that was added to the ION3D Platform. Users can now manage their personal information and system preferences from a dedicated settings page.
+This guide explains the new user settings page that was added to the AMRAD. Users can now manage their personal information and system preferences from a dedicated settings page.
 
 ## Features Implemented
 

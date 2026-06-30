@@ -16,6 +16,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { Material, Machine, Sample } from '@/lib/api'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { fetchWithAgent } from '@/lib/api-client'
+import { logger } from '@/lib/logger'
 
 const API_BASE_URL = getNormalizedApiUrl()
 
@@ -236,26 +237,19 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
               return null
             }
             
-            console.log('[addInfill] 🔍 Raw measurement:', {
-              pattern_type: m.pattern_type,
-              hu_mean_raw: m.hu_mean,
-              hu_mean_parsed: hu_mean,
-              valid: true
-            })
-            
             // Validar que valores estão dentro dos limites do banco
             if (Math.abs(hu_mean) > 999999999999.99) {
-              console.error('[addInfill] ❌ HU Mean exceeds database limit:', hu_mean)
+              logger.error('addInfill', 'HU Mean exceeds database limit')
               validationErrors.push(`❌ ${m.pattern_type} ${m.infill_pct}% - HU Mean excede o limite máximo`)
               return null
             }
             
             if (hu_mean > 100000) {
-              console.warn('[addInfill] ⚠️ HU Mean is unusually large:', hu_mean, '(typical range is 500-3000)')
+              logger.warn('addInfill', 'HU Mean is unusually large')
             }
             
             if (sd_value && Math.abs(sd_value) > 99999999.99) {
-              console.error('[addInfill] ❌ SD Value exceeds database limit:', sd_value)
+              logger.error('addInfill', 'SD Value exceeds database limit')
               validationErrors.push(`❌ ${m.pattern_type} ${m.infill_pct}% - SD Value excede o limite máximo`)
               return null
             }
@@ -275,15 +269,13 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         // Se há erros de validação, mostrar e parar
         if (validationErrors.length > 0) {
           const errorMessage = `Não é possível salvar. Verifique os seguintes infills:\n${validationErrors.join('\n')}`
-          console.error('[addInfill] ❌ Validation errors:', validationErrors)
+          logger.error('addInfill', 'Validation errors found')
           throw new Error(errorMessage)
         }
 
         if (cleanedMeasurements.length === 0) {
           throw new Error('Nenhum infill válido para salvar. Verifique se todos têm HU Mean preenchido.')
         }
-
-        console.log('[addInfill] 📋 Cleaned measurements being sent:', cleanedMeasurements)
 
         const response = await fetchWithAgent(`${API_BASE_URL}/experiments/add-infill`, {
           method: 'POST',
@@ -337,27 +329,20 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
           const sd_value = m.sd_value ? Number(m.sd_value) : null
           const has_homogeneity_issues = m.has_homogeneity_issues ?? false
           
-          console.log('[addMultipleInfills] 🔍 Raw measurement:', {
-            pattern_type: m.pattern_type,
-            infill_pct: m.infill_pct,
-            hu_mean_raw: m.hu_mean,
-            hu_mean_parsed: hu_mean
-          })
-          
           // Validar que valores estão dentro do limite NUMERIC(10,2) = max 99999999.99
           // Valores típicos: HU Mean 500-3000, SD Value 1-100
           
           if (hu_mean && Math.abs(hu_mean) > 99999999.99) {
-            console.error('[addMultipleInfills] ❌ HU Mean exceeds database limit:', hu_mean)
+            logger.error('addMultipleInfills', 'HU Mean exceeds database limit')
             throw new Error(`Invalid HU Mean for ${m.pattern_type} ${m.infill_pct}%: ${hu_mean}. Maximum allowed is 99,999,999.99`)
           }
           
           if (hu_mean && Math.abs(hu_mean) > 100000) {
-            console.warn('[addMultipleInfills] ⚠️ HU Mean is unusually large:', hu_mean, 'for', m.pattern_type, '(typical range is 500-3000)')
+            logger.warn('addMultipleInfills', 'HU Mean is unusually large')
           }
           
           if (sd_value && Math.abs(sd_value) > 99999999.99) {
-            console.error('[addMultipleInfills] ❌ SD Value exceeds database limit:', sd_value)
+            logger.error('addMultipleInfills', 'SD Value exceeds database limit')
             throw new Error(`Invalid SD Value for ${m.pattern_type} ${m.infill_pct}%: ${sd_value}. Maximum allowed is 99,999,999.99`)
           }
           
@@ -371,11 +356,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
             has_homogeneity_issues: has_homogeneity_issues,
           }
         }).filter(m => m !== null)
-
-        console.log('[addMultipleInfills] 📋 Cleaned measurements being sent:', {
-          count: cleanedMeasurements.length,
-          items: cleanedMeasurements
-        })
 
         const response = await fetchWithAgent(`${API_BASE_URL}/experiments/add-multiple-infills`, {
           method: 'POST',
@@ -430,24 +410,18 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
           const sd_value = m.sd_value ? Number(m.sd_value) : null
           const has_homogeneity_issues = m.has_homogeneity_issues ?? false
           
-          console.log('[batchUpdateInfills] 🔍 Raw measurement update:', {
-            id: m.id,
-            hu_mean_raw: m.hu_mean,
-            hu_mean_parsed: hu_mean
-          })
-          
           // Validar que valores estão dentro do limite NUMERIC(10,2) = max 99999999.99
           if (hu_mean && Math.abs(hu_mean) > 99999999.99) {
-            console.error('[batchUpdateInfills] ❌ HU Mean exceeds database limit:', hu_mean)
+            logger.error('batchUpdateInfills', 'HU Mean exceeds database limit')
             throw new Error(`Invalid HU Mean: ${hu_mean}. Maximum allowed is 99,999,999.99`)
           }
           
           if (hu_mean && Math.abs(hu_mean) > 100000) {
-            console.warn('[batchUpdateInfills] ⚠️ HU Mean is unusually large:', hu_mean, '(typical range is 500-3000)')
+            logger.warn('batchUpdateInfills', 'HU Mean is unusually large')
           }
           
           if (sd_value && Math.abs(sd_value) > 99999999.99) {
-            console.error('[batchUpdateInfills] ❌ SD Value exceeds database limit:', sd_value)
+            logger.error('batchUpdateInfills', 'SD Value exceeds database limit')
             throw new Error(`Invalid SD Value: ${sd_value}. Maximum allowed is 99,999,999.99`)
           }
           
@@ -468,11 +442,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
             notes: m.notes ? String(m.notes) : null,
             image_url: Array.isArray(m.image_urls) ? (m.image_urls[0] ?? null) : (m.image_url ?? null),
           }
-        })
-
-        console.log('[batchUpdateInfills] 📋 Sanitized measurements being sent:', {
-          count: payload.length,
-          items: payload
         })
 
         const response = await fetchWithAgent(`${API_BASE_URL}/experiments/${sampleId}/update-infills`, {
@@ -536,7 +505,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         }
 
         const result = await response.json()
-        console.log('Mechanical data response:', result)
         
         // Garante que os dados sejam setados mesmo se a estrutura for diferente
         if (result.data) {
@@ -552,7 +520,7 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         return result
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error adding mechanical properties'
-        console.error('Error adding mechanical properties:', err)
+        logger.error('useExperimentWizard', err instanceof Error ? err.message : 'Unknown error')
         setError(message)
         throw err
       } finally {
@@ -633,7 +601,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         }
 
         const result = await response.json()
-        console.log('Beam data response:', result)
         
         // Garante que os dados sejam setados mesmo se a estrutura for diferente
         if (result.data) {
@@ -649,7 +616,7 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         return result
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error adding beam quality'
-        console.error('Error adding beam quality:', err)
+        logger.error('useExperimentWizard', err instanceof Error ? err.message : 'Unknown error')
         setError(message)
         throw err
       } finally {
@@ -823,16 +790,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
           manual_b: measurementData.manual_b ?? false,
         }
 
-        console.log('[updateInfill] Enviando para backend:', {
-          infillId,
-          url: `${API_BASE_URL}/experiments/update-infill/${infillId}`,
-          payload_keys: Object.keys(payload),
-          dimension_a: payload.dimension_a,
-          dimension_b: payload.dimension_b,
-          manual_a: payload.manual_a,
-          manual_b: payload.manual_b,
-        })
-
         const response = await fetchWithAgent(`${API_BASE_URL}/experiments/update-infill/${infillId}`, {
           method: 'PUT',
           headers: {
@@ -842,16 +799,13 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
           body: JSON.stringify(payload)
         })
 
-        console.log('[updateInfill] Response status:', response.status)
-
         if (!response.ok) {
           const errorData = await response.json()
-          console.error('[updateInfill] ❌ Error response:', errorData)
+          logger.error('updateInfill', 'Failed to update infill measurement')
           throw new Error(errorData.detail || 'Failed to update infill measurement')
         }
 
         const data = await response.json()
-        console.log('[updateInfill] ✅ Success:', data)
         
         // Atualiza o estado do hook com os dados atualizados
         setInfillData(prev => {
@@ -867,7 +821,7 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         return data.data
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error updating infill'
-        console.error('[updateInfill] ❌ Exception:', message, err)
+        logger.error('updateInfill', err instanceof Error ? err.message : 'Unknown error')
         setError(message)
         throw err
       } finally {
@@ -901,7 +855,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         }
 
         const result = await response.json()
-        console.log('Mechanical data response:', result)
         
         // Handle different response structures
         if (result.data) {
@@ -997,7 +950,6 @@ export function useExperimentWizard(): UseExperimentWizardReturn {
         }
 
         const result = await response.json()
-        console.log('Beam data response:', result)
         
         // Handle different response structures
         if (result.data) {

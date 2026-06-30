@@ -7,6 +7,8 @@ import { Loader2, AlertCircle, Plus, Eye, ChevronDown, RefreshCw } from 'lucide-
 import { useTranslation } from 'react-i18next'
 import { ExperimentReportModal } from '@/components/experiments/ExperimentReportModal'
 import { SimplifiedExperimentComparison } from '@/components/experiments/comparison/SimplifiedExperimentComparison'
+import { logger } from '@/lib/logger'
+import { getNormalizedApiUrl } from '@/lib/api'
 
 interface ExperimentSummary {
   experiment_id: string
@@ -94,7 +96,7 @@ export default function MeusExperimentosPage() {
         }
 
         // Normalizando a URL para evitar duplicação de /api/v1
-        let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+        let apiUrl = getNormalizedApiUrl()
         
         // Se a URL não termina com /api/v1, adiciona
         if (!apiUrl.includes('/api/v1')) {
@@ -131,7 +133,7 @@ export default function MeusExperimentosPage() {
         // Backend já filtra os experimentos pelo researcher_id, então não precisa filtrar aqui
         setExperiments(data.experiments || [])
       } catch (err) {
-        console.error('Error fetching experiments:', err)
+        logger.error('meus-experimentos', err instanceof Error ? err.message : 'Unknown error')
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar experimentos'
         setError(errorMessage)
       } finally {
@@ -157,7 +159,7 @@ export default function MeusExperimentosPage() {
       }
 
       // Normalizando a URL para evitar duplicação de /api/v1
-      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+      let apiUrl = getNormalizedApiUrl()
       
       // Se a URL não termina com /api/v1, adiciona
       if (!apiUrl.includes('/api/v1')) {
@@ -183,11 +185,10 @@ export default function MeusExperimentosPage() {
       }
 
       const data = await response.json()
-      console.log('[MeusExperimentos] Status history response:', data)
       setStatusHistory(data.data || [])
       setCurrentStatusHistoryPage(1) // Reset to first page on refresh
     } catch (err) {
-      console.error('[MeusExperimentos] Error fetching status history:', err)
+      logger.error('meus-experimentos', err instanceof Error ? err.message : 'Unknown error')
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar histórico'
       setStatusHistoryError(errorMessage)
     } finally {
@@ -198,7 +199,6 @@ export default function MeusExperimentosPage() {
   // Fetch researcher status history on mount
   useEffect(() => {
     if (!user) return
-    console.log('[MeusExperimentos] Loading status history on page load')
     refreshStatusHistory(user)
   }, [user])
 
@@ -206,7 +206,6 @@ export default function MeusExperimentosPage() {
   const handleManualRefresh = async () => {
     if (!user || isRefreshingHistory) return
     setIsRefreshingHistory(true)
-    console.log('[MeusExperimentos] Manual refresh triggered by user')
     await refreshStatusHistory(user)
     setIsRefreshingHistory(false)
   }
@@ -244,8 +243,8 @@ export default function MeusExperimentosPage() {
     if (status === 'Approved') {
       return {
         label: t('myExperiments.status.approved'),
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-800',
+        bgColor: 'bg-primary-muted',
+        textColor: 'text-primary',
         icon: '✅'
       }
     }
@@ -392,15 +391,15 @@ export default function MeusExperimentosPage() {
       'Submitted': 'bg-blue-100 text-blue-800',
       'Review': 'bg-yellow-100 text-yellow-800',
       'Revisions': 'bg-orange-100 text-orange-800',
-      'Approved': 'bg-green-100 text-green-800'
+      'Approved': 'bg-primary-muted text-primary'
     }
     
     // For initial submission (null status), use very light gray
-    const oldColor = oldStatus ? (statusColors[oldStatus] || 'bg-gray-100 text-gray-800') : 'bg-gray-50 text-gray-400'
+    const oldColor = oldStatus ? (statusColors[oldStatus] || 'bg-slate-100 text-foreground') : 'bg-background text-slate-400'
     
     return {
       old: oldColor,
-      new: statusColors[newStatus] || 'bg-gray-100 text-gray-800'
+      new: statusColors[newStatus] || 'bg-slate-100 text-foreground'
     }
   }
 
@@ -453,7 +452,7 @@ export default function MeusExperimentosPage() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -462,30 +461,30 @@ export default function MeusExperimentosPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-gray-600">{t('myExperiments.loading')}</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted">{t('myExperiments.loading')}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-surface shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 {t('myExperiments.title')}
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-muted">
                 {t('myExperiments.subtitle', { count: experiments.length })}
               </p>
             </div>
             <Link
               href="/novo-experimento"
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
             >
               <Plus className="h-5 w-5" />
               {t('experiments.newExperiment')}
@@ -507,11 +506,11 @@ export default function MeusExperimentosPage() {
         )}
 
         {experiments.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-600 mb-4">{t('myExperiments.noExperiments')}</p>
+          <div className="bg-surface rounded-lg shadow p-12 text-center">
+            <p className="text-muted mb-4">{t('myExperiments.noExperiments')}</p>
             <Link
               href="/novo-experimento"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
             >
               <Plus className="h-5 w-5" />
               {t('myExperiments.createFirstExperiment')}
@@ -522,46 +521,46 @@ export default function MeusExperimentosPage() {
             {/* Status Indicators */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {/* Submetido */}
-              <div className="bg-white rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
+              <div className="bg-surface rounded-lg border border-blue-200 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-2">📤</div>
                   <div className="text-2xl font-bold text-blue-600">
                     {experiments.filter(e => e.status === 'Submitted').length}
                   </div>
-                  <div className="text-xs text-gray-600 text-center mt-1">{t('myExperiments.status.submitted')}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.submitted')}</div>
                 </div>
               </div>
 
               {/* Ajustes Necessários */}
-              <div className="bg-white rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow p-4">
+              <div className="bg-surface rounded-lg border border-orange-200 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-2">⚠️</div>
                   <div className="text-2xl font-bold text-orange-600">
                     {experiments.filter(e => e.status === 'Revisions').length}
                   </div>
-                  <div className="text-xs text-gray-600 text-center mt-1">{t('myExperiments.status.revisions')}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.revisions')}</div>
                 </div>
               </div>
 
               {/* Em Revisão */}
-              <div className="bg-white rounded-lg border border-yellow-200 shadow-sm hover:shadow-md transition-shadow p-4">
+              <div className="bg-surface rounded-lg border border-yellow-200 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-2">🔍</div>
                   <div className="text-2xl font-bold text-yellow-600">
                     {experiments.filter(e => e.status === 'Review').length}
                   </div>
-                  <div className="text-xs text-gray-600 text-center mt-1">{t('myExperiments.status.review')}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.review')}</div>
                 </div>
               </div>
 
               {/* Aprovado */}
-              <div className="bg-white rounded-lg border border-green-200 shadow-sm hover:shadow-md transition-shadow p-4">
+              <div className="bg-surface rounded-lg border border-primary/30 shadow-sm hover:shadow-md transition-shadow p-4">
                 <div className="flex flex-col items-center">
                   <div className="text-3xl mb-2">✅</div>
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-primary">
                     {experiments.filter(e => e.status === 'Approved').length}
                   </div>
-                  <div className="text-xs text-gray-600 text-center mt-1">{t('myExperiments.status.approved')}</div>
+                  <div className="text-xs text-muted text-center mt-1">{t('myExperiments.status.approved')}</div>
                 </div>
               </div>
             </div>
@@ -573,22 +572,22 @@ export default function MeusExperimentosPage() {
                   <span className="text-xl">⏳</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{t('myExperiments.sections.inAnalysis.title')}</h2>
-                  <p className="text-sm text-gray-500 mt-1">{t('myExperiments.sections.inAnalysis.subtitle')}</p>
+                  <h2 className="text-2xl font-bold text-foreground">{t('myExperiments.sections.inAnalysis.title')}</h2>
+                  <p className="text-sm text-muted mt-1">{t('myExperiments.sections.inAnalysis.subtitle')}</p>
                 </div>
               </div>
               {experimentsEmAnalise.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-12 text-center hover:shadow-md transition-shadow">
+                <div className="bg-surface rounded-lg shadow-sm border border-border p-12 text-center hover:shadow-md transition-shadow">
                   <div className="flex justify-center mb-4">
                     <div className="flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-200">
                       <span className="text-3xl">📋</span>
                     </div>
                   </div>
-                  <p className="text-gray-600 font-medium">{t('myExperiments.sections.inAnalysis.empty')}</p>
-                  <p className="text-sm text-gray-500 mt-1">{t('myExperiments.sections.inAnalysis.emptySubtitle')}</p>
+                  <p className="text-muted font-medium">{t('myExperiments.sections.inAnalysis.empty')}</p>
+                  <p className="text-sm text-muted mt-1">{t('myExperiments.sections.inAnalysis.emptySubtitle')}</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
                   <div className="bg-gradient-to-r from-amber-50 via-amber-50 to-orange-50 px-6 py-4 border-b-2 border-amber-200">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-amber-900">{t('myExperiments.sections.inAnalysis.tableTitle')}</h3>
@@ -601,9 +600,9 @@ export default function MeusExperimentosPage() {
 
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-100 border-b border-gray-200">
+                      <thead className="bg-slate-100 border-b border-border">
                         <tr>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider w-12">
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider w-12">
                             <input
                               type="checkbox"
                               checked={selectedExperimentIds.length > 0 && selectedExperimentIds.length === paginatedAnalise.length}
@@ -618,31 +617,31 @@ export default function MeusExperimentosPage() {
                               title="Selecionar/Desselecionar todos nesta página"
                             />
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.index')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.status')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.date')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.machine')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.material')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.sample')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.infill')}
                           </th>
-                          <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.data')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.details')}
                           </th>
                         </tr>
@@ -651,7 +650,7 @@ export default function MeusExperimentosPage() {
                         {paginatedAnalise.map((experiment, index) => {
                           const statusBadge = getStatusBadge(experiment)
                           return (
-                            <tr key={experiment.experiment_id || `experiment-${index}`} className="hover:bg-gray-50 transition-colors">
+                            <tr key={experiment.experiment_id || `experiment-${index}`} className="hover:bg-background transition-colors">
                               {/* Checkbox */}
                               <td className="px-4 py-3 text-center">
                                 <input
@@ -664,7 +663,7 @@ export default function MeusExperimentosPage() {
                               </td>
 
                               {/* Index */}
-                              <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                              <td className="px-6 py-4 text-sm font-semibold text-foreground">
                                 {experiment.index_visual || '-'}
                               </td>
 
@@ -676,33 +675,33 @@ export default function MeusExperimentosPage() {
                               </td>
 
                               {/* Data */}
-                              <td className="px-6 py-4 text-sm text-gray-600 font-medium">
+                              <td className="px-6 py-4 text-sm text-muted font-medium">
                                 {formatDate(experiment.created_at)}
                               </td>
 
                               {/* Máquina */}
                               <td className="px-6 py-4 text-sm">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   {experiment.machine_brand || '-'}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted">
                                   {experiment.machine_model || '-'}
                                 </div>
                               </td>
 
                               {/* Material */}
                               <td className="px-6 py-4 text-sm">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   {experiment.material_brand || '-'}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted">
                                   {experiment.material_model || '-'}
                                 </div>
                               </td>
 
                               {/* Amostra (Forma) */}
                               <td className="px-6 py-4 text-sm">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   {getShapeEmoji(experiment.shape_type)} {experiment.shape_type || '-'}
                                 </div>
                               </td>
@@ -711,15 +710,15 @@ export default function MeusExperimentosPage() {
                               <td className="px-6 py-4 text-sm">
                                 {experiment.infill_count > 0 ? (
                                   <div>
-                                    <div className="font-medium text-gray-900">
+                                    <div className="font-medium text-foreground">
                                       {formatNumber(experiment.infill_hu_mean)}
                                     </div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-xs text-muted">
                                       ({experiment.infill_count} med.)
                                     </div>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-500">-</span>
+                                  <span className="text-muted">-</span>
                                 )}
                               </td>
 
@@ -751,7 +750,7 @@ export default function MeusExperimentosPage() {
                               <td className="px-6 py-4 text-sm">
                                 <button
                                   onClick={() => handleViewDetails(experiment.experiment_id, 'analise', experiment.status || 'Submitted')}
-                                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all hover:shadow-sm font-medium text-xs"
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-muted text-primary rounded-lg hover:bg-green-200 transition-all hover:shadow-sm font-medium text-xs"
                                   title="Ver detalhes do experimento"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -767,11 +766,11 @@ export default function MeusExperimentosPage() {
 
                   {/* Pagination for Em Análise */}
                   {totalPagesAnalise > 1 && (
-                    <div className="bg-white px-6 py-4 border-t border-gray-200 flex items-center justify-center gap-2">
+                    <div className="bg-surface px-6 py-4 border-t border-border flex items-center justify-center gap-2">
                       <button
                         onClick={() => setCurrentPageAnalise(prev => Math.max(prev - 1, 1))}
                         disabled={currentPageAnalise === 1}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('myExperiments.table.pagination.previous')}
                       </button>
@@ -782,8 +781,8 @@ export default function MeusExperimentosPage() {
                             onClick={() => setCurrentPageAnalise(page)}
                             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
                               currentPageAnalise === page
-                                ? 'bg-green-600 text-white shadow-md'
-                                : 'text-gray-600 hover:bg-gray-100'
+                                ? 'bg-primary text-white shadow-md'
+                                : 'text-muted hover:bg-slate-100'
                             }`}
                           >
                             {page}
@@ -793,7 +792,7 @@ export default function MeusExperimentosPage() {
                       <button
                         onClick={() => setCurrentPageAnalise(prev => Math.min(prev + 1, totalPagesAnalise))}
                         disabled={currentPageAnalise === totalPagesAnalise}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('myExperiments.table.pagination.next')}
                       </button>
@@ -810,22 +809,22 @@ export default function MeusExperimentosPage() {
                   <span className="text-xl">✅</span>
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">{t('myExperiments.sections.approved.title')}</h2>
-                  <p className="text-sm text-gray-500 mt-1">{t('myExperiments.sections.approved.subtitle')}</p>
+                  <h2 className="text-2xl font-bold text-foreground">{t('myExperiments.sections.approved.title')}</h2>
+                  <p className="text-sm text-muted mt-1">{t('myExperiments.sections.approved.subtitle')}</p>
                 </div>
               </div>
               {experimentsAprovados.length === 0 ? (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-12 text-center hover:shadow-md transition-shadow">
+                <div className="bg-surface rounded-lg shadow-sm border border-border p-12 text-center hover:shadow-md transition-shadow">
                   <div className="flex justify-center mb-4">
                     <div className="flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200">
                       <span className="text-3xl">🎯</span>
                     </div>
                   </div>
-                  <p className="text-gray-600 font-medium">{t('myExperiments.sections.approved.empty')}</p>
-                  <p className="text-sm text-gray-500 mt-1">{t('myExperiments.sections.approved.emptySubtitle')}</p>
+                  <p className="text-muted font-medium">{t('myExperiments.sections.approved.empty')}</p>
+                  <p className="text-sm text-muted mt-1">{t('myExperiments.sections.approved.emptySubtitle')}</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
                   <div className="bg-gradient-to-r from-emerald-50 via-emerald-50 to-teal-50 px-6 py-4 border-b-2 border-emerald-200">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-emerald-900">{t('myExperiments.sections.approved.tableTitle')}</h3>
@@ -838,9 +837,9 @@ export default function MeusExperimentosPage() {
 
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gray-100 border-b border-gray-200">
+                      <thead className="bg-slate-100 border-b border-border">
                         <tr>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider w-12">
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider w-12">
                             <input
                               type="checkbox"
                               checked={selectedExperimentIds.length > 0 && selectedExperimentIds.length === paginatedAprovados.length}
@@ -855,31 +854,31 @@ export default function MeusExperimentosPage() {
                               title="Selecionar/Desselecionar todos nesta página"
                             />
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.index')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.status')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.date')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.machine')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.material')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.sample')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.infill')}
                           </th>
-                          <th className="px-6 py-3 text-center text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-center text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.data')}
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-foreground uppercase tracking-wider">
                             {t('myExperiments.table.columns.details')}
                           </th>
                         </tr>
@@ -888,7 +887,7 @@ export default function MeusExperimentosPage() {
                         {paginatedAprovados.map((experiment, index) => {
                           const statusBadge = getStatusBadge(experiment)
                           return (
-                            <tr key={experiment.experiment_id || `experiment-${index}`} className="hover:bg-gray-50 transition-colors">
+                            <tr key={experiment.experiment_id || `experiment-${index}`} className="hover:bg-background transition-colors">
                               {/* Checkbox */}
                               <td className="px-4 py-3 text-center">
                                 <input
@@ -901,7 +900,7 @@ export default function MeusExperimentosPage() {
                               </td>
 
                               {/* Index */}
-                              <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                              <td className="px-6 py-4 text-sm font-semibold text-foreground">
                                 {experiment.index_visual || '-'}
                               </td>
 
@@ -913,33 +912,33 @@ export default function MeusExperimentosPage() {
                               </td>
 
                               {/* Data */}
-                              <td className="px-6 py-4 text-sm text-gray-600 font-medium">
+                              <td className="px-6 py-4 text-sm text-muted font-medium">
                                 {formatDate(experiment.created_at)}
                               </td>
 
                               {/* Máquina */}
                               <td className="px-6 py-4 text-sm">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   {experiment.machine_brand || '-'}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted">
                                   {experiment.machine_model || '-'}
                                 </div>
                               </td>
 
                               {/* Material */}
                               <td className="px-6 py-4 text-sm">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   {experiment.material_brand || '-'}
                                 </div>
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-muted">
                                   {experiment.material_model || '-'}
                                 </div>
                               </td>
 
                               {/* Amostra (Forma) */}
                               <td className="px-6 py-4 text-sm">
-                                <div className="font-medium text-gray-900">
+                                <div className="font-medium text-foreground">
                                   {getShapeEmoji(experiment.shape_type)} {experiment.shape_type || '-'}
                                 </div>
                               </td>
@@ -948,15 +947,15 @@ export default function MeusExperimentosPage() {
                               <td className="px-6 py-4 text-sm">
                                 {experiment.infill_count > 0 ? (
                                   <div>
-                                    <div className="font-medium text-gray-900">
+                                    <div className="font-medium text-foreground">
                                       {formatNumber(experiment.infill_hu_mean)}
                                     </div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="text-xs text-muted">
                                       ({experiment.infill_count} med.)
                                     </div>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-500">-</span>
+                                  <span className="text-muted">-</span>
                                 )}
                               </td>
 
@@ -988,7 +987,7 @@ export default function MeusExperimentosPage() {
                               <td className="px-6 py-4 text-sm">
                                 <button
                                   onClick={() => handleViewDetails(experiment.experiment_id, 'aprovados')}
-                                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all hover:shadow-sm font-medium text-xs"
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-muted text-primary rounded-lg hover:bg-green-200 transition-all hover:shadow-sm font-medium text-xs"
                                 >
                                   <Eye className="h-4 w-4" />
                                   {t('myExperiments.table.buttons.view')}
@@ -1003,11 +1002,11 @@ export default function MeusExperimentosPage() {
 
                   {/* Pagination for Aprovados */}
                   {totalPagesAprovados > 1 && (
-                    <div className="bg-white px-6 py-4 border-t border-gray-200 flex items-center justify-center gap-2">
+                    <div className="bg-surface px-6 py-4 border-t border-border flex items-center justify-center gap-2">
                       <button
                         onClick={() => setCurrentPageAprovados(prev => Math.max(prev - 1, 1))}
                         disabled={currentPageAprovados === 1}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('myExperiments.table.pagination.previous')}
                       </button>
@@ -1018,8 +1017,8 @@ export default function MeusExperimentosPage() {
                             onClick={() => setCurrentPageAprovados(page)}
                             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
                               currentPageAprovados === page
-                                ? 'bg-green-600 text-white shadow-md'
-                                : 'text-gray-600 hover:bg-gray-100'
+                                ? 'bg-primary text-white shadow-md'
+                                : 'text-muted hover:bg-slate-100'
                             }`}
                           >
                             {page}
@@ -1029,7 +1028,7 @@ export default function MeusExperimentosPage() {
                       <button
                         onClick={() => setCurrentPageAprovados(prev => Math.min(prev + 1, totalPagesAprovados))}
                         disabled={currentPageAprovados === totalPagesAprovados}
-                        className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('myExperiments.table.pagination.next')}
                       </button>
@@ -1044,30 +1043,30 @@ export default function MeusExperimentosPage() {
 
       {/* Help Section - Sistema de Análise */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+        <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow">
           <button
             onClick={() => setIsHelpExpanded(!isHelpExpanded)}
-            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-background transition-colors"
           >
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100">
                 <span className="text-lg">ℹ️</span>
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-semibold text-gray-900">{t('myExperiments.help.title')}</h3>
-                <p className="text-sm text-gray-500 mt-1">{t('myExperiments.help.subtitle')}</p>
+                <h3 className="text-lg font-semibold text-foreground">{t('myExperiments.help.title')}</h3>
+                <p className="text-sm text-muted mt-1">{t('myExperiments.help.subtitle')}</p>
               </div>
             </div>
             <ChevronDown
-              className={`h-6 w-6 text-gray-600 transition-transform ${isHelpExpanded ? 'transform rotate-180' : ''}`}
+              className={`h-6 w-6 text-muted transition-transform ${isHelpExpanded ? 'transform rotate-180' : ''}`}
             />
           </button>
 
           {isHelpExpanded && (
-            <div className="border-t border-gray-200 px-6 py-6 space-y-6">
+            <div className="border-t border-border px-6 py-6 space-y-6">
               {/* Fluxo de Processos */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <span>📊</span> {t('myExperiments.help.analysisFlow')}
                 </h4>
                 <div className="space-y-3">
@@ -1076,8 +1075,8 @@ export default function MeusExperimentosPage() {
                       1
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{t('myExperiments.help.step1.title')}</div>
-                      <p className="text-sm text-gray-600 mt-0.5">{t('myExperiments.help.step1.description')}</p>
+                      <div className="font-medium text-foreground">{t('myExperiments.help.step1.title')}</div>
+                      <p className="text-sm text-muted mt-0.5">{t('myExperiments.help.step1.description')}</p>
                     </div>
                   </div>
 
@@ -1086,8 +1085,8 @@ export default function MeusExperimentosPage() {
                       2
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{t('myExperiments.help.step2.title')}</div>
-                      <p className="text-sm text-gray-600 mt-0.5">{t('myExperiments.help.step2.description')}</p>
+                      <div className="font-medium text-foreground">{t('myExperiments.help.step2.title')}</div>
+                      <p className="text-sm text-muted mt-0.5">{t('myExperiments.help.step2.description')}</p>
                     </div>
                   </div>
 
@@ -1096,18 +1095,18 @@ export default function MeusExperimentosPage() {
                       3
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{t('myExperiments.help.step3.title')}</div>
-                      <p className="text-sm text-gray-600 mt-0.5">{t('myExperiments.help.step3.description')}</p>
+                      <div className="font-medium text-foreground">{t('myExperiments.help.step3.title')}</div>
+                      <p className="text-sm text-muted mt-0.5">{t('myExperiments.help.step3.description')}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-700 font-bold text-sm flex-shrink-0">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-muted text-primary font-bold text-sm flex-shrink-0">
                       4
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{t('myExperiments.help.step4.title')}</div>
-                      <p className="text-sm text-gray-600 mt-0.5">{t('myExperiments.help.step4.description')}</p>
+                      <div className="font-medium text-foreground">{t('myExperiments.help.step4.title')}</div>
+                      <p className="text-sm text-muted mt-0.5">{t('myExperiments.help.step4.description')}</p>
                     </div>
                   </div>
                 </div>
@@ -1115,23 +1114,23 @@ export default function MeusExperimentosPage() {
 
               {/* Critérios de Análise */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span>✓</span> {t('myExperiments.help.criteria')}
                 </h4>
                 <div className="grid md:grid-cols-2 gap-3">
-                  <div className="text-sm text-gray-700 flex gap-2">
+                  <div className="text-sm text-foreground flex gap-2">
                     <span className="text-blue-600 flex-shrink-0">•</span>
                     <span>{t('myExperiments.help.criterion1')}</span>
                   </div>
-                  <div className="text-sm text-gray-700 flex gap-2">
+                  <div className="text-sm text-foreground flex gap-2">
                     <span className="text-blue-600 flex-shrink-0">•</span>
                     <span>{t('myExperiments.help.criterion2')}</span>
                   </div>
-                  <div className="text-sm text-gray-700 flex gap-2">
+                  <div className="text-sm text-foreground flex gap-2">
                     <span className="text-blue-600 flex-shrink-0">•</span>
                     <span>{t('myExperiments.help.criterion3')}</span>
                   </div>
-                  <div className="text-sm text-gray-700 flex gap-2">
+                  <div className="text-sm text-foreground flex gap-2">
                     <span className="text-blue-600 flex-shrink-0">•</span>
                     <span>{t('myExperiments.help.criterion4')}</span>
                   </div>
@@ -1140,26 +1139,26 @@ export default function MeusExperimentosPage() {
 
               {/* Período Estimado */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span>⏱️</span> {t('myExperiments.help.timeframe')}
                 </h4>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="bg-background rounded-lg p-4 border border-border">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <div className="text-sm font-medium text-gray-600">{t('myExperiments.help.timeframe1')}</div>
+                      <div className="text-sm font-medium text-muted">{t('myExperiments.help.timeframe1')}</div>
                       <div className="text-lg font-bold text-blue-600">{t('myExperiments.help.timeframe1Value')}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">{t('myExperiments.help.timeframe2')}</div>
+                      <div className="text-sm font-medium text-muted">{t('myExperiments.help.timeframe2')}</div>
                       <div className="text-lg font-bold text-yellow-600">{t('myExperiments.help.timeframe2Value')}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">{t('myExperiments.help.timeframe3')}</div>
+                      <div className="text-sm font-medium text-muted">{t('myExperiments.help.timeframe3')}</div>
                       <div className="text-lg font-bold text-orange-600">{t('myExperiments.help.timeframe3Value')}</div>
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-600">{t('myExperiments.help.timeframe4')}</div>
-                      <div className="text-lg font-bold text-green-600">{t('myExperiments.help.timeframe4Value')}</div>
+                      <div className="text-sm font-medium text-muted">{t('myExperiments.help.timeframe4')}</div>
+                      <div className="text-lg font-bold text-primary">{t('myExperiments.help.timeframe4Value')}</div>
                     </div>
                   </div>
                 </div>
@@ -1167,24 +1166,24 @@ export default function MeusExperimentosPage() {
 
               {/* Dicas Úteis */}
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                   <span>💡</span> {t('myExperiments.help.tips')}
                 </h4>
-                <ul className="space-y-2 text-sm text-gray-700">
+                <ul className="space-y-2 text-sm text-foreground">
                   <li className="flex gap-2">
-                    <span className="text-green-600 flex-shrink-0">✓</span>
+                    <span className="text-primary flex-shrink-0">✓</span>
                     <span>{t('myExperiments.help.tip1')}</span>
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-green-600 flex-shrink-0">✓</span>
+                    <span className="text-primary flex-shrink-0">✓</span>
                     <span>{t('myExperiments.help.tip2')}</span>
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-green-600 flex-shrink-0">✓</span>
+                    <span className="text-primary flex-shrink-0">✓</span>
                     <span>{t('myExperiments.help.tip3')}</span>
                   </li>
                   <li className="flex gap-2">
-                    <span className="text-green-600 flex-shrink-0">✓</span>
+                    <span className="text-primary flex-shrink-0">✓</span>
                     <span>{t('myExperiments.help.tip4')}</span>
                   </li>
                 </ul>
@@ -1196,20 +1195,20 @@ export default function MeusExperimentosPage() {
 
       {/* Status History Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div className="bg-surface rounded-lg shadow-sm border border-border overflow-hidden">
+          <div className="px-6 py-4 border-b border-border bg-background flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
                 <span>📋</span> {t('myExperiments.statusHistory.title')}
               </h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm text-muted">
                 {t('myExperiments.statusHistory.subtitle')}
               </p>
             </div>
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshingHistory}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover disabled:bg-slate-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
               title={t('myExperiments.statusHistory.refreshButton')}
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshingHistory ? 'animate-spin' : ''}`} />
@@ -1220,7 +1219,7 @@ export default function MeusExperimentosPage() {
           <div className="p-6">
             {statusHistoryLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : statusHistoryError ? (
               <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -1232,8 +1231,8 @@ export default function MeusExperimentosPage() {
               </div>
             ) : statusHistory.length === 0 ? (
               <div className="text-center py-12">
-                <div className="text-gray-400 text-5xl mb-3">📭</div>
-                <p className="text-gray-600">{t('myExperiments.statusHistory.noHistory')}</p>
+                <div className="text-slate-400 text-5xl mb-3">📭</div>
+                <p className="text-muted">{t('myExperiments.statusHistory.noHistory')}</p>
               </div>
             ) : (
               <>
@@ -1241,13 +1240,13 @@ export default function MeusExperimentosPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs sm:text-sm">
                     <thead>
-                      <tr className="border-b border-gray-200 bg-gray-50">
-                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('myExperiments.statusHistory.columns.index')}</th>
-                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('myExperiments.statusHistory.columns.previousStatus')}</th>
-                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('myExperiments.statusHistory.columns.newStatus')}</th>
-                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('myExperiments.statusHistory.columns.changedBy')}</th>
-                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('myExperiments.statusHistory.columns.comment')}</th>
-                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-gray-700 uppercase tracking-wider">{t('myExperiments.statusHistory.columns.date')}</th>
+                      <tr className="border-b border-border bg-background">
+                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('myExperiments.statusHistory.columns.index')}</th>
+                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('myExperiments.statusHistory.columns.previousStatus')}</th>
+                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('myExperiments.statusHistory.columns.newStatus')}</th>
+                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('myExperiments.statusHistory.columns.changedBy')}</th>
+                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('myExperiments.statusHistory.columns.comment')}</th>
+                        <th className="px-3 sm:px-4 py-3 text-left font-semibold text-foreground uppercase tracking-wider">{t('myExperiments.statusHistory.columns.date')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -1265,9 +1264,9 @@ export default function MeusExperimentosPage() {
                           return (
                             <tr
                               key={displayIndex}
-                              className={`transition hover:bg-gray-50 ${displayIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                              className={`transition hover:bg-background ${displayIndex % 2 === 0 ? 'bg-surface' : 'bg-background'}`}
                             >
-                              <td className="px-3 sm:px-4 py-3 font-semibold text-gray-900">
+                              <td className="px-3 sm:px-4 py-3 font-semibold text-foreground">
                                 {visualIndex}
                               </td>
                               <td className="px-3 sm:px-4 py-3">
@@ -1276,7 +1275,7 @@ export default function MeusExperimentosPage() {
                                     {oldStatusLabel}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-400">-</span>
+                                  <span className="text-slate-400">-</span>
                                 )}
                               </td>
                               <td className="px-3 sm:px-4 py-3">
@@ -1284,7 +1283,7 @@ export default function MeusExperimentosPage() {
                                   {newStatusLabel}
                                 </span>
                               </td>
-                              <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                              <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                 <div className="flex items-center gap-1">
                                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                     record.changed_by_role === 'admin'
@@ -1293,24 +1292,24 @@ export default function MeusExperimentosPage() {
                                   }`}>
                                     {record.changed_by_role === 'admin' ? '🔐 Admin' : '👤 Pesquisador'}
                                   </span>
-                                  <span className="text-gray-600">{record.changed_by_name}</span>
+                                  <span className="text-muted">{record.changed_by_name}</span>
                                 </div>
                               </td>
-                              <td className="px-3 sm:px-4 py-3 text-gray-600 truncate max-w-xs">
+                              <td className="px-3 sm:px-4 py-3 text-muted truncate max-w-xs">
                                 {record.comment ? (
                                   <span
                                     title={record.comment}
-                                    className="text-gray-800"
+                                    className="text-foreground"
                                   >
                                     {record.comment.length > 30
                                       ? `${record.comment.substring(0, 30)}...`
                                       : record.comment}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-400">-</span>
+                                  <span className="text-slate-400">-</span>
                                 )}
                               </td>
-                              <td className="px-3 sm:px-4 py-3 text-gray-600 whitespace-nowrap text-xs">
+                              <td className="px-3 sm:px-4 py-3 text-muted whitespace-nowrap text-xs">
                                 {formatDate(record.created_at)}
                               </td>
                             </tr>
@@ -1328,7 +1327,7 @@ export default function MeusExperimentosPage() {
                         setCurrentStatusHistoryPage(Math.max(1, currentStatusHistoryPage - 1))
                       }
                       disabled={currentStatusHistoryPage === 1}
-                      className="px-3 py-1 rounded border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 rounded border border-border text-sm font-medium text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {t('myExperiments.statusHistory.pagination.previous')}
                     </button>
@@ -1341,8 +1340,8 @@ export default function MeusExperimentosPage() {
                           onClick={() => setCurrentStatusHistoryPage(i + 1)}
                           className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
                             currentStatusHistoryPage === i + 1
-                              ? 'bg-green-600 text-white'
-                              : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                              ? 'bg-primary text-white'
+                              : 'border border-border text-foreground hover:bg-background'
                           }`}
                         >
                           {i + 1}
@@ -1362,7 +1361,7 @@ export default function MeusExperimentosPage() {
                         currentStatusHistoryPage ===
                         Math.ceil(statusHistory.length / statusHistoryPerPage)
                       }
-                      className="px-3 py-1 rounded border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1 rounded border border-border text-sm font-medium text-foreground hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {t('myExperiments.statusHistory.pagination.next')}
                     </button>
@@ -1375,7 +1374,7 @@ export default function MeusExperimentosPage() {
       </div>
 
       {/* Simplified Comparison Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-200 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-border bg-background">
         <SimplifiedExperimentComparison
           selectedIds={selectedExperimentIds}
           experiments={experiments}

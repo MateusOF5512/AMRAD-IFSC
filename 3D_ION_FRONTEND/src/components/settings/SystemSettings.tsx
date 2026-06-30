@@ -23,19 +23,19 @@ export function SystemSettings({ initialData }: SystemSettingsProps) {
   return (
     <div className="space-y-6">
       {/* Email Notifications */}
-      <div className="border border-gray-200 rounded-lg p-6">
+      <div className="border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Bell className="h-5 w-5 text-gray-700" />
-          <h3 className="text-lg font-semibold text-gray-900">{t('settings.system.title')}</h3>
+          <Bell className="h-5 w-5 text-foreground" />
+          <h3 className="text-lg font-semibold text-foreground">{t('settings.system.title')}</h3>
         </div>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
+              <label className="text-sm font-medium text-foreground block mb-1">
                 {t('settings.system.emailNotifications.label')}
               </label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted">
                 {t('settings.system.emailNotifications.description')}
               </p>
             </div>
@@ -44,17 +44,17 @@ export function SystemSettings({ initialData }: SystemSettingsProps) {
                 onClick={handleToggle}
                 className={`relative inline-flex h-8 w-16 items-center rounded-full transition-colors ${
                   emailNotifications
-                    ? 'bg-green-600'
-                    : 'bg-gray-300'
+                    ? 'bg-primary'
+                    : 'bg-slate-300'
                 } cursor-pointer`}
               >
                 <span
-                  className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-6 w-6 transform rounded-full bg-surface transition-transform ${
                     emailNotifications ? 'translate-x-9' : 'translate-x-1'
                   }`}
                 />
               </button>
-              <span className="text-sm font-medium text-gray-700 w-12">
+              <span className="text-sm font-medium text-foreground w-12">
                 {emailNotifications ? t('settings.system.emailNotifications.active') : t('settings.system.emailNotifications.inactive')}
               </span>
             </div>

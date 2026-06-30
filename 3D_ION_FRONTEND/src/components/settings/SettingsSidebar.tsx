@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { User, Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/cn'
 
 interface Tab {
   id: string
@@ -21,19 +21,19 @@ export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps
     {
       id: 'personal',
       label: t('settings.sidebar.personalData'),
-      icon: <User className="h-5 w-5" />
+      icon: <User className="h-5 w-5" />,
     },
     {
       id: 'system',
       label: t('settings.sidebar.system'),
-      icon: <Settings className="h-5 w-5" />
-    }
+      icon: <Settings className="h-5 w-5" />,
+    },
   ]
 
   return (
-    <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200">
+    <aside className="w-full md:w-64 bg-surface border-b md:border-b-0 md:border-r border-border">
       <div className="p-4 md:p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6 hidden md:block">
+        <h2 className="text-lg font-semibold text-foreground mb-6 hidden md:block">
           {t('settings.title')}
         </h2>
         <nav className="flex md:flex-col gap-2 overflow-x-auto md:overflow-x-visible">
@@ -41,11 +41,12 @@ export function SettingsSidebar({ activeTab, onTabChange }: SettingsSidebarProps
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors whitespace-nowrap md:whitespace-normal ${
+              className={cn(
+                'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap md:whitespace-normal',
                 activeTab === tab.id
-                  ? 'bg-green-100 text-green-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+                  ? 'bg-primary-light text-primary'
+                  : 'text-foreground hover:bg-slate-100'
+              )}
             >
               {tab.icon}
               <span>{tab.label}</span>

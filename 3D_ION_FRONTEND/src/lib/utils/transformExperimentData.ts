@@ -16,14 +16,6 @@ export interface EditExperimentData {
 }
 
 export function transformApiDataToEditFormat(data: any): EditExperimentData {
-  console.log('[transformApiDataToEditFormat] Input data:', {
-    hasInfillMeasurements: !!data.infill_measurements,
-    infillMeasurementsLength: data.infill_measurements?.length,
-    materialId: data.material_id,
-    machineId: data.machine_id,
-    experimentId: data.experiment_id,
-  })
-
   // Transform backend response - ExperimentDetailResponse format
   const material = data.material_id ? {
     id: data.material_id,
@@ -72,14 +64,6 @@ export function transformApiDataToEditFormat(data: any): EditExperimentData {
     attenuation_data,
     beam_data: data.beam_qualities || null,
   }
-
-  console.log('[transformApiDataToEditFormat] Output data:', {
-    hasInfillData: !!result.infill_data,
-    infillLength: result.infill_data.length,
-    hasMaterial: !!result.material,
-    hasMachine: !!result.machine,
-    hasSample: !!result.sample,
-  })
 
   return result
 }

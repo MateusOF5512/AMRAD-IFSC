@@ -41,15 +41,15 @@ export function LinearAttenuationChart({ data, tests }: LinearAttenuationChartPr
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-sm">Gráfico não presente</p>
+      <div className="flex items-center justify-center h-64 bg-background rounded-lg border border-border">
+        <p className="text-muted text-sm">Gráfico não presente</p>
       </div>
     )
   }
 
   return (
-    <div className="w-full bg-white rounded-lg p-4">
-      <h4 className="text-sm font-bold text-gray-700 mb-4">📊 Visualização de Atenuação Linear</h4>
+    <div className="w-full bg-surface rounded-lg p-4">
+      <h4 className="text-sm font-bold text-foreground mb-4">📊 Visualização de Atenuação Linear</h4>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />

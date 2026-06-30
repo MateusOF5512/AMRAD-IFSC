@@ -79,10 +79,10 @@ export function InfillHURegressionChart({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex items-center justify-center h-96 bg-background rounded-lg border border-border">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-          <p className="text-gray-600 text-sm">Carregando análise de regressão...</p>
+          <p className="text-muted text-sm">Carregando análise de regressão...</p>
         </div>
       </div>
     )
@@ -90,10 +90,10 @@ export function InfillHURegressionChart({
 
   if (!groups || groups.length === 0) {
     return (
-      <div className="flex items-center justify-center h-96 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="flex items-center justify-center h-96 bg-background rounded-lg border border-border">
         <div className="text-center">
-          <p className="text-gray-600 text-sm">Nenhum dado disponível para análise</p>
-          <p className="text-gray-400 text-xs mt-1">Selecione filtros para visualizar dados de regressão</p>
+          <p className="text-muted text-sm">Nenhum dado disponível para análise</p>
+          <p className="text-slate-400 text-xs mt-1">Selecione filtros para visualizar dados de regressão</p>
         </div>
       </div>
     )
@@ -147,19 +147,19 @@ export function InfillHURegressionChart({
   const xDomain = [xMin - xPadding, xMax + xPadding]
 
   return (
-    <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+    <div className="w-full bg-surface rounded-lg border border-border shadow-sm p-6">
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900">
+        <h3 className="text-lg font-bold text-foreground">
           📈 Análise de Regressão Linear - Infill vs Hounsfield Units
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-muted mt-1">
           {metadata?.total_points || 0} pontos em {metadata?.total_groups || 0} grupo(s)
         </p>
       </div>
 
       {/* Chart */}
-      <div className="mb-8 bg-gray-50 rounded-lg p-4">
+      <div className="mb-8 bg-background rounded-lg p-4">
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart
             data={chartData}
@@ -256,40 +256,40 @@ export function InfillHURegressionChart({
         {groups.map((group, idx) => (
           <div
             key={`group-${idx}`}
-            className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden"
+            className="bg-background border border-border rounded-lg overflow-hidden"
           >
             {/* Group Header */}
             <button
               onClick={() =>
                 setExpandedGroup(expandedGroup === group.label ? null : group.label)
               }
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-100 transition-colors"
               style={{
                 borderLeft: `4px solid ${colors[idx % colors.length]}`,
               }}
             >
               <div className="flex items-center gap-2">
-                <div className="text-sm font-semibold text-gray-900">{group.label}</div>
-                <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
+                <div className="text-sm font-semibold text-foreground">{group.label}</div>
+                <span className="text-xs text-muted bg-slate-200 px-2 py-0.5 rounded">
                   {group.point_count} pontos
                 </span>
               </div>
               {expandedGroup === group.label ? (
-                <ChevronUp className="w-4 h-4 text-gray-600" />
+                <ChevronUp className="w-4 h-4 text-muted" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-gray-600" />
+                <ChevronDown className="w-4 h-4 text-muted" />
               )}
             </button>
 
             {/* Group Details */}
             {expandedGroup === group.label && group.regression && (
-              <div className="px-4 py-4 border-t border-gray-200 bg-white">
+              <div className="px-4 py-4 border-t border-border bg-surface">
                 <div className="space-y-2">
                   {/* Equation */}
                   {showEquation && (
                     <div className="text-sm">
-                      <p className="text-gray-600 font-medium">Equação:</p>
-                      <p className="font-mono text-gray-900 bg-gray-100 px-2 py-1 rounded text-xs mt-1">
+                      <p className="text-muted font-medium">Equação:</p>
+                      <p className="font-mono text-foreground bg-slate-100 px-2 py-1 rounded text-xs mt-1">
                         HU = {group.regression.a.toFixed(3)} × Infill + ({group.regression.b.toFixed(2)})
                       </p>
                     </div>
@@ -299,51 +299,51 @@ export function InfillHURegressionChart({
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     {showR2 && (
                       <div>
-                        <p className="text-gray-600">R²:</p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-muted">R²:</p>
+                        <p className="font-semibold text-foreground">
                           {group.regression.r2.toFixed(4)}
                         </p>
                       </div>
                     )}
                     <div>
-                      <p className="text-gray-600">P-value:</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-muted">P-value:</p>
+                      <p className="font-semibold text-foreground">
                         {group.regression.p_value.toExponential(2)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Slope (a):</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-muted">Slope (a):</p>
+                      <p className="font-semibold text-foreground">
                         {group.regression.a.toFixed(3)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Intercept (b):</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-muted">Intercept (b):</p>
+                      <p className="font-semibold text-foreground">
                         {group.regression.b.toFixed(2)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Std. Err:</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-muted">Std. Err:</p>
+                      <p className="font-semibold text-foreground">
                         {group.regression.std_err.toFixed(3)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600">N:</p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="text-muted">N:</p>
+                      <p className="font-semibold text-foreground">
                         {group.regression.num_points}
                       </p>
                     </div>
                   </div>
 
                   {/* Range */}
-                  <div className="text-xs mt-3 pt-3 border-t border-gray-200">
-                    <p className="text-gray-600 mb-2">Range dos dados:</p>
-                    <p className="text-gray-700">
+                  <div className="text-xs mt-3 pt-3 border-t border-border">
+                    <p className="text-muted mb-2">Range dos dados:</p>
+                    <p className="text-foreground">
                       X: [{group.regression.x_min.toFixed(2)}, {group.regression.x_max.toFixed(2)}]
                     </p>
-                    <p className="text-gray-700">
+                    <p className="text-foreground">
                       Y: [{group.regression.y_min.toFixed(2)}, {group.regression.y_max.toFixed(2)}]
                     </p>
                   </div>
@@ -388,8 +388,8 @@ export function InfillHURegressionChart({
       )}
 
       {/* Legend explanation */}
-      <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
-        <p className="font-semibold text-gray-900 mb-2">💡 Como interpretar:</p>
+      <div className="mt-6 p-4 bg-background border border-border rounded-lg text-xs text-muted">
+        <p className="font-semibold text-foreground mb-2">💡 Como interpretar:</p>
         <ul className="space-y-1 list-disc list-inside">
           <li>
             <strong>Slope (a):</strong> Taxa de mudança de HU por unidade de infill (%)

@@ -4,9 +4,11 @@
  */
 
 import { fetchWithAgent } from './api-client'
+import { logger } from './logger'
+import { getPublicEnv } from './public-env'
 
 export function getNormalizedApiUrl(): string {
-  let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+  let apiUrl = getPublicEnv().apiUrl
   
   // Se a URL não contém /api/v1, adiciona
   if (!apiUrl.includes('/api/v1')) {
@@ -84,24 +86,20 @@ async function apiRequest<T>(
         throw new Error('Sessão expirada. Faça login novamente.')
       }
 
-      const logLevel = (response.status === 409 || response.status === 400 || response.status === 403 || response.status === 404) ? 'warn' : 'error'
-      
+      const isExpectedStatus = response.status === 409 || response.status === 400 || response.status === 403 || response.status === 404
+
       let errorData: any
       try {
         const text = await response.text()
-        if (text) {
-          errorData = JSON.parse(text)
-        } else {
-          errorData = {}
-        }
-        if (logLevel === 'warn') {
-          console.warn('[apiRequest] Response body:', errorData)
-        } else {
-          console.error('[apiRequest] Error response body:', errorData)
-        }
+        errorData = text ? JSON.parse(text) : {}
       } catch {
-        console[logLevel]('[apiRequest] Could not parse error response')
         errorData = { detail: 'Unknown error' }
+      }
+
+      if (isExpectedStatus) {
+        logger.warn('api', `HTTP ${response.status}`)
+      } else {
+        logger.error('api', `HTTP ${response.status}`)
       }
       
       // Get error message from various possible locations
@@ -122,9 +120,7 @@ async function apiRequest<T>(
       throw new Error(errorMessage)
     }
     
-    const responseData = await response.json()
-    console.log('[apiRequest] Response received successfully')
-    return responseData
+    return await response.json()
   } catch (error: any) {
     // Detect network/connection errors (when fetch() fails before getting any response)
     const isNetworkError = error?.message === 'Failed to fetch' || 
@@ -135,33 +131,22 @@ async function apiRequest<T>(
                           error?.message?.includes('fetch')
     
     if (isNetworkError) {
-      console.error('[apiRequest] ❌ NETWORK ERROR - Backend not reachable!')
-      console.error('[apiRequest] API URL configured:', API_BASE_URL)
-      console.error('[apiRequest] Check: 1) Is backend running? 2) Correct URL? 3) Network available?')
-      console.error('[apiRequest] Original error:', error.message)
-      
-      // Provide detailed error message for the UI
+      logger.error('api', 'Network error — backend unreachable')
+
       const detailedError = new Error(
-        `Falha na conexão com o servidor. ` +
-        `Verifique se:\n` +
-        `1. O backend está rodando (http://localhost:8000)\n` +
-        `2. A URL da API está correta (${API_BASE_URL})\n` +
-        `3. Não há problemas de rede\n\n` +
-        `Erro original: ${error.message}`
+        'Falha na conexão com o servidor. Verifique se o backend está rodando e acessível.'
       )
-      
-      // Retry on network errors
+
       if (retryCount < maxRetries) {
-        console.log(`[apiRequest] Retrying network request (attempt ${retryCount + 1}/${maxRetries})...`)
+        logger.debug('api', `Retry ${retryCount + 1}/${maxRetries}`)
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
         return apiRequest<T>(endpoint, options, retryCount + 1)
       }
-      
+
       throw detailedError
     }
-    
-    // Use warn for expected validation errors (conflicts, status validation, permission denied, not found), error for others
-    const isExpectedError = error.message?.includes('já possui') || 
+
+    const isExpectedError = error.message?.includes('já possui') ||
                            error.message?.includes('Conflito') ||
                            error.message?.includes('status') ||
                            error.message?.includes('permissão') ||
@@ -171,16 +156,13 @@ async function apiRequest<T>(
                            error.message?.includes('não cadastrado') ||
                            error.message?.includes('rebaixar') ||
                            error.message?.includes('próprias permissões')
-    if (isExpectedError) {
-      console.warn('[apiRequest] Expected error:', error.message)
-    } else {
-      console.error('[apiRequest] Error caught:', error.message)
+    if (!isExpectedError) {
+      logger.error('api', error.message)
     }
-    
-    // Retry on network errors or 5xx errors (but not on 401 or 409 errors)
-    if (retryCount < maxRetries && 
+
+    if (retryCount < maxRetries &&
         (error.message?.includes('fetch') || error.message?.includes('network'))) {
-      console.log(`[apiRequest] Retrying (attempt ${retryCount + 1}/${maxRetries})`)
+      logger.debug('api', `Retry ${retryCount + 1}/${maxRetries}`)
       await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
       return apiRequest<T>(endpoint, options, retryCount + 1)
     }
@@ -568,24 +550,10 @@ import { AdminUser, UsersListResponse, UpdateUserStatusRequest, UpdateUserStatus
 
 export const adminApi = {
   // Get users by status
-  getUsersByStatus: (status: UserStatus, page: number = 1, per_page: number = 100): Promise<UsersListResponse> => {
-    const endpoint = `/admin/users?status=${status}&page=${page}&per_page=${per_page}`
-    console.log(`[API] Calling endpoint: ${endpoint}`)
-    return apiRequest<UsersListResponse>(endpoint, {
+  getUsersByStatus: (status: UserStatus, page: number = 1, per_page: number = 100): Promise<UsersListResponse> =>
+    apiRequest<UsersListResponse>(`/admin/users?status=${status}&page=${page}&per_page=${per_page}`, {
       method: 'GET',
-    }).then((response) => {
-      console.log(`[API] Response received:`, response)
-      if (response.users && response.users.length > 0) {
-        console.log(`[API] First user from response:`, response.users[0])
-        console.log(`[API] First user user_type:`, response.users[0].user_type)
-        console.log(`[API] First user experimentos_criados_total:`, response.users[0].experimentos_criados_total)
-        console.log(`[API] Total users returned: ${response.users.length}`)
-        console.log(`[API] Total users in DB: ${response.total}`)
-        console.log(`[API] All users user_type values:`, response.users.map(u => ({ name: u.name, user_type: u.user_type })))
-      }
-      return response
-    })
-  },
+    }),
 
   // Update user status
   updateUserStatus: (email: string, newStatus: UserStatus): Promise<UpdateUserStatusResponse> =>
@@ -604,27 +572,10 @@ export const adminApi = {
     }),
 
   // Get all administrators
-  getAdministrators: async (): Promise<AdminListResponse> => {
-    console.log('[adminApi.getAdministrators] Starting request')
-    try {
-      const response = await apiRequest<AdminListResponse>('/admin/administrators', {
-        method: 'GET',
-      })
-      console.log('[adminApi.getAdministrators] Response:', response)
-      console.log('[adminApi.getAdministrators] Response type:', typeof response)
-      console.log('[adminApi.getAdministrators] Response.admins:', response.admins)
-      if (response.admins && response.admins.length > 0) {
-        console.log('[adminApi.getAdministrators] First admin:', response.admins[0])
-        console.log('[adminApi.getAdministrators] First admin keys:', Object.keys(response.admins[0]))
-        console.log('[adminApi.getAdministrators] First admin experimentos_criados_total:', response.admins[0].experimentos_criados_total)
-        console.log('[adminApi.getAdministrators] Type of experimentos_criados_total:', typeof response.admins[0].experimentos_criados_total)
-      }
-      return response
-    } catch (error) {
-      console.error('[adminApi.getAdministrators] Error caught:', error)
-      throw error
-    }
-  },
+  getAdministrators: (): Promise<AdminListResponse> =>
+    apiRequest<AdminListResponse>('/admin/administrators', {
+      method: 'GET',
+    }),
 
   // Update administrator role
   updateAdministratorRole: (email: string, newRole: 'admin' | 'pesquisador'): Promise<UpdateAdminRoleResponse> =>
@@ -672,125 +623,80 @@ export const adminApi = {
     timestamp: string
     message: string
   }> => {
-    try {
-      const apiBaseUrl = getNormalizedApiUrl()
-      console.log('[checkDatabaseIntegrity] Starting integrity check...')
-      
-      let userDataStr: string | null = null
-      try {
-        userDataStr = localStorage.getItem('user')
-      } catch (e) {
-        console.error('[checkDatabaseIntegrity] Error accessing localStorage:', e)
-      }
-
-      if (!userDataStr) {
-        throw new Error('Sem autenticação. Faça login novamente.')
-      }
-
-      let token = userDataStr
-      try {
-        const userData = JSON.parse(userDataStr)
-        token = userData.access_token || userData.accessToken || userData.token || userDataStr
-      } catch (e) {
-        token = userDataStr
-      }
-
-      const response = await fetchWithAgent(`${apiBaseUrl}/admin/check-database-integrity`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      console.log('[checkDatabaseIntegrity] Response status:', response.status)
-      
-      if (!response.ok) {
-        let errorMessage = `Erro HTTP ${response.status}`
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.detail || errorData.message || errorMessage
-        } catch (e) {
-          const errorText = await response.text()
-          if (errorText) errorMessage = errorText
-        }
-        console.error('[checkDatabaseIntegrity] Error response:', errorMessage)
-        throw new Error(errorMessage)
-      }
-
-      const result = await response.json()
-      console.log('[checkDatabaseIntegrity] Result:', result)
-      return result
-    } catch (error) {
-      console.error('[checkDatabaseIntegrity] Complete error:', error)
-      throw error
+    const apiBaseUrl = getNormalizedApiUrl()
+    const userDataStr = localStorage.getItem('user')
+    if (!userDataStr) {
+      throw new Error('Sem autenticação. Faça login novamente.')
     }
+
+    let token = userDataStr
+    try {
+      const userData = JSON.parse(userDataStr)
+      token = userData.access_token || userData.accessToken || userData.token || userDataStr
+    } catch {
+      token = userDataStr
+    }
+
+    const response = await fetchWithAgent(`${apiBaseUrl}/admin/check-database-integrity`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Erro HTTP ${response.status}`
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.detail || errorData.message || errorMessage
+      } catch {
+        const errorText = await response.text()
+        if (errorText) errorMessage = errorText
+      }
+      throw new Error(errorMessage)
+    }
+
+    return response.json()
   },
 
   // Export all tables as ZIP
   exportTables: async (): Promise<Blob> => {
-    try {
-      const apiBaseUrl = getNormalizedApiUrl()
-      console.log('[exportTables] API Base URL:', apiBaseUrl)
-      
-      let userDataStr: string | null = null
-      try {
-        userDataStr = localStorage.getItem('user')
-        console.log('[exportTables] User data exists:', !!userDataStr)
-      } catch (e) {
-        console.error('[exportTables] Error accessing localStorage:', e)
-      }
-
-      if (!userDataStr) {
-        throw new Error('Sem autenticação. Faça login novamente.')
-      }
-
-      let token = userDataStr
-      try {
-        const userData = JSON.parse(userDataStr)
-        console.log('[exportTables] Parsed userData keys:', Object.keys(userData))
-        
-        // Try different token field names
-        token = userData.access_token || userData.accessToken || userData.token || userDataStr
-        console.log('[exportTables] Extracted token length:', token.length)
-      } catch (e) {
-        console.log('[exportTables] Could not parse JSON, using raw token')
-        token = userDataStr
-      }
-
-      console.log('[exportTables] Calling endpoint with token...')
-      const response = await fetchWithAgent(`${apiBaseUrl}/admin/export-tables`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      console.log('[exportTables] Response status:', response.status)
-      
-      if (!response.ok) {
-        let errorMessage = `Erro HTTP ${response.status}`
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.detail || errorData.message || errorMessage
-        } catch (e) {
-          const errorText = await response.text()
-          if (errorText) errorMessage = errorText
-        }
-        console.error('[exportTables] Error response:', errorMessage)
-        throw new Error(errorMessage)
-      }
-
-      console.log('[exportTables] Response OK, converting to blob...')
-      const blob = await response.blob()
-      console.log('[exportTables] Blob size:', blob.size, 'bytes')
-      
-      return blob
-    } catch (error) {
-      console.error('[exportTables] Complete error:', error)
-      throw error
+    const apiBaseUrl = getNormalizedApiUrl()
+    const userDataStr = localStorage.getItem('user')
+    if (!userDataStr) {
+      throw new Error('Sem autenticação. Faça login novamente.')
     }
+
+    let token = userDataStr
+    try {
+      const userData = JSON.parse(userDataStr)
+      token = userData.access_token || userData.accessToken || userData.token || userDataStr
+    } catch {
+      token = userDataStr
+    }
+
+    const response = await fetchWithAgent(`${apiBaseUrl}/admin/export-tables`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Erro HTTP ${response.status}`
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.detail || errorData.message || errorMessage
+      } catch {
+        const errorText = await response.text()
+        if (errorText) errorMessage = errorText
+      }
+      throw new Error(errorMessage)
+    }
+
+    return response.blob()
   },
 
   // Check system health
@@ -807,61 +713,45 @@ export const adminApi = {
     recommendations: string[]
     uptime_hours?: number
   }> => {
-    try {
-      console.log('[checkSystemHealth] Starting system health check...')
-      const apiBaseUrl = getNormalizedApiUrl()
-      
-      let userDataStr: string | null = null
-      try {
-        userDataStr = localStorage.getItem('user')
-      } catch (e) {
-        console.error('[checkSystemHealth] Error accessing localStorage:', e)
-      }
-
-      if (!userDataStr) {
-        throw new Error('Sem autenticação. Faça login novamente.')
-      }
-
-      let token = userDataStr
-      try {
-        const userData = JSON.parse(userDataStr)
-        token = userData.access_token || userData.accessToken || userData.token || userDataStr
-      } catch (e) {
-        token = userDataStr
-      }
-
-      const response = await fetchWithAgent(`${apiBaseUrl}/admin/system-health`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        let errorMessage = `Erro HTTP ${response.status}`
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.detail || errorData.message || errorMessage
-        } catch (e) {
-          const errorText = await response.text()
-          if (errorText) errorMessage = errorText
-        }
-        console.error('[checkSystemHealth] Error:', errorMessage)
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
-      console.log('[checkSystemHealth] ✓ Response received:', data.overall_status)
-      return data
-    } catch (error) {
-      console.error('[checkSystemHealth] Complete error:', error)
-      throw error
+    const apiBaseUrl = getNormalizedApiUrl()
+    const userDataStr = localStorage.getItem('user')
+    if (!userDataStr) {
+      throw new Error('Sem autenticação. Faça login novamente.')
     }
+
+    let token = userDataStr
+    try {
+      const userData = JSON.parse(userDataStr)
+      token = userData.access_token || userData.accessToken || userData.token || userDataStr
+    } catch {
+      token = userDataStr
+    }
+
+    const response = await fetchWithAgent(`${apiBaseUrl}/admin/system-health`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Erro HTTP ${response.status}`
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.detail || errorData.message || errorMessage
+      } catch {
+        const errorText = await response.text()
+        if (errorText) errorMessage = errorText
+      }
+      throw new Error(errorMessage)
+    }
+
+    return response.json()
   },
 
   // Get experiments organized by status
-  getExperimentsByStatus: async (): Promise<{
+  getExperimentsByStatus: (): Promise<{
     approved: Array<{
       id: string
       index_visual?: number
@@ -906,145 +796,68 @@ export const adminApi = {
     }>
     total_approved: number
     total_in_analysis: number
-  }> => {
-    try {
-      console.log('[getExperimentsByStatus] Starting request...')
-      const response = await apiRequest('/admin/experiments', {
-        method: 'GET',
-      })
-      console.log('[getExperimentsByStatus] Response:', response)
-      return response as any
-    } catch (error) {
-      console.error('[getExperimentsByStatus] Error:', error)
-      throw error
-    }
-  },
+  }> =>
+    apiRequest('/admin/experiments', { method: 'GET' }),
 
-  updateExperimentStatus: async (
+  updateExperimentStatus: (
     experimentId: string,
     newStatus: 'Revisions' | 'Review' | 'Approved',
     comment?: string
-  ): Promise<any> => {
-    try {
-      console.log(`[updateExperimentStatus] Updating experiment ${experimentId} to ${newStatus}`)
-      const body: any = { status: newStatus }
-      if (comment) {
-        body.comment = comment
-      }
-      const response = await apiRequest(`/admin/experiments/${experimentId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      })
-      console.log('[updateExperimentStatus] Response:', response)
-      return response
-    } catch (error) {
-      console.error('[updateExperimentStatus] Error:', error)
-      throw error
-    }
+  ): Promise<unknown> => {
+    const body: Record<string, string> = { status: newStatus }
+    if (comment) body.comment = comment
+    return apiRequest(`/admin/experiments/${experimentId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    })
   },
 
-  getExperimentDetails: async (experimentId: string): Promise<any> => {
-    try {
-      console.log(`[getExperimentDetails] Fetching details for experiment ${experimentId}`)
-      const response = await apiRequest(`/admin/experiments/${experimentId}/details`, {
-        method: 'GET',
-      })
-      console.log('[getExperimentDetails] Response:', response)
-      return response
-    } catch (error) {
-      console.error('[getExperimentDetails] Error:', error)
-      throw error
-    }
-  },
+  getExperimentDetails: (experimentId: string): Promise<unknown> =>
+    apiRequest(`/admin/experiments/${experimentId}/details`, { method: 'GET' }),
 
-  getExperimentsStatusHistory: async (filters?: {
+  getExperimentsStatusHistory: (filters?: {
     old_status?: string
     new_status?: string
     changed_by_name?: string
     changed_by_role?: string
     start_date?: string
     end_date?: string
-  }): Promise<{ success: boolean; total: number; data: any[] }> => {
-    try {
-      const params = new URLSearchParams()
-      if (filters?.old_status) params.append('old_status', filters.old_status)
-      if (filters?.new_status) params.append('new_status', filters.new_status)
-      if (filters?.changed_by_name) params.append('changed_by_name', filters.changed_by_name)
-      if (filters?.changed_by_role) params.append('changed_by_role', filters.changed_by_role)
-      if (filters?.start_date) params.append('start_date', filters.start_date)
-      if (filters?.end_date) params.append('end_date', filters.end_date)
+  }): Promise<{ success: boolean; total: number; data: unknown[] }> => {
+    const params = new URLSearchParams()
+    if (filters?.old_status) params.append('old_status', filters.old_status)
+    if (filters?.new_status) params.append('new_status', filters.new_status)
+    if (filters?.changed_by_name) params.append('changed_by_name', filters.changed_by_name)
+    if (filters?.changed_by_role) params.append('changed_by_role', filters.changed_by_role)
+    if (filters?.start_date) params.append('start_date', filters.start_date)
+    if (filters?.end_date) params.append('end_date', filters.end_date)
 
-      const endpoint = `/admin/experiments/status-history/all${params.toString() ? '?' + params.toString() : ''}`
-      console.log('[getExperimentsStatusHistory] Fetching from:', endpoint)
-      const response = await apiRequest(endpoint, {
-        method: 'GET',
-      })
-      console.log('[getExperimentsStatusHistory] Response:', response)
-      return response as { success: boolean; total: number; data: any[] }
-    } catch (error) {
-      console.error('[getExperimentsStatusHistory] Error:', error)
-      throw error
-    }
+    const endpoint = `/admin/experiments/status-history/all${params.toString() ? '?' + params.toString() : ''}`
+    return apiRequest(endpoint, { method: 'GET' }) as Promise<{ success: boolean; total: number; data: unknown[] }>
   },
 
-  getResearcherStatusHistory: async (): Promise<any> => {
-    try {
-      console.log('[getResearcherStatusHistory] Fetching researcher status history')
-      const endpoint = '/samples/researcher/status-history'
-      const response = await apiRequest(endpoint, {
-        method: 'GET',
-      })
-      console.log('[getResearcherStatusHistory] Response:', response)
-      return response
-    } catch (error) {
-      console.error('[getResearcherStatusHistory] Error:', error)
-      throw error
-    }
-  },
+  getResearcherStatusHistory: (): Promise<unknown> =>
+    apiRequest('/samples/researcher/status-history', { method: 'GET' }),
 
-  resubmitExperiment: async (experimentId: string): Promise<any> => {
-    try {
-      console.log('[resubmitExperiment] Resubmitting experiment:', experimentId)
-      const endpoint = `/experiments/${experimentId}/resubmit`
-      const response = await apiRequest(endpoint, {
-        method: 'POST',
-      })
-      console.log('[resubmitExperiment] Response:', response)
-      return response
-    } catch (error) {
-      console.error('[resubmitExperiment] Error:', error)
-      throw error
-    }
-  },
+  resubmitExperiment: (experimentId: string): Promise<unknown> =>
+    apiRequest(`/experiments/${experimentId}/resubmit`, { method: 'POST' }),
 
-  getAdminLogs: async (filters: {
+  getAdminLogs: (filters: {
     action_category?: string
     severity_level?: string
     start_date?: string
     end_date?: string
     entity_name?: string
-  }): Promise<any> => {
-    try {
-      const params = new URLSearchParams()
-      if (filters.action_category) params.append('action_category', filters.action_category)
-      if (filters.severity_level) params.append('severity_level', filters.severity_level)
-      if (filters.start_date) params.append('start_date', filters.start_date)
-      if (filters.end_date) params.append('end_date', filters.end_date)
-      if (filters.entity_name) params.append('entity_name', filters.entity_name)
-      params.append('limit', '100')
-      params.append('offset', '0')
+  }): Promise<unknown> => {
+    const params = new URLSearchParams()
+    if (filters.action_category) params.append('action_category', filters.action_category)
+    if (filters.severity_level) params.append('severity_level', filters.severity_level)
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.entity_name) params.append('entity_name', filters.entity_name)
+    params.append('limit', '100')
+    params.append('offset', '0')
 
-      const endpoint = `/logs/admin/all-logs?${params.toString()}`
-      console.log('[getAdminLogs] Fetching logs from:', endpoint)
-      const response = await apiRequest(endpoint, {
-        method: 'GET',
-      })
-      console.log('[getAdminLogs] Response:', response)
-      return response
-    } catch (error) {
-      console.error('[getAdminLogs] Error:', error)
-      throw error
-    }
+    return apiRequest(`/logs/admin/all-logs?${params.toString()}`, { method: 'GET' })
   },
 
   getDatabaseSeedStatus: (): Promise<{

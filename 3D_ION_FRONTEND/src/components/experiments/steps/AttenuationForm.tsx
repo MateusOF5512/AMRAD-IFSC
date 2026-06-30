@@ -182,8 +182,8 @@ const AttenuationForm = forwardRef<{ submit: () => Promise<void> }, AttenuationF
         )}
 
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900">{t('experimentWizard.attenuation.title')}</h3>
-          <p className="text-xs text-gray-500">{t('experimentWizard.attenuation.pqrHint')}</p>
+          <h3 className="font-semibold text-foreground">{t('experimentWizard.attenuation.title')}</h3>
+          <p className="text-xs text-muted">{t('experimentWizard.attenuation.pqrHint')}</p>
         </div>
 
         {tests.map((test, testIndex) => (
@@ -241,7 +241,7 @@ const AttenuationForm = forwardRef<{ submit: () => Promise<void> }, AttenuationF
         </button>
 
         {optional && (
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
             <input
               type="checkbox"
               checked={skip}
@@ -258,7 +258,7 @@ const AttenuationForm = forwardRef<{ submit: () => Promise<void> }, AttenuationF
           </p>
         </div>
 
-        {isLoading && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
+        {isLoading && <p className="text-sm text-muted">{t('common.loading')}</p>}
       </form>
     )
   }
@@ -290,9 +290,9 @@ function TestCard({
   onRemoveMeasurement,
 }: TestCardProps) {
   return (
-    <div className="border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
+    <div className="border border-border rounded-lg p-4 space-y-4 bg-surface">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-foreground">
           {t('experimentWizard.attenuation.testLabel', { index: testIndex + 1 })}
         </span>
         {canRemoveTest && (
@@ -304,13 +304,13 @@ function TestCard({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
+          <label className="block text-xs font-medium text-muted mb-1">
             {t('experimentWizard.attenuation.rqrLabel')}
           </label>
           <select
             value={test.rqr_energy}
             onChange={(e) => onRqrChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/40"
           >
             {RQR_ENERGY_OPTIONS.map((opt) => (
               <option key={opt} value={opt}>
@@ -329,7 +329,7 @@ function TestCard({
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs font-medium text-gray-600">
+        <p className="text-xs font-medium text-muted">
           {t('experimentWizard.attenuation.measurementsTitle')}
         </p>
         {test.measurements.map((m, mi) => (

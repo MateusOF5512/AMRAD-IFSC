@@ -10,25 +10,21 @@ import { useAuthStore } from '@/store/authStore'
 export function useAdminProtection() {
   const router = useRouter()
   const user = useAuthStore((state) => state.user)
+  const sessionReady = useAuthStore((state) => state.sessionReady)
 
   useEffect(() => {
-    const userData = localStorage.getItem('user')
+    if (!sessionReady) return
 
-    if (!userData) {
+    if (!user) {
       router.push('/login')
       return
     }
 
-    try {
-      const parsedUser = JSON.parse(userData)
-      if (parsedUser.user_type !== 'admin') {
-        router.push('/experimentos')
-      }
-    } catch {
-      router.push('/login')
+    if (user.user_type !== 'admin') {
+      router.push('/experimentos')
     }
-  }, [router, user])
+  }, [router, user, sessionReady])
 
-  const isAdmin = user && user.user_type === 'admin'
-  return isAdmin ? user : null
+  if (!sessionReady) return null
+  return user && user.user_type === 'admin' ? user : null
 }

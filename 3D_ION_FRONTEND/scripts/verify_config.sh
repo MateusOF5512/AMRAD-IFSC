@@ -1,43 +1,44 @@
 #!/bin/bash
 
-# Script de Verificação de Configuração - 3D_ION Frontend
+# Script de Verificação de Configuração - AMRAD Frontend
 # Ajuda a diagnosticar problemas de autenticação e conexão
 
 echo "╔════════════════════════════════════════════════════════════════╗"
-echo "║   Verificação de Configuração - 3D_ION Frontend              ║"
+echo "║   Verificação de Configuração - AMRAD Frontend              ║"
 echo "║   Diagnóstico de Autenticação e Conexão                       ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 
-# 1. Verificar arquivo .env.local
-echo "📋 1. Verificando arquivo .env.local..."
-if [ -f ".env.local" ]; then
-    echo "✅ Arquivo .env.local encontrado"
+# 1. Verificar arquivo .env na raiz do monorepo
+ROOT_ENV="../.env"
+echo "📋 1. Verificando arquivo .env na raiz do monorepo..."
+if [ -f "$ROOT_ENV" ]; then
+    echo "✅ Arquivo .env encontrado em $ROOT_ENV"
     echo ""
     echo "Verificando variáveis obrigatórias:"
     
-    if grep -q "NEXT_PUBLIC_SUPABASE_URL=" .env.local; then
-        SUPABASE_URL=$(grep "NEXT_PUBLIC_SUPABASE_URL=" .env.local | cut -d'=' -f2)
-        echo "✅ NEXT_PUBLIC_SUPABASE_URL: $SUPABASE_URL"
+    if grep -q "NEXT_PUBLIC_SUPABASE_URL=" "$ROOT_ENV" || grep -q "SUPABASE_URL=" "$ROOT_ENV"; then
+        SUPABASE_URL=$(grep -E "^(NEXT_PUBLIC_)?SUPABASE_URL=" "$ROOT_ENV" | head -1 | cut -d'=' -f2)
+        echo "✅ SUPABASE_URL: $SUPABASE_URL"
     else
-        echo "❌ NEXT_PUBLIC_SUPABASE_URL: NÃO ENCONTRADA"
+        echo "❌ SUPABASE_URL: NÃO ENCONTRADA"
     fi
     
-    if grep -q "NEXT_PUBLIC_SUPABASE_ANON_KEY=" .env.local; then
-        echo "✅ NEXT_PUBLIC_SUPABASE_ANON_KEY: Configurada"
+    if grep -q "NEXT_PUBLIC_SUPABASE_ANON_KEY=" "$ROOT_ENV" || grep -q "SUPABASE_ANON_KEY=" "$ROOT_ENV"; then
+        echo "✅ SUPABASE_ANON_KEY: Configurada"
     else
-        echo "❌ NEXT_PUBLIC_SUPABASE_ANON_KEY: NÃO ENCONTRADA"
+        echo "❌ SUPABASE_ANON_KEY: NÃO ENCONTRADA"
     fi
     
-    if grep -q "NEXT_PUBLIC_API_URL=" .env.local; then
-        API_URL=$(grep "NEXT_PUBLIC_API_URL=" .env.local | cut -d'=' -f2)
+    if grep -q "NEXT_PUBLIC_API_URL=" "$ROOT_ENV"; then
+        API_URL=$(grep "NEXT_PUBLIC_API_URL=" "$ROOT_ENV" | cut -d'=' -f2)
         echo "✅ NEXT_PUBLIC_API_URL: $API_URL"
     else
         echo "❌ NEXT_PUBLIC_API_URL: NÃO ENCONTRADA"
     fi
 else
-    echo "❌ Arquivo .env.local NÃO ENCONTRADO"
-    echo "   Crie o arquivo com as variáveis Supabase"
+    echo "❌ Arquivo .env NÃO ENCONTRADO na raiz do monorepo"
+    echo "   Copie .env.example para .env na raiz e preencha as variáveis"
 fi
 
 echo ""
@@ -46,7 +47,7 @@ echo ""
 
 # 2. Verificar backend FastAPI
 echo "🚀 2. Verificando Backend FastAPI..."
-API_URL=$(grep "NEXT_PUBLIC_API_URL=" .env.local 2>/dev/null | cut -d'=' -f2 || echo "http://localhost:8000")
+API_URL=$(grep "NEXT_PUBLIC_API_URL=" "$ROOT_ENV" 2>/dev/null | cut -d'=' -f2 || echo "http://localhost:8000")
 
 if command -v curl &> /dev/null; then
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/api/v1/health" 2>/dev/null)
@@ -55,7 +56,7 @@ if command -v curl &> /dev/null; then
     else
         echo "❌ Backend FastAPI não respondendo (Status: $RESPONSE)"
         echo "   Verifique se o servidor está rodando:"
-        echo "   $ cd 3D_ION_BACKEND && python -m uvicorn app.main:app --reload"
+        echo "   $ cd AMRAD_BACKEND && python -m uvicorn app.main:app --reload"
     fi
 else
     echo "⚠️  'curl' não instalado. Teste manualmente:"
@@ -124,7 +125,7 @@ echo "💡 Recomendações:"
 echo ""
 echo "Se você está recebendo 'No active session':"
 echo "1. Verifique se fez login em /login"
-echo "2. Verifique se NEXT_PUBLIC_SUPABASE_* estão configuradas em .env.local"
+echo "2. Verifique se NEXT_PUBLIC_SUPABASE_* estão configuradas no .env da raiz"
 echo "3. Verifique se NEXT_PUBLIC_API_URL está correto"
 echo "4. Abra DevTools (F12) → Console para ver erros específicos"
 echo "5. Verifique Network → Veja respostas das chamadas à API"

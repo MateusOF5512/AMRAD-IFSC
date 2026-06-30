@@ -76,7 +76,7 @@ curl -X GET http://localhost:8000/api/v1/health
 **Se não responder:**
 ```bash
 # Inicie o backend
-cd ../3D_ION_BACKEND
+cd ../AMRAD_BACKEND
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
@@ -160,7 +160,7 @@ Backend não está configurado para aceitar requisições from:
 
 ### Solução - Backend (Python)
 
-Abra `3D_ION_BACKEND/app/main.py`:
+Abra `AMRAD_BACKEND/app/main.py`:
 
 ```python
 from fastapi.middleware.cors import CORSMiddleware

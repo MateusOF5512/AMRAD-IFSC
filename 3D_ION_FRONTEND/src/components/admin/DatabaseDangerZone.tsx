@@ -110,20 +110,20 @@ export function DatabaseDangerZone({ onDataChanged }: DatabaseDangerZoneProps) {
         </button>
       </div>
 
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <h3 className="font-bold text-green-900 mb-2">
+      <div className="bg-primary-light border border-primary/30 rounded-lg p-4">
+        <h3 className="font-bold text-primary mb-2">
           {t('admin.advanced.databaseTab.dangerZone.seedCard.title')}
         </h3>
-        <p className="text-sm text-green-700 mb-4">
+        <p className="text-sm text-primary mb-4">
           {t('admin.advanced.databaseTab.dangerZone.seedCard.description')}
         </p>
         {statusLoading ? (
-          <p className="text-xs text-green-700 mb-3 flex items-center gap-1">
+          <p className="text-xs text-primary mb-3 flex items-center gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
             {t('admin.advanced.databaseTab.dangerZone.checkingStatus')}
           </p>
         ) : (
-          <p className="text-xs text-green-700 mb-3">
+          <p className="text-xs text-primary mb-3">
             {t('admin.advanced.databaseTab.dangerZone.recordCount', { count: rowCount })}
           </p>
         )}
@@ -133,8 +133,8 @@ export function DatabaseDangerZone({ onDataChanged }: DatabaseDangerZoneProps) {
           disabled={busy || statusLoading}
           className={`px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2 ${
             busy || statusLoading
-              ? 'bg-green-400 cursor-not-allowed'
-              : 'bg-green-600 hover:bg-green-700'
+              ? 'bg-primary/60 cursor-not-allowed'
+              : 'bg-primary hover:bg-primary-hover'
           }`}
         >
           {isSeeding ? (
@@ -154,7 +154,7 @@ export function DatabaseDangerZone({ onDataChanged }: DatabaseDangerZoneProps) {
       {feedback && (
         <div
           className={`md:col-span-2 p-3 rounded text-sm ${
-            feedback.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            feedback.type === 'success' ? 'bg-primary-muted text-primary' : 'bg-red-100 text-red-800'
           }`}
         >
           {feedback.text}

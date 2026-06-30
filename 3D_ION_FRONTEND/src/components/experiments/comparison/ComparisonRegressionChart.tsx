@@ -253,8 +253,8 @@ export function ComparisonRegressionChart({
 
   if (validExperiments.length === 0) {
     return (
-      <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+        <p className="text-muted text-sm">
           {t('experiments.charts.regression.noData') || 'No valid regression data available'}
         </p>
       </div>
@@ -263,8 +263,8 @@ export function ComparisonRegressionChart({
 
   if (patternSeries.length === 0) {
     return (
-      <div className="flex items-center justify-center h-80 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-80 bg-background rounded-lg border border-border">
+        <p className="text-muted text-sm">
           {t('experiments.charts.regression.insufficientData') ||
             'Insufficient data points for regression analysis'}
         </p>
@@ -273,12 +273,12 @@ export function ComparisonRegressionChart({
   }
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+    <div className="w-full bg-surface rounded-lg p-4 shadow-sm border border-border">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3 className="text-lg font-semibold text-foreground">
           {t('experiments.charts.regression.title') || 'Infill Regression Analysis'}
         </h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-muted mt-1">
           {t('experiments.charts.regression.description') ||
             'Correlation between infill percentage and Hounsfield units by pattern type'}
         </p>
@@ -335,25 +335,25 @@ export function ComparisonRegressionChart({
               const meta = raw?.groupMeta
               if (!meta) return null
               return (
-                <div className="rounded border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm">
+                <div className="rounded border border-border bg-surface px-3 py-2 text-sm shadow-sm">
                   <div>
-                    <span className="text-gray-500">Material: </span>
+                    <span className="text-muted">Material: </span>
                     {meta.materialLabel}
                   </div>
                   <div>
-                    <span className="text-gray-500">Pattern: </span>
+                    <span className="text-muted">Pattern: </span>
                     {meta.patternType}
                   </div>
                   <div>
-                    <span className="text-gray-500">Experimento: </span>
+                    <span className="text-muted">Experimento: </span>
                     {meta.experimentLabel}
                   </div>
                   <div>
-                    <span className="text-gray-500">Infill: </span>
+                    <span className="text-muted">Infill: </span>
                     {typeof raw?.infill_percentage === 'number' ? `${raw.infill_percentage}%` : '—'}
                   </div>
                   <div>
-                    <span className="text-gray-500">HU: </span>
+                    <span className="text-muted">HU: </span>
                     {typeof raw?.hu_value === 'number' ? raw.hu_value.toFixed(2) : '—'}
                   </div>
                 </div>
@@ -416,7 +416,7 @@ export function ComparisonRegressionChart({
 
       <HuTissueBandsLegend />
 
-      <div className="mt-4 text-xs text-gray-600">
+      <div className="mt-4 text-xs text-muted">
         <p className="italic">
           {t('experiments.charts.regression.noteComputed') ||
             'A regressão é calculada a partir dos pontos infill_pct e hu_mean de cada grupo (material/pattern).'}

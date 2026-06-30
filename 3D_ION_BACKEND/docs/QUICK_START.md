@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide — ION3D Platform
+# 🚀 Quick Start Guide — AMRAD
 
 Guia rápido para colocar a plataforma funcionando em **menos de 5 minutos**.
 
@@ -76,7 +76,7 @@ CREATE TABLE samples (
 ## 🔧 Passo 2: Configurar Backend
 
 ```bash
-cd 3D_ION_BACKEND
+cd AMRAD_BACKEND
 
 # Criar ambiente virtual
 python -m venv venv
@@ -119,7 +119,7 @@ uvicorn app.main:app --reload
 **Em outro terminal:**
 
 ```bash
-cd 3D_ION_FRONTEND
+cd AMRAD_FRONTEND
 
 # Instalar dependências
 npm install
@@ -269,8 +269,8 @@ npm run dev
 Após testar localmente:
 
 1. ✅ Ver [MIGRATION_COMPLETE.md](MIGRATION_COMPLETE.md) para visão completa
-2. ✅ Ver `3D_ION_BACKEND/README.md` para documentação do backend
-3. ✅ Ver `3D_ION_FRONTEND/README.md` para documentação do frontend
+2. ✅ Ver `AMRAD_BACKEND/README.md` para documentação do backend
+3. ✅ Ver `AMRAD_FRONTEND/README.md` para documentação do frontend
 4. 🚀 Deploy em produção (Vercel + Railway/Render)
 
 ---

@@ -19,18 +19,18 @@ export function HuTissueBandsLegend() {
   const labeled = HU_TISSUE_BANDS.filter((b) => b.showLabel)
 
   return (
-    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600">
-      <span className="font-medium text-gray-700">
+    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted">
+      <span className="font-medium text-foreground">
         {t('experiments.charts.regression.tissueBands.legendTitle')}:
       </span>
       {labeled.map((band) => (
         <span key={band.id} className="inline-flex items-center gap-1.5">
           <span
-            className="inline-block h-3 w-5 rounded-sm border border-gray-300"
+            className="inline-block h-3 w-5 rounded-sm border border-border"
             style={{ backgroundColor: band.fill, opacity: Math.min(1, band.fillOpacity + 0.25) }}
           />
           {t(`experiments.charts.regression.tissueBands.${band.id}`)}
-          <span className="text-gray-400">
+          <span className="text-slate-400">
             ({band.yMin}–{band.yMax} HU)
           </span>
         </span>

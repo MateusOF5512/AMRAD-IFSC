@@ -58,7 +58,7 @@
     }
   },
   "meta": {
-    "title": "ION3D Platform",
+    "title": "AMRAD",
     "description": "Sistema de gerenciamento de experimentos científicos para materiais impressos em 3D"
   },
   "nav": {
@@ -73,7 +73,7 @@
   "footer": {
     "about": {
       "title": "Sobre a Plataforma",
-      "description": "ION3D é uma plataforma científica dedicada ao gerenciamento e análise de experimentos com materiais impressos em 3D, fornecendo ferramentas avançadas para pesquisa e documentação."
+      "description": "AMRAD é uma plataforma científica dedicada ao gerenciamento e análise de experimentos com materiais impressos em 3D, fornecendo ferramentas avançadas para pesquisa e documentação."
     },
     "quickLinks": {
       "title": "Links Rápidos",
@@ -91,11 +91,11 @@
     },
     "support": {
       "title": "Suporte",
-      "email": "suporte@ion3d.com",
+      "email": "suporte@amrad.com",
       "location": "São Paulo, Brasil",
       "helpCenter": "Central de Ajuda"
     },
-    "rights": "© {{year}} ION3D Platform. Todos os direitos reservados.",
+    "rights": "© {{year}} AMRAD. Todos os direitos reservados.",
     "privacy": "Privacidade",
     "terms": "Termos de Uso",
     "cookies": "Cookies"
@@ -122,7 +122,7 @@
   },
   "auth": {
     "login": {
-      "title": "ION3D Platform",
+      "title": "AMRAD",
       "subtitle": "Entre com sua conta",
       "emailOrInstagram": "Email ou Instagram",
       "password": "Senha",
@@ -139,7 +139,7 @@
       }
     },
     "register": {
-      "title": "ION3D Platform",
+      "title": "AMRAD",
       "subtitle": "Registre-se como pesquisador",
       "fullName": "Nome Completo *",
       "institution": "Instituição *",
@@ -179,6 +179,39 @@
       },
       "alreadyHaveAccount": "Já tem uma conta? ",
       "signIn": "Faça login"
+    },
+    "google": {
+      "continueLogin": "Continuar com Google",
+      "continueRegister": "Criar conta com Google",
+      "redirecting": "Redirecionando...",
+      "loginSubtitle": "Entre com sua conta Google",
+      "registerSubtitle": "Crie sua conta com Google",
+      "secureSessionNote": "Sessão segura gerenciada pelo Supabase Auth.",
+      "registerNote": "Após autenticar com Google, sua conta será criada automaticamente. Você poderá completar dados opcionais no primeiro acesso.",
+      "completeProfileTitle": "Complete seu perfil",
+      "completeProfileSubtitle": "Adicione informações opcionais para enriquecer seu perfil de pesquisador.",
+      "welcomeUser": "Olá, {{name}}! Seus dados do Google já foram salvos.",
+      "optional": "(opcional)",
+      "skipForNow": "Pular por agora",
+      "saveProfile": "Salvar perfil",
+      "finishRegistration": "Finalizar cadastro",
+      "completingSignIn": "Concluindo login...",
+      "backToLogin": "Voltar ao login",
+      "errors": {
+        "signInFailed": "Erro ao iniciar login com Google",
+        "providerNotEnabled": "O login com Google ainda nao esta ativado no Supabase. Siga as instrucoes abaixo para habilitar o provider Google.",
+        "noSession": "Sessão não encontrada. Tente novamente.",
+        "loginFailed": "Erro ao concluir login",
+        "sessionFailed": "Erro ao validar sessão"
+      },
+      "setupHelp": {
+        "title": "Erro \"provider is not enabled\"? Ative o Google no Supabase",
+        "step1": "Abra",
+        "providersLink": "Authentication > Providers > Google",
+        "step2": "Ative o Google e cole o Client ID e Client Secret do Google Cloud Console.",
+        "step3": "No Google Cloud, use este Redirect URI autorizado:",
+        "step4": "No Supabase, em Authentication > URL Configuration, adicione esta Redirect URL:"
+      }
     },
     "session": {
       "expired": "Sessão Expirada",

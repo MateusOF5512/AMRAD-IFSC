@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     
     # API
     API_V1_PREFIX: str = "/api/v1"
-    PROJECT_NAME: str = "ION3D Platform API"
+    PROJECT_NAME: str = "AMRAD API"
     VERSION: str = "1.0.0"
     DEBUG: bool = False
     
@@ -72,16 +72,27 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":
+        if self.DEBUG:
+            return self
+
         weak_secrets = {
             "dev-secret-key-change-in-production",
             "uma-string-secreta-longa-e-aleatoria",
+            "string-secreta-longa-e-aleatoria",
+            "qualquer-string-secreta-aqui",
             "change-me",
         }
-        if not self.DEBUG and (
-            self.JWT_SECRET in weak_secrets or len(self.JWT_SECRET) < 32
-        ):
+        secret_len = len(self.JWT_SECRET)
+        if self.JWT_SECRET in weak_secrets:
             raise ValueError(
-                "JWT_SECRET must be a strong random string (32+ chars) when DEBUG=False"
+                "JWT_SECRET is a known development placeholder. "
+                "Set a unique random string (32+ chars) in Render → Environment "
+                "(local .env is not deployed)."
+            )
+        if secret_len < 32:
+            raise ValueError(
+                f"JWT_SECRET is too short ({secret_len} chars). "
+                "Use a strong random string with at least 32 characters when DEBUG=False."
             )
         return self
 

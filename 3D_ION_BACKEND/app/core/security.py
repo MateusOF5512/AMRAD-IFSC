@@ -80,40 +80,45 @@ def _normalize_user_context(payload: dict) -> dict:
 
 def verify_supabase_token(token: str) -> dict:
     """
-    Verify JWT token (custom or Supabase) and return user data
-    
-    First tries to verify as a custom JWT token (from our login endpoint).
-    Falls back to Supabase token validation if needed.
+    Verify JWT token (custom or Supabase) and return user data.
+
+    Custom JWTs carry the researcher id directly.
+    Supabase tokens are resolved to the matching researchers row.
     """
     try:
         payload = verify_jwt_token(token)
         return _normalize_user_context(payload)
     except HTTPException:
         pass
-    
-    # Try Supabase token verification
+
     try:
+        from app.core.oauth import find_researcher_by_auth, get_supabase_auth_user, link_auth_id
+
         supabase: Client = get_supabase_client()
-        
-        # Use Supabase client to get user from token
-        user_response = supabase.auth.get_user(token)
-        
-        if not user_response or not user_response.user:
+        auth_user = get_supabase_auth_user(token)
+        researcher = find_researcher_by_auth(supabase, auth_user.id, auth_user.email)
+
+        if not researcher:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
+                detail="Researcher profile not found. Complete registration first.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
-        user_type = user_response.user.user_metadata.get("user_type") or user_response.user.user_metadata.get("role", "pesquisador")
+
+        if not researcher.get("auth_id"):
+            link_auth_id(supabase, researcher["id"], auth_user.id)
+
+        user_type = researcher.get("user_type", "pesquisador")
         return {
-            "user_id": user_response.user.id,
-            "email": user_response.user.email,
+            "user_id": researcher["id"],
+            "email": researcher.get("email") or auth_user.email,
             "user_type": user_type,
             "role": user_type,
         }
-        
-    except Exception as e:
+
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",

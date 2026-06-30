@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import ExperimentEditWizard from '@/components/experiments/ExperimentEditWizard'
 import { getNormalizedApiUrl } from '@/lib/api'
 import { transformApiDataToEditFormat, EditExperimentData } from '@/lib/utils/transformExperimentData'
+import { logger } from '@/lib/logger'
 
 const API_BASE_URL = getNormalizedApiUrl()
 
@@ -57,24 +58,14 @@ export default function EditExperimentPage() {
       }
 
       const data = await response.json()
-      console.log('[Edit Page] API Response received:', {
-        hasInfillMeasurements: !!data.infill_measurements,
-        infillLength: data.infill_measurements?.length || 0,
-        infillData: data.infill_measurements
-      })
 
       // Transform backend response using shared utility
       const editData = transformApiDataToEditFormat(data)
-      console.log('[Edit Page] Transformed data:', {
-        hasInfillData: !!editData.infill_data,
-        infillLength: editData.infill_data?.length || 0,
-        infillData: editData.infill_data
-      })
       
       setEditData(editData)
 
     } catch (error) {
-      console.error('Error loading experiment:', error)
+      logger.error('edit-experiment', error instanceof Error ? error.message : 'Unknown error')
       setLoadError(
         error instanceof Error 
           ? error.message 
@@ -89,7 +80,7 @@ export default function EditExperimentPage() {
   if (isCheckingAuth || isLoadingExperiment) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }
@@ -114,7 +105,7 @@ export default function EditExperimentPage() {
   return (
     <>
       {experimentId && (
-        <div className="mb-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 p-4">
+        <div className="mb-4 rounded-lg border-l-4 border-info bg-blue-50 p-4">
           <p className="text-sm text-blue-800">
             <strong>Editar Experimento:</strong> #{experimentId}
           </p>

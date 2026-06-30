@@ -13,7 +13,7 @@ npm run dev
 # Esperado: http://localhost:3000 disponível
 
 # 2. Backend rodando
-cd ../3D_ION_BACKEND
+cd ../AMRAD_BACKEND
 python -m uvicorn app.main:app --reload
 # Esperado: http://localhost:8000 disponível
 
